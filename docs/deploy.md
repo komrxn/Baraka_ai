@@ -21,9 +21,8 @@ python3 --version
 
 ```bash
 cd /opt
-# Если кода ещё нет — загрузите его (git clone/rsync/scp). Пример:
-# git clone https://example.com/your/accountant-bot.git
-mkdir -p /opt/accountant-bot
+git clone https://example.com/your/accountant-bot.git
+cd accountant-bot
 ```
 
 Опционально: запускать под отдельным пользователем (рекомендуется)
@@ -140,4 +139,45 @@ systemctl restart accountant-bot
 
 - Входящих портов не требуется (long polling).
 - Таймзона сервера не критична для хранения (Supabase хранит timestamptz).
+
+### Docker / Docker Compose
+
+Вариант A (рекомендуется): Docker Compose с локальным Redis
+
+1) Убедитесь, что `.env` заполнен. Для Compose используйте `REDIS_URL=redis://redis:6379/0`.
+2) Запустите:
+
+```bash
+docker compose up -d --build
+docker compose logs -f bot
+```
+
+Обновление:
+
+```bash
+docker compose pull || true
+docker compose up -d --build bot
+```
+
+Остановка и удаление:
+
+```bash
+docker compose down
+```
+
+Вариант B: Один контейнер (внешний/хостовый Redis)
+
+```bash
+docker build -t accountant-bot:latest .
+# Если Redis на хосте Linux:
+#   добавьте маршрут host.docker.internal → host-gateway ИЛИ используйте --network host
+docker run -d \
+  --name accountant-bot \
+  --restart unless-stopped \
+  --env-file .env \
+  --add-host=host.docker.internal:host-gateway \
+  accountant-bot:latest
+```
+
+Примечание: Для одиночного контейнера при использовании Redis на хосте выставьте в `.env` `REDIS_URL=redis://host.docker.internal:6379/0` (на Linux требуется ключ `--add-host`, см. пример выше). Либо используйте `--network host`.
 
