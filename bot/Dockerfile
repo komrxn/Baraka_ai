@@ -1,0 +1,14 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY bot/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy bot code
+COPY bot/ ./bot/
+COPY .env .
+
+# Run bot
+CMD ["python", "-m", "bot.main"]

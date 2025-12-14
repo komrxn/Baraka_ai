@@ -1,0 +1,20 @@
+{
+  "2040216796": {
+    "type": "expense",
+    "amount": "0",
+    "currency": "uzs",
+    "description": "\u043d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u044f",
+    "suggested_category_id": null,
+    "suggested_category_name": null,
+    "confidence": 0.0,
+    "ai_parsed_data": {
+      "type": "expense",
+      "amount": "0",
+      "currency": "uzs",
+      "description": "\u043d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u044f",
+      "category_slug": null,
+      "confidence": 0.0
+    },
+    "auto_created": false
+  }
+}

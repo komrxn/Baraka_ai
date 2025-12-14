@@ -36,7 +36,7 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-43200}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
-      - "${API_PORT:-8000}:8000"
+      - "${API_PORT:-8001}:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -48,6 +48,23 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+  # Telegram Bot
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    container_name: midas_bot
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      API_BASE_URL: http://api:8000
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - midas_network
+    restart: unless-stopped
 
   # Nginx Reverse Proxy (optional, for production)
   nginx:
