@@ -9,6 +9,10 @@ WORKDIR /app
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
+# Build argument for base path
+ARG BASE_URL=/
+ENV BASE_URL=$BASE_URL
+
 # Копируем файлы зависимостей
 COPY package*.json ./
 

@@ -71,6 +71,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: /midas-api # API через nginx proxy на сервере
+        BASE_URL: /midas/ # Base path для assets
     container_name: midas_frontend
     ports:
       - "3001:80" # Exposed для nginx на сервере
