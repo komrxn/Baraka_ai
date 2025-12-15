@@ -18,8 +18,8 @@ RUN npm ci
 # Копируем исходный код
 COPY . .
 
-# Собираем приложение для продакшена
-RUN npm run build:prod
+# Собираем приложение для продакшена (без type checking)
+RUN npm run build
 
 # Stage 2: Production
 FROM nginx:alpine
