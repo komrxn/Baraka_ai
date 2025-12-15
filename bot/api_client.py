@@ -2,8 +2,28 @@
 import httpx
 from typing import Optional, Dict, Any
 import logging
+from functools import wraps
 
 logger = logging.getLogger(__name__)
+
+
+class UnauthorizedError(Exception):
+    """Raised when API returns 401 Unauthorized (token expired/invalid)."""
+    pass
+
+
+def handle_auth_errors(func):
+    """Decorator to handle 401 Unauthorized errors."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                logger.warning(f"401 Unauthorized in {func.__name__}: Token expired or invalid")
+                raise UnauthorizedError("Token expired or invalid")
+            raise
+    return wrapper
 
 
 class MidasAPIClient:
@@ -56,6 +76,7 @@ class MidasAPIClient:
             self.token = data.get("access_token")
             return data
     
+    @handle_auth_errors
     async def get_me(self) -> Dict[str, Any]:
         """Get current user info."""
         async with httpx.AsyncClient() as client:
@@ -104,6 +125,7 @@ class MidasAPIClient:
             response.raise_for_status()
             return response.json()
     
+    @handle_auth_errors
     async def create_transaction(self, transaction_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create transaction."""
         async with httpx.AsyncClient() as client:
@@ -115,6 +137,7 @@ class MidasAPIClient:
             response.raise_for_status()
             return response.json()
     
+    @handle_auth_errors
     async def get_balance(self, period: str = "month") -> Dict[str, Any]:
         """Get balance."""
         async with httpx.AsyncClient() as client:
@@ -126,8 +149,9 @@ class MidasAPIClient:
             response.raise_for_status()
             return response.json()
     
+    @handle_auth_errors
     async def get_categories(self) -> list:
-        """Get user categories."""
+        """Get all categories."""
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.base_url}/categories",
@@ -136,6 +160,7 @@ class MidasAPIClient:
             response.raise_for_status()
             return response.json()
     
+    @handle_auth_errors
     async def get_category_breakdown(self, period: str = "month") -> Dict[str, Any]:
         """Get category breakdown statistics."""
         async with httpx.AsyncClient() as client:

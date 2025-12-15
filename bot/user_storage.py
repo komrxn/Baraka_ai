@@ -47,6 +47,20 @@ class UserStorage:
         }
         self._save_users()
     
+    def clear_user_token(self, telegram_id: int):
+        """Clear user token when it expires or becomes invalid."""
+        if str(telegram_id) in self.users:
+            # Assuming 'username' might be stored, retrieve it before popping
+            username = self.users[str(telegram_id)].get('username', 'unknown')
+            self.users.pop(str(telegram_id))
+            self._save_users()
+            # If a logger is available, you might log this event
+            # logger.info(f"Cleared expired token for user {telegram_id} ({username})")
+        else:
+            # If a logger is available, you might log this event
+            # logger.warning(f"Attempted to clear token for non-existent user {telegram_id}")
+            pass # No action needed if user not found
+    
     def get_user_token(self, telegram_id: int) -> Optional[str]:
         """Get user auth token."""
         user_data = self.users.get(str(telegram_id))

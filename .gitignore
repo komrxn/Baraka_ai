@@ -22,7 +22,7 @@ dist/
 .vscode/
 
 # Env & secrets
-.env
+
 .env.*
 !*.example
 *.env.local
@@ -30,4 +30,4 @@ dist/
 # Logs
 *.log
 
-/finance-tracker
+/finance-tracke

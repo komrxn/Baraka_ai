@@ -1,16 +1,42 @@
 """Telegram bot handlers."""
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.ext import ContextTypes
 import logging
 from datetime import datetime
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import ContextTypes
 
-from .config import config
-from .api_client import MidasAPIClient
 from .user_storage import storage
+from .config import config
+from .api_client import MidasAPIClient, UnauthorizedError
 from .dialog_context import dialog_context
 
 logger = logging.getLogger(__name__)
 
+
+async def with_auth_check(update: Update, user_id: int, api_call):
+    """Execute API call with automatic 401 error handling.
+    
+    If the API returns 401 Unauthorized (token expired), automatically:
+    1. Clear the invalid token
+    2. Prompt user to re-authenticate with /start
+    3. Return None to indicate auth failure
+    """
+    try:
+        return await api_call()
+    except UnauthorizedError:
+        # Token expired or invalid
+        storage.clear_user_token(user_id)
+        
+        await update.message.reply_text(
+            "🔑 **Твой токен авторизации истёк.**\n\n"
+            "Отправь /start чтобы войти заново.",
+            parse_mode='Markdown',
+            reply_markup=ReplyKeyboardRemove()
+        )
+        logger.info(f"User {user_id} token expired, prompted to re-authenticate")
+        return None
+    except Exception as e:
+        # Other errors - let them bubble up
+        raise
 
 
 # Keyboards
@@ -121,17 +147,24 @@ async def login_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Get user balance."""
-    if not storage.is_user_authorized(update.effective_user.id):
+    user_id = update.effective_user.id
+    
+    if not storage.is_user_authorized(user_id):
         await update.message.reply_text("⛔ Сначала авторизуйся: /start")
         return
     
-    token = storage.get_user_token(update.effective_user.id)
+    token = storage.get_user_token(user_id)
     api = MidasAPIClient(config.API_BASE_URL)
     api.set_token(token)
     
+    async def _get_balance():
+        return await api.get_balance(period="month")
+    
+    balance_data = await with_auth_check(update, user_id, _get_balance)
+    if balance_data is None:
+        return  # Auth failed, user prompted to /start
+    
     try:
-        balance_data = await api.get_balance(period="month")
-        
         await update.message.reply_text(
             f"💰 **Баланс за месяц:**\n\n"
             f"💵 Доходы: {float(balance_data['total_income']):,.0f} {balance_data['currency'].upper()}\n"
@@ -140,10 +173,9 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown',
             reply_markup=get_main_keyboard()
         )
-        
     except Exception as e:
-        logger.error(f"Balance error: {e}")
-        await update.message.reply_text("❌ Ошибка получения баланса")
+        logger.error(f"Balance display error: {e}")
+        await update.message.reply_text("❌ Ошибка отображения баланса")
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -257,30 +289,33 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     api = MidasAPIClient(config.API_BASE_URL)
     api.set_token(token)
     
-    try:
+    # Send typing action
+    await update.message.chat.send_action(action="typing")
+    
+    async def _process_with_ai():
         from .ai_agent import AIAgent
-        
-        # Send typing action
-        await update.message.chat.send_action(action="typing")
-        
         agent = AIAgent(api)
-        response = await agent.process_message(user_id, text)
-        
+        return await agent.process_message(user_id, text)
+    
+    response = await with_auth_check(update, user_id, _process_with_ai)
+    if response is None:
+        return  # Auth failed, user prompted to /start
+    
+    # Try to send with Markdown, fallback to plain text if fails
+    try:
         await update.message.reply_text(
             response,
             parse_mode='Markdown',
             reply_markup=get_main_keyboard()
         )
-        
-    except Exception as e:
-        logger.exception(f"AI agent error: {e}")
+    except Exception as markdown_error:
+        # Markdown parsing failed, send plain text
+        logger.warning(f"Markdown parsing failed, sending plain text: {markdown_error}")
         await update.message.reply_text(
-            "❌ Произошла ошибка. Попробуй ещё раз.",
+            response,
             reply_markup=get_main_keyboard()
         )
     
-    # Use AI agent for all other messages
-
 
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle voice messages."""
@@ -303,7 +338,10 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Transcribe using Whisper
         from openai import AsyncOpenAI
-        whisper_client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+        whisper_client = AsyncOpenAI(
+            api_key=config.OPENAI_API_KEY,
+            timeout=60.0
+        )
         
         import io
         audio_file = io.BytesIO(bytes(voice_bytes))
@@ -319,16 +357,27 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"Transcribed: {transcribed_text}")
         
         # Use AI agent to process transcribed text
-        from .ai_agent import AIAgent
+        async def _process_transcribed():
+            from .ai_agent import AIAgent
+            agent = AIAgent(api)
+            return await agent.process_message(user_id, transcribed_text)
         
-        agent = AIAgent(api)
-        response = await agent.process_message(user_id, transcribed_text)
+        response = await with_auth_check(update, user_id, _process_transcribed)
+        if response is None:
+            return  # Auth failed, user prompted to /start
         
-        await update.message.reply_text(
-            f"🎤 *Ты сказал:* {transcribed_text}\n\n{response}",
-            parse_mode='Markdown',
-            reply_markup=get_main_keyboard()
-        )
+        # Try Markdown, fallback to plain text
+        try:
+            await update.message.reply_text(
+                f"🎤 *Ты сказал:* {transcribed_text}\n\n{response}",
+                parse_mode='Markdown',
+                reply_markup=get_main_keyboard()
+            )
+        except Exception:
+            await update.message.reply_text(
+                f"🎤 Ты сказал: {transcribed_text}\n\n{response}",
+                reply_markup=get_main_keyboard()
+            )
         
     except Exception as e:
         logger.exception(f"Voice processing error: {e}")
