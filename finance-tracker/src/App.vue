@@ -19,6 +19,9 @@ onBeforeMount(() => {
   // Check if in Telegram WebApp
   isTelegramMode.value = isTelegramWebApp();
   hasToken.value = !!localStorage.getItem('access_token');
+  
+  // TEMPORARY: Allow testing without Telegram
+  hasToken.value = true;
 });
 
 // const pageTransition = usePageTransitionStore();
