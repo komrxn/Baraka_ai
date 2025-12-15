@@ -17,6 +17,9 @@ class BotConfig:
     # OpenAI (если нужен прямой доступ)
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     
+    # Web App
+    WEB_APP_URL = os.getenv("WEB_APP_URL", "http://localhost:3001/midas/")
+    
     @classmethod
     def validate(cls):
         """Validate required config."""
