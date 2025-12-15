@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
+  # ========== DATABASE ==========
   db:
-    image: postgres:14-alpine
+    image: postgres:15-alpine
     container_name: midas_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-midas_db}
@@ -13,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     ports:
-      - "5433:5432" # Changed to 5433 to avoid conflict with other postgres instance
+      - "5433:5432" # External access for backups/debugging
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
@@ -23,7 +21,7 @@ services:
       - midas_network
     restart: unless-stopped
 
-  # FastAPI Application
+  # ========== BACKEND API ==========
   api:
     build:
       context: .
@@ -34,9 +32,9 @@ services:
       SECRET_KEY: ${SECRET_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-43200}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      CORS_ORIGINS: "*" # Разрешаем CORS через nginx
     ports:
-      - "${API_PORT:-8001}:8000"
+      - "8001:8000" # Exposed для nginx на сервере
     depends_on:
       db:
         condition: service_healthy
@@ -49,7 +47,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Telegram Bot
+  # ========== TELEGRAM BOT ==========
   bot:
     build:
       context: .
@@ -57,7 +55,7 @@ services:
     container_name: midas_bot
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      API_BASE_URL: http://95.111.250.65:8001
+      API_BASE_URL: http://api:8000
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     depends_on:
       api:
@@ -66,23 +64,20 @@ services:
       - midas_network
     restart: unless-stopped
 
-  # Nginx Reverse Proxy (optional, for production)
-  nginx:
-    image: nginx:alpine
-    container_name: midas_nginx
+  # ========== FRONTEND ==========
+  frontend:
+    build:
+      context: ./finance-tracker
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /midas-api # API через nginx proxy на сервере
+    container_name: midas_frontend
     ports:
-      - "${NGINX_PORT:-80}:80"
-      - "${NGINX_SSL_PORT:-443}:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - api
+      - "3001:80" # Exposed для nginx на сервере
     networks:
       - midas_network
     restart: unless-stopped
-    profiles:
-      - production
+  # Nginx контейнер не нужен - используем nginx на сервере
 
 volumes:
   postgres_data:
