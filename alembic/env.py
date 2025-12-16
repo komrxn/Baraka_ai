@@ -62,8 +62,14 @@ def run_migrations_online() -> None:
     from api.config import get_settings
     settings = get_settings()
     
+    # Convert asyncpg URL to psycopg2 for synchronous migrations
+    db_url = settings.database_url.replace(
+        "postgresql+asyncpg://", 
+        "postgresql://"
+    )
+    
     configuration = config.get_section(config.config_ini_section)
-    configuration["sqlalchemy.url"] = settings.database_url
+    configuration["sqlalchemy.url"] = db_url
     
     connectable = engine_from_config(
         configuration,
