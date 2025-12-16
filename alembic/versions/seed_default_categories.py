@@ -60,22 +60,28 @@ def upgrade() -> None:
     # Insert categories
     connection = op.get_bind()
     for cat in categories:
-        connection.execute(
-            sa.text("""
-                INSERT INTO categories (id, name, slug, type, icon, color, is_default, user_id, created_at)
-                VALUES (:id, :name, :slug, :type, :icon, :color, true, NULL, NOW())
-                ON CONFLICT (slug, COALESCE(user_id, '00000000-0000-0000-0000-000000000000'::uuid))
-                DO NOTHING
-            """),
-            {
-                'id': str(uuid.uuid4()),
-                'name': cat['name'],
-                'slug': cat['slug'],
-                'type': cat['type'],
-                'icon': cat['icon'],
-                'color': cat['color']
-            }
+        # Check if category exists
+        result = connection.execute(
+            sa.text("SELECT COUNT(*) FROM categories WHERE slug = :slug AND user_id IS NULL"),
+            {'slug': cat['slug']}
         )
+        count = result.scalar()
+        
+        if count == 0:
+            connection.execute(
+                sa.text("""
+                    INSERT INTO categories (id, name, slug, type, icon, color, is_default, user_id, created_at)
+                    VALUES (:id, :name, :slug, :type, :icon, :color, true, NULL, NOW())
+                """),
+                {
+                    'id': str(uuid.uuid4()),
+                    'name': cat['name'],
+                    'slug': cat['slug'],
+                    'type': cat['type'],
+                    'icon': cat['icon'],
+                    'color': cat['color']
+                }
+            )
 
 
 def downgrade() -> None:
