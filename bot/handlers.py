@@ -385,17 +385,12 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Debug logging
         logger.info(f"UzbekVoice.AI full response: {stt_result}")
         
-        # Try different possible keys for text
-        transcribed_text = (
-            stt_result.get("text") or
-            stt_result.get("transcript") or
-            stt_result.get("transcription") or
-            stt_result.get("data", {}).get("text") or
-            ""
-        )
+        # Parse response - text is in result.text
+        result = stt_result.get("result", {})
+        transcribed_text = result.get("text", "").strip()
         
         if not transcribed_text:
-            logger.error(f"Empty transcription from UzbekVoice.AI. Response: {stt_result}")
+            logger.error(f"Empty transcription. Response: {stt_result}")
             raise ValueError(f"No text in response: {stt_result}")
         
         logger.info(f"Transcribed (UzbekVoice.AI): {transcribed_text}")
