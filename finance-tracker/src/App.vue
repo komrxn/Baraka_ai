@@ -15,11 +15,11 @@ const hasToken = ref(false);
 onBeforeMount(() => {
   setCurrentLocale(getCurrentLocale());
   setTheme();
-  
+
   // Check if in Telegram WebApp
   isTelegramMode.value = isTelegramWebApp();
   hasToken.value = !!localStorage.getItem('access_token');
-  
+
   // TEMPORARY: Allow testing without Telegram
   hasToken.value = true;
 });
@@ -28,19 +28,17 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div id="app">
-    <!-- Show Telegram required message if not in Telegram -->
-    <TelegramRequired v-if="!isTelegramMode && !hasToken" />
-    
-    <!-- Main app if in Telegram or has token -->
-    <AppLayout v-else>
-      <router-view v-slot="{ Component, route }">
-        <!-- <transition :name="pageTransition.transitionName"> -->
-          <component :is="Component" :key="route.path" />
-        <!-- </transition> -->
-      </router-view>
-    </AppLayout>
-  </div>
+  <!-- Show Telegram required message if not in Telegram -->
+  <TelegramRequired v-if="!isTelegramMode && !hasToken" />
+
+  <!-- Main app if in Telegram or has token -->
+  <AppLayout v-else>
+    <router-view v-slot="{ Component, route }">
+      <!-- <transition :name="pageTransition.transitionName"> -->
+      <component :is="Component" :key="route.path" />
+      <!-- </transition> -->
+    </router-view>
+  </AppLayout>
 </template>
 
 <style scoped lang="scss"></style>

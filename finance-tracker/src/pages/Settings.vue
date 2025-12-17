@@ -148,11 +148,8 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .settings-page {
-    max-width: 66rem;
     width: 100%;
-    margin: 0 auto;
     padding: 2rem;
-    min-height: 100dvh;
 
     &__header {
         display: flex;

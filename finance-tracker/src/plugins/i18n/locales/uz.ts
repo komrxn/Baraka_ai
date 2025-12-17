@@ -76,6 +76,9 @@ export default {
     voiceInput: 'Ovozli kirish',
     photoInput: 'Foto kirish',
     writeExpenses: 'Xarajatlarni yozing',
+    limitsTitle: 'Limitlar',
+    limitsRecommendationTitle: 'Xarajatlaringizni nazorat qiling',
+    limitsRecommendationText: 'Byudjetni oshirmaslik va xarajatlaringizni kuzatish uchun kategoriyalar uchun limitlar qo\'shing',
   },
 
   // Sozlamalar

@@ -76,6 +76,9 @@ export default {
     voiceInput: 'Голосовой ввод',
     photoInput: 'Фото ввод',
     writeExpenses: 'Напишите расходы',
+    limitsTitle: 'Лимиты',
+    limitsRecommendationTitle: 'Контролируйте свои расходы',
+    limitsRecommendationText: 'Добавьте лимиты для категорий, чтобы отслеживать свои траты и не превышать бюджет',
   },
 
   // Настройки

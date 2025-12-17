@@ -9,11 +9,11 @@ const { t } = useI18n();
 
 const items = computed(() => [
   {
-    id: 1,
-    title: t('limits.title'),
-    icon: rounded,
-    color: 'var(--primary-500)',
-    link: '/limits'
+    id: 4,
+    title: t('analytics.title'),
+    icon: analitcs,
+    color: '#8b00ff',
+    link: '/analytics'
   },
   {
     id: 2,
@@ -30,12 +30,12 @@ const items = computed(() => [
     link: '/debts'
   },
   {
-    id: 4,
-    title: t('analytics.title'),
-    icon: analitcs,
-    color: '#8b00ff',
-    link: '/analytics'
-  }
+    id: 1,
+    title: t('limits.title'),
+    icon: rounded,
+    color: 'var(--primary-500)',
+    link: '/limits'
+  },
 ]);
 //   {
 //     id: 1,
@@ -69,29 +69,32 @@ const items = computed(() => [
   <div class="main-grid">
     <Button class="main-grid__item" v-for="i in items" :key="i.id" as="router-link" text :to="i.link">
       <VIcon :icon="i.icon" class="main-grid__item-icon" />
-      <h1 class="font-16-r gold-text">{{ i.title }}</h1>
+      <h1 class="font-14-r gold-text">{{ i.title }}</h1>
     </Button>
   </div>
 </template>
 
 <style scoped lang="scss">
 .main-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
   gap: 1rem;
-  border-radius: 1.6rem;
-  margin-top: 1.6rem;
-
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
+  margin: 1.4rem -2rem 0 -2rem;
+  padding: 0 2rem;
+  scrollbar-width: none;
 
   &__item {
-    padding: 1.6rem;
+    padding: 3rem 1.6rem;
     border-radius: 1.6rem;
     display: flex;
     align-items: center;
     flex-direction: column;
     justify-content: center;
-    gap: 1.4rem;
-    aspect-ratio: 1.5/1;
+    gap: 0.8rem;
+    min-width: 120px;
+    flex-shrink: 0;
     text-decoration: none;
     background: var(--gold-card-bg);
     border: 1px solid var(--gold-border);
@@ -123,8 +126,8 @@ const items = computed(() => [
   }
 
   &__item-icon {
-    width: 3rem;
-    height: 3rem;
+    width: 2.4rem;
+    height: 2.4rem;
     // color: var(--primary-500);
     // filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
 

@@ -53,39 +53,51 @@ html {
     --tg-viewport-height: 100dvh;
     --tg-viewport-stable-height: 100dvh;
 }
+
 .font-none {
     font-size: 0 !important;
 }
+
 .font-10-r {
     font: var(--font-10-r) !important;
 }
+
 .font-12-r {
     font: var(--font-12-r) !important;
 }
+
 .font-14-r {
     font: var(--font-14-r) !important;
 }
+
 .font-16-r {
     font: var(--font-16-r) !important;
 }
+
 .font-18-r {
     font: var(--font-18-r) !important;
 }
+
 .font-20-r {
     font: var(--font-20-r) !important;
 }
+
 .font-22-r {
     font: var(--font-22-r) !important;
 }
+
 .font-24-r {
     font: var(--font-24-r) !important;
 }
+
 .font-26-r {
     font: var(--font-26-r) !important;
 }
+
 .font-28-r {
     font: var(--font-28-r) !important;
 }
+
 .font-30-r {
     font: var(--font-30-r) !important;
 }
@@ -93,30 +105,39 @@ html {
 .font-10-b {
     font: var(--font-10-b) !important;
 }
+
 .font-12-b {
     font: var(--font-12-b) !important;
 }
+
 .font-14-b {
     font: var(--font-14-b) !important;
 }
+
 .font-16-b {
     font: var(--font-16-b) !important;
 }
+
 .font-18-b {
     font: var(--font-18-b) !important;
 }
+
 .font-20-b {
     font: var(--font-20-b) !important;
 }
+
 .font-22-b {
     font: var(--font-22-b) !important;
 }
+
 .font-24-b {
     font: var(--font-24-b) !important;
 }
+
 .font-26-b {
     font: var(--font-26-b) !important;
 }
+
 .font-28-b {
     font: var(--font-28-b) !important;
 }
@@ -133,9 +154,11 @@ html {
 .text-left {
     text-align: left;
 }
+
 .text-center {
     text-align: center;
 }
+
 .text-right {
     text-align: right;
 }

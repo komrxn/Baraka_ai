@@ -76,6 +76,9 @@ export default {
     voiceInput: 'Voice input',
     photoInput: 'Photo input',
     writeExpenses: 'Write expenses',
+    limitsTitle: 'Limits',
+    limitsRecommendationTitle: 'Control your expenses',
+    limitsRecommendationText: 'Add limits for categories to track your spending and stay within budget',
   },
 
   // Settings

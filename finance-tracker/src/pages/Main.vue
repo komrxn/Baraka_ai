@@ -5,7 +5,7 @@
         <!-- <MainQuickInput /> -->
         <MainChart />
         <MainGrid />
-        <MainTransactions />
+        <MainLimits />
     </div>
 </template>
 
@@ -14,16 +14,14 @@ import MainChart from '@/components/Main/MainChart.vue';
 import MainHeader from '@/components/Main/MainHeader.vue';
 import MainBalance from '@/components/Main/MainBalance.vue';
 // import MainQuickInput from '@/components/Main/MainQuickInput.vue';
-import MainTransactions from '@/components/Main/MainTransactions.vue';
+import MainLimits from '@/components/Main/MainLimits.vue';
 import MainGrid from '@/components/Main/MainGrid.vue';
 </script>
 
 <style scoped lang="scss">
 .main-page {
-    max-width: 66rem;
     width: 100%;
-    margin: 0 auto;
     padding: 2rem;
-    height: 100dvh;
+    min-height: 100dvh;
 }
 </style>

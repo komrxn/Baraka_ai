@@ -73,8 +73,9 @@ const { modeModel, modes } = useThemeMode();
     </div>
 
     <div style="display: flex; align-items: center; gap: 1rem;">
-      <pre style="background: var(--black); color: var(--white); padding: 4rem; border-radius: var(--radius-l); font-size: 16px">
-        {{ `const getPosts = async () => {
+      <pre
+        style="background: var(--black); color: var(--white); padding: 4rem; border-radius: var(--radius-l); font-size: 16px">
+        {{`const getPosts = async () => {
             const { data, error } = await $axios.get('/posts', body, { loading });
             posts.value = error ? [] : data;
             postsError.value = Boolean(error);
@@ -82,7 +83,8 @@ const { modeModel, modes } = useThemeMode();
         };` }}
       </pre>
 
-      <Button label="Check router transition" size="large" @click="$router.push({ name: 'status', params: { type: 'approved' } })" />
+      <Button label="Check router transition" size="large"
+        @click="$router.push({ name: 'status', params: { type: 'approved' } })" />
     </div>
 
     <hr>
@@ -139,18 +141,10 @@ const { modeModel, modes } = useThemeMode();
     <VForm @submit-form="handleSubmit">
       <div class="form-wrapper">
         <div class="field-group">
-          <VInputText
-            v-model="text"
-            placeholder="Text-field-1"
-            :rules="[$formRules.required(), $formRules.minLength(10)]"
-          />
+          <VInputText v-model="text" placeholder="Text-field-1"
+            :rules="[$formRules.required(), $formRules.minLength(10)]" />
 
-          <VInputText
-            v-if="secondField"
-            v-model="text2"
-            placeholder="Text-field-2"
-            :rules="[$formRules.required()]"
-          />
+          <VInputText v-if="secondField" v-model="text2" placeholder="Text-field-2" :rules="[$formRules.required()]" />
           <template v-else>
             <div class="font-16-b w-full" style="text-align: center;">
               Second field!
@@ -159,36 +153,16 @@ const { modeModel, modes } = useThemeMode();
         </div>
 
         <div class="field-group">
-          <VInputNumber
-            v-model="numberFieldValue"
-            :min="0"
-            :rules="[$formRules.required(), $formRules.minValue(20)]"
-            show-buttons
-            button-layout="horizontal"
-            placeholder="Number field"
-          />
-          <VInputNumber
-            v-model="numberFieldValue"
-            :min="0"
-            :rules="[$formRules.required(), $formRules.minValue(10)]"
-            show-buttons
-            placeholder="Number field"
-          />
+          <VInputNumber v-model="numberFieldValue" :min="0" :rules="[$formRules.required(), $formRules.minValue(20)]"
+            show-buttons button-layout="horizontal" placeholder="Number field" />
+          <VInputNumber v-model="numberFieldValue" :min="0" :rules="[$formRules.required(), $formRules.minValue(10)]"
+            show-buttons placeholder="Number field" />
         </div>
 
         <div class="field-group">
-          <VInputMask
-            v-model="maskFieldValue"
-            mask="##-##-##"
-            placeholder="Numbers with mask"
-            :pt="{ root: { inputmode: 'numeric' } }"
-            :rules="[$formRules.required()]"
-          />
-          <VInputMask
-            v-model="maskFieldValue2"
-            mask="@@-@@-AA"
-            placeholder="Letters with mask"
-          />
+          <VInputMask v-model="maskFieldValue" mask="##-##-##" placeholder="Numbers with mask"
+            :pt="{ root: { inputmode: 'numeric' } }" :rules="[$formRules.required()]" />
+          <VInputMask v-model="maskFieldValue2" mask="@@-@@-AA" placeholder="Letters with mask" />
         </div>
         <div class="field-group">
           <FormLabel label="Show second field" for="check-1">
@@ -208,7 +182,7 @@ const { modeModel, modes } = useThemeMode();
   gap: 1rem;
   align-items: center;
   padding: 1rem;
-  min-height: 100vh;
+
   hr {
     width: 100%;
   }
@@ -219,6 +193,7 @@ const { modeModel, modes } = useThemeMode();
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
+
 .field-group {
   display: flex;
   gap: 1rem;

@@ -4,7 +4,7 @@
             <div class="limit-card__category">
                 <h3 class="limit-card__category-name">{{ categoryName }}</h3>
             </div>
-            <div class="limit-card__menu-wrapper">
+            <div v-if="props.hideMenu !== true" class="limit-card__menu-wrapper">
                 <Button @click="toggleMenu" :icon="menuDots" text class="limit-card__menu-button" />
                 <TieredMenu ref="menu" :model="menuItems" popup />
             </div>
@@ -38,6 +38,7 @@ const { t } = useI18n();
 
 const props = defineProps<{
     limit: Limit;
+    hideMenu?: boolean;
 }>();
 
 const emit = defineEmits<{

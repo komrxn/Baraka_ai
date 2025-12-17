@@ -22,6 +22,7 @@ import warning from './warning.svg?raw';
 import microphone from './microphone.svg?raw';
 import camera from './camera.svg?raw';
 import filter from './filter.svg?raw';
+import home from './home.svg?raw';
 export {
   analitcs,
   arrowDownLeft,
@@ -47,4 +48,5 @@ export {
   microphone,
   camera,
   filter,
+  home,
 };
