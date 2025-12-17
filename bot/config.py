@@ -1,21 +1,25 @@
-"""Bot configuration."""
+"""Configuration for Telegram bot."""
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-class BotConfig:
-    """Bot configuration from environment."""
+class Config:
+    """Bot configuration."""
     
     # Telegram
-    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     
     # API
     API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8001")
     
-    # OpenAI (если нужен прямой доступ)
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    # OpenAI
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    
+    # UzbekVoice AI (for STT)
+    UZAI_API_KEY = os.getenv("UZAI_API_KEY")
+    UZAI_STT_URL = "https://uzbekvoice.ai/api/v1/stt"
     
     # Web App
     WEB_APP_URL = os.getenv("WEB_APP_URL", "http://localhost:3001/midas/")
@@ -29,4 +33,4 @@ class BotConfig:
             raise ValueError("API_BASE_URL is required")
 
 
-config = BotConfig()
+config = Config()

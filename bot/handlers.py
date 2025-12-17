@@ -356,25 +356,37 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         voice_file = await update.message.voice.get_file()
         voice_bytes = await voice_file.download_as_bytearray()
         
-        # Transcribe using Whisper
-        from openai import AsyncOpenAI
-        whisper_client = AsyncOpenAI(
-            api_key=config.OPENAI_API_KEY,
-            timeout=60.0
-        )
-        
+        # Transcribe using UzbekVoice.AI STT
+        import httpx
         import io
+        
         audio_file = io.BytesIO(bytes(voice_bytes))
-        audio_file.name = "audio.ogg"
+        audio_file.name = "voice.ogg"
         
-        transcript_response = await whisper_client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file,
-            response_format="text"
-        )
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                config.UZAI_STT_URL,
+                headers={
+                    "Authorization": config.UZAI_API_KEY
+                },
+                files={
+                    "file": ("voice.ogg", audio_file, "audio/ogg")
+                },
+                data={
+                    "language": "ru-uz",  # Смешанный русский-узбекский
+                    "blocking": "true",   # Синхронный ответ
+                    "return_offsets": "false",
+                    "run_diarization": "false"
+                }
+            )
+            response.raise_for_status()
+            stt_result = response.json()
         
-        transcribed_text = transcript_response if isinstance(transcript_response, str) else transcript_response.text
-        logger.info(f"Transcribed: {transcribed_text}")
+        transcribed_text = stt_result.get("text", "")
+        if not transcribed_text:
+            raise ValueError("Empty transcription from UzbekVoice.AI")
+        
+        logger.info(f"Transcribed (UzbekVoice.AI): {transcribed_text}")
         
         # Use AI agent to process transcribed text
         async def _process_transcribed():
