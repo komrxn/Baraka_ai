@@ -46,11 +46,8 @@ class UserStorage:
     
     def save_user_token(self, user_id: int, token: str):
         """Save user authentication token."""
-        self.users[str(user_id)] = {
-            "token": token,
-            "timestamp": datetime.now()
-        }
-        self._save_users() # Changed from _save_to_file() to _save_users() for consistency
+        self.users[str(user_id)] = {"token": token}
+        self._save_users()
         logger.info(f"Saved token for user {user_id}")
     
     def clear_user_token(self, telegram_id: int):
