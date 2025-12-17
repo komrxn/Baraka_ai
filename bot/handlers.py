@@ -50,45 +50,22 @@ def get_main_keyboard():
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /start command."""
+    """Start command - show registration or login options."""
     user = update.effective_user
-    
-    # Create WebApp inline keyboard
-    webapp_keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(
-            "💰 Открыть приложение",
-            web_app=WebAppInfo(url=config.WEB_APP_URL)
-        )
-    ]])
     
     if storage.is_user_authorized(user.id):
         await update.message.reply_text(
-            f"С возвращением, {user.first_name}! 👋\n\n"
-            "🌐 Используй веб-приложение для поного функционала\n"
-            "💬 Или пиши мне здесь для быстрых команд",
+            f"Привет, {user.first_name}! 👋\n\nТы уже авторизован.",
             reply_markup=get_main_keyboard()
-        )
-        # Send WebApp button separately to avoid keyboard conflict
-        await update.message.reply_text(
-            "Открой веб-приложение:",
-            reply_markup=webapp_keyboard
         )
     else:
         await update.message.reply_text(
             f"Привет, {user.first_name}! 👋\n\n"
             "Я помогу тебе вести учёт финансов.\n\n"
-            "🌐 **Используй веб-приложение** (кнопка ниже)\n"
-            "Или авторизуйся в боте:\n\n"
-            "/register username email password - регистрация\n"
-            "/login username password - вход\n\n"
-            "Пример:\n"
-            "/register ivan ivan@mail.com mypass123",
-            parse_mode='Markdown'
-        )
-        # Send WebApp button
-        await update.message.reply_text(
-            "Открой веб-приложение и пройди авторизацию:",
-            reply_markup=webapp_keyboard
+            "Для начала работы:\n"
+            "/register - регистрация\n"
+            "/login - вход",
+            reply_markup=ReplyKeyboardRemove()
         )
 
 

@@ -9,16 +9,8 @@ from telegram.ext import (
 )
 
 from .config import config
-from .handlers import (
-    start,
-    register_user,
-    login_user,
-    get_balance,
-    handle_text,
-    handle_voice,
-    handle_photo,
-    help_command,
-)
+from .handlers import start, get_balance, handle_text, handle_voice, handle_photo, help_command
+from .auth_handlers import register_conv, login_conv
 
 # Configure logging
 logging.basicConfig(
@@ -40,10 +32,12 @@ def main():
     # Create application
     application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
     
-    # Register handlers
+    # Auth conversation handlers (priority)
+    application.add_handler(register_conv)
+    application.add_handler(login_conv)
+    
+    # Command handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("register", register_user))
-    application.add_handler(CommandHandler("login", login_user))
     application.add_handler(CommandHandler("balance", get_balance))
     application.add_handler(CommandHandler("help", help_command))
     
