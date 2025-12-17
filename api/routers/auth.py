@@ -14,29 +14,29 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    """Register a new user."""
+    """Register a new user with Telegram credentials."""
     
-    # Check if username exists
-    result = await db.execute(select(User).where(User.username == user_data.username))
+    # Check if telegram_id exists
+    result = await db.execute(select(User).where(User.telegram_id == user_data.telegram_id))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered"
+            detail="User with this Telegram ID already exists"
         )
     
-    # Check if email exists
-    result = await db.execute(select(User).where(User.email == user_data.email))
+    # Check if phone number exists
+    result = await db.execute(select(User).where(User.phone_number == user_data.phone_number))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            detail="Phone number already registered"
         )
     
-    # Create new user
+    # Create new user (no password!)
     new_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        hashed_password=get_password_hash(user_data.password),
+        telegram_id=user_data.telegram_id,
+        phone_number=user_data.phone_number,
+        name=user_data.name
     )
     
     db.add(new_user)
@@ -54,16 +54,24 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
-    """Login and get JWT token."""
+    """Login user with phone number."""
     
-    # Find user by username
-    result = await db.execute(select(User).where(User.username == credentials.username))
+    # Find user by phone
+    result = await db.execute(select(User).where(User.phone_number == credentials.phone_number))
     user = result.scalar_one_or_none()
     
-    if not user or not verify_password(credentials.password, user.hashed_password):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Invalid phone number",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Optional: validate telegram_id if provided
+    if credentials.telegram_id and user.telegram_id != credentials.telegram_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

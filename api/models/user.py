@@ -9,20 +9,15 @@ from ..database import Base
 
 
 class User(Base):
-    """User model for authentication and multi-user support."""
+    """User model with Telegram-native authentication."""
     
     __tablename__ = "users"
     
+    # Primary fields
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    
-    # Telegram integration
-    telegram_id: Mapped[Optional[int]] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
-    telegram_username: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    telegram_first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    telegram_last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
+    phone_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     
     # User preferences
     default_currency: Mapped[str] = mapped_column(String(3), default="uzs", nullable=False)
@@ -43,4 +38,4 @@ class User(Base):
     limits: Mapped[list["Limit"]] = relationship("Limit", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self) -> str:
-        return f"<User(id={self.id}, username={self.username})>"
+        return f"<User(id={self.id}, telegram_id={self.telegram_id}, name={self.name})>"

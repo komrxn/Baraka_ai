@@ -45,15 +45,15 @@ class MidasAPIClient:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
     
-    async def register(self, username: str, email: str, password: str) -> Dict[str, Any]:
-        """Register new user."""
+    async def register(self, telegram_id: int, phone_number: str, name: str) -> Dict[str, Any]:
+        """Register new user via Telegram."""
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/auth/register",
                 json={
-                    "username": username,
-                    "email": email,
-                    "password": password
+                    "telegram_id": telegram_id,
+                    "phone_number": phone_number,
+                    "name": name
                 }
             )
             response.raise_for_status()
@@ -61,14 +61,14 @@ class MidasAPIClient:
             self.token = data.get("access_token")
             return data
     
-    async def login(self, username: str, password: str) -> Dict[str, Any]:
-        """Login user."""
+    async def login(self, phone_number: str, telegram_id: int) -> Dict[str, Any]:
+        """Login user via Telegram."""
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/auth/login",
                 json={
-                    "username": username,
-                    "password": password
+                    "phone_number": phone_number,
+                    "telegram_id": telegram_id
                 }
             )
             response.raise_for_status()
