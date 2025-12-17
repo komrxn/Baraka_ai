@@ -1,8 +1,12 @@
 """User data storage."""
 import json
 import os
+import logging
+from datetime import datetime
 from typing import Optional, Dict, Any
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class UserStorage:
