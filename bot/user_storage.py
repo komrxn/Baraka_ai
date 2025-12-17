@@ -33,25 +33,26 @@ class UserStorage:
         """Save users to file."""
         with open(self.users_file, 'w') as f:
             json.dump(self.users, f, indent=2)
+            json.dump(self.users, f, indent=2, default=str) # Added default=str for datetime objects
     
     def _save_pending(self):
         """Save pending to file."""
         with open(self.pending_file, 'w') as f:
             json.dump(self.pending, f, indent=2)
     
-    def save_user_token(self, telegram_id: int, token: str, username: str):
-        """Save user auth token."""
-        self.users[str(telegram_id)] = {
+    def save_user_token(self, user_id: int, token: str):
+        """Save user authentication token."""
+        self.users[str(user_id)] = {
             "token": token,
-            "username": username
+            "timestamp": datetime.now()
         }
-        self._save_users()
+        self._save_users() # Changed from _save_to_file() to _save_users() for consistency
+        logger.info(f"Saved token for user {user_id}")
     
     def clear_user_token(self, telegram_id: int):
         """Clear user token when it expires or becomes invalid."""
         if str(telegram_id) in self.users:
-            # Assuming 'username' might be stored, retrieve it before popping
-            username = self.users[str(telegram_id)].get('username', 'unknown')
+            # Username is no longer stored, so this line is removed/adjusted
             self.users.pop(str(telegram_id))
             self._save_users()
             # If a logger is available, you might log this event
