@@ -549,20 +549,41 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle /help command."""
+    """Show help message with language selection."""
+    from .help_messages import get_help_message
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+    
+    # Language selection buttons
+    keyboard = [
+        [
+            InlineKeyboardButton("🇷🇺 Русский", callback_data="help_ru"),
+            InlineKeyboardButton("🇬🇧 English", callback_data="help_en"),
+        ],
+        [InlineKeyboardButton("🇺🇿 O'zbekcha", callback_data="help_uz")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
     await update.message.reply_text(
-        "**Помощь по боту**\n\n"
-        "**Команды:**\n"
-        "/start - Начать работу\n"
-        "/register username email password - Регистрация\n"
-        "/login username password - Вход\n"
-        "/balance - Баланс\n"
-        "/help - Эта справка\n\n"
-        "**Как добавить транзакцию:**\n"
-        "1️⃣ Отправь текст (например: купил кофе 25000)\n"
-        "2️⃣ Запиши голосовое сообщение\n"
-        "3️⃣ Сфотографируй чек\n\n"
-        "Я распознаю сумму и категорию, а ты подтвердишь!",
-        parse_mode='Markdown',
-        reply_markup=get_main_keyboard()
+        "📖 **Выбери язык / Choose language / Tilni tanlang:**",
+        reply_markup=reply_markup,
+        parse_mode='Markdown'
     )
+
+
+async def help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle language selection for help."""
+    from .help_messages import get_help_message
+    
+    query = update.callback_query
+    await query.answer()
+    
+    # Extract language from callback_data (help_ru, help_en, help_uz)
+    language = query.data.split('_')[1]
+    
+    help_text = get_help_message(language)
+    
+    await query.edit_message_text(
+        text=help_text,
+        parse_mode='Markdown'
+    )
+```

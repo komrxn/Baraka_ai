@@ -61,6 +61,27 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "✅ Регистрация завершена!\n\nТеперь можешь добавлять транзакции.",
             reply_markup=get_main_keyboard()
         )
+        
+        # Send help message after registration
+        from .help_messages import get_help_message
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        
+        keyboard = [
+            [
+                InlineKeyboardButton("🇷🇺 Русский", callback_data="help_ru"),
+                InlineKeyboardButton("🇬🇧 English", callback_data="help_en"),
+            ],
+            [InlineKeyboardButton("🇺🇿 O'zbekcha", callback_data="help_uz")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.message.reply_text(
+            "📖 **Как пользоваться / How to use / Qanday foydalanish:**\n\n"
+            "Выбери язык → Choose language → Tilni tanlang:",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        
         return ConversationHandler.END
         
     except httpx.HTTPStatusError as e:
