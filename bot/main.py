@@ -10,7 +10,7 @@ from telegram.ext import (
 )
 
 from .config import config
-from .handlers import start, get_balance, handle_text, handle_voice, help_command, help_callback
+from .handlers import start, get_balance, handle_text, handle_voice, handle_photo, help_command, help_callback
 from .auth_handlers import register_conv, login_conv
 
 # Configure logging
