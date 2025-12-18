@@ -151,11 +151,9 @@ async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         from .ai_agent import AIAgent
         agent = AIAgent(api)
         
-        # Ask AI to parse the edit
-        result = await agent.process_message(
-            user_id, 
-            f"Изменить транзакцию: {text}"
-        )
+        # Parse user input as a normal transaction (don't say "edit")
+        # Just send their text like "200k" or "64к такси"
+        result = await agent.process_message(user_id, text)
         
         # Extract new transaction data
         response = result.get("response", "")
