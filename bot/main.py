@@ -1,4 +1,3 @@
-```python
 """Main bot entry point."""
 import logging
 from telegram import Update

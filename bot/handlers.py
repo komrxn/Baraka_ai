@@ -586,4 +586,3 @@ async def help_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text=help_text,
         parse_mode='Markdown'
     )
-```
