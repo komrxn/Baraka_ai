@@ -1,12 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+import logging
 
 from ..database import get_db
 from ..models.user import User
 from ..schemas.auth import UserCreate, UserLogin, UserResponse, TokenResponse
 from ..schemas.telegram import TelegramAuthRequest
-from ..auth.jwt import get_password_hash, verify_password, create_access_token, get_current_user
+from .security import create_access_token, get_password_hash, verify_password, get_current_user
+
+logger = logging.getLogger(__name__)
+
+
+def normalize_phone(phone: str) -> str:
+    """Normalize phone number to 998XXXXXXXXX format (Uzbekistan)."""
+    # Remove all non-digits (removes +, spaces, dashes, etc)
+    digits = ''.join(filter(str.isdigit, phone))
+    
+    # If already starts with 998, return as is
+    if digits.startswith('998'):
+        return digits
+    
+    # Add 998 prefix for local numbers
+    return f"998{digits}"
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -14,37 +30,38 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    """Register a new user with Telegram credentials."""
+    """Register a new user with phone number."""
     
-    # Check if telegram_id exists
-    result = await db.execute(select(User).where(User.telegram_id == user_data.telegram_id))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this Telegram ID already exists"
-        )
+    # Normalize phone number (998XXXXXXXXX format)
+    normalized_phone = normalize_phone(user_data.phone_number)
     
-    # Check if phone number exists
-    result = await db.execute(select(User).where(User.phone_number == user_data.phone_number))
-    if result.scalar_one_or_none():
+    # Check if user already exists
+    result = await db.execute(
+        select(User).where(User.phone_number == normalized_phone)
+    )
+    existing_user = result.scalar_one_or_none()
+    
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Phone number already registered"
         )
     
-    # Create new user (no password!)
+    # Create new user with normalized phone
     new_user = User(
         telegram_id=user_data.telegram_id,
-        phone_number=user_data.phone_number,
-        name=user_data.name
+        phone_number=normalized_phone,  # Store without +
+        name=user_data.name,
     )
     
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
     
-    # Create access token
-    access_token = create_access_token(data={"sub": str(new_user.id)})
+    # Generate JWT token
+    access_token = create_access_token(
+        data={"sub": str(new_user.id), "telegram_id": new_user.telegram_id}
+    )
     
     return TokenResponse(
         access_token=access_token,
@@ -56,8 +73,13 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
     """Login user with phone number."""
     
-    # Find user by phone
-    result = await db.execute(select(User).where(User.phone_number == credentials.phone_number))
+    # Normalize phone number
+    normalized_phone = normalize_phone(credentials.phone_number)
+    
+    # Find user by normalized phone
+    result = await db.execute(
+        select(User).where(User.phone_number == normalized_phone)
+    )
     user = result.scalar_one_or_none()
     
     if not user:
@@ -75,8 +97,10 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Create access token
-    access_token = create_access_token(data={"sub": str(user.id)})
+    # Generate JWT token
+    access_token = create_access_token(
+        data={"sub": str(user.id), "telegram_id": user.telegram_id}
+    )
     
     return TokenResponse(
         access_token=access_token,
