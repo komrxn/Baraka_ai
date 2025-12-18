@@ -21,6 +21,8 @@ export interface TelegramAuthResponse {
  * Checks if app is running inside Telegram Web App.
  */
 export function isTelegramWebApp(): boolean {
+    console.log('[Telegram Auth] window.Telegram:', window.Telegram);
+    console.log('[Telegram Auth] window.Telegram?.WebApp:', window.Telegram?.WebApp);
     return !!window.Telegram?.WebApp;
 }
 
