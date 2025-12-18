@@ -92,8 +92,8 @@ export default {
     language: 'Language',
     languageHint: 'Choose interface language',
     userData: 'User data',
-    username: 'Username',
-    email: 'Email',
+    name: 'Name',
+    phone: 'Phone',
     defaultCurrency: 'Default currency',
   },
 

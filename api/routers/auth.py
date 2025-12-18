@@ -162,23 +162,18 @@ async def telegram_auth(
     user = result.scalar_one_or_none()
     
     if not user:
-        # Auto-create user from Telegram data
-        username = tg_user["username"] or f"tg_{tg_user['id']}"
-        email = f"tg_{tg_user['id']}@telegram.user"  # Dummy email
+        # Auto-create user from Telegram data (new schema)
+        name = tg_user["first_name"]
+        if tg_user.get("last_name"):
+            name += f" {tg_user['last_name']}"
         
-        # Ensure username is unique
-        result = await db.execute(select(User).where(User.username == username))
-        if result.scalar_one_or_none():
-            username = f"tg_{tg_user['id']}_{tg_user['first_name'][:5]}"
+        # Use dummy phone for WebApp users (they don't share phone via WebApp)
+        phone_number = f"+{tg_user['id']}"  # Unique dummy phone based on telegram_id
         
         user = User(
-            username=username,
-            email=email,
             telegram_id=tg_user["id"],
-            telegram_username=tg_user["username"],
-            telegram_first_name=tg_user["first_name"],
-            telegram_last_name=tg_user["last_name"],
-            hashed_password=None  # No password for Telegram users
+            phone_number=phone_number,
+            name=name
         )
         
         db.add(user)

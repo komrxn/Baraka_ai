@@ -53,11 +53,11 @@
                 </div>
                 <div v-else class="settings-page__user-info">
                     <div class="settings-page__user-info-item">
-                        <VInputText :model-value="userDataFields.username" :label="t('settings.username')" readonly
+                        <VInputText :model-value="userDataFields.name" :label="t('settings.name')" readonly
                             size="small" class="font-14-r" />
                     </div>
                     <div class="settings-page__user-info-item">
-                        <VInputText :model-value="userDataFields.email" :label="t('settings.email')" readonly
+                        <VInputText :model-value="userDataFields.phone" :label="t('settings.phone')" readonly
                             size="small" class="font-14-r" />
                     </div>
                     <div class="settings-page__user-info-item">
@@ -96,16 +96,16 @@ const { loadUser } = userStore;
 const userDataFields = computed(() => {
     if (!userData.value) {
         return {
-            username: '',
-            email: '',
+            name: '',
+            phone: '',
             id: '',
             default_currency: '',
             created_at: '',
         };
     }
     return {
-        username: userData.value.username,
-        email: userData.value.email,
+        name: userData.value.name,
+        phone: userData.value.phone_number,
         id: userData.value.id,
         default_currency: userData.value.default_currency.toUpperCase(),
         created_at: formatDateTime(userData.value.created_at),

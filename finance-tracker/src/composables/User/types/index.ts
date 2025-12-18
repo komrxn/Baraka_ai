@@ -1,7 +1,8 @@
 export interface User {
-    username: string;
-    email: string;
     id: string;
+    telegram_id: number;
+    phone_number: string;
+    name: string;
     default_currency: string;
     created_at: string;
 }

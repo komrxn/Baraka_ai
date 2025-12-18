@@ -7,7 +7,7 @@
             </div>
             <div class="main-header__content-info">
                 <h1>
-                    {{ t('main.greeting', { username: userData?.username || t('main.user') }) }}
+                    {{ t('main.greeting', { username: userData?.name || t('main.user') }) }}
                 </h1>
                 <p>{{ t('main.smartTracker') }}</p>
             </div>

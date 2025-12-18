@@ -11,8 +11,9 @@ export interface TelegramAuthResponse {
     token_type: string;
     user: {
         id: string;
-        username: string;
-        email: string;
+        telegram_id: number;
+        phone_number: string;
+        name: string;
     };
 }
 

@@ -92,8 +92,8 @@ export default {
     language: 'Язык',
     languageHint: 'Выберите язык интерфейса',
     userData: 'Данные пользователя',
-    username: 'Имя пользователя',
-    email: 'Email',
+    name: 'Имя',
+    phone: 'Телефон',
     defaultCurrency: 'Валюта по умолчанию',
   },
 

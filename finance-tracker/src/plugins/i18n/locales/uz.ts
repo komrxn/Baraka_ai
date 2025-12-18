@@ -92,8 +92,8 @@ export default {
     language: 'Til',
     languageHint: 'Interfeys tilini tanlang',
     userData: 'Foydalanuvchi ma\'lumotlari',
-    username: 'Foydalanuvchi nomi',
-    email: 'Email',
+    name: 'Ism',
+    phone: 'Telefon',
     defaultCurrency: 'Standart valyuta',
   },
 
