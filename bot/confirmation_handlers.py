@@ -142,6 +142,13 @@ async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.effective_user.id
     text = update.message.text
     
+    # Get old transaction data for context
+    old_tx = pending['tx_data']
+    old_amount = old_tx.get('amount', 0)
+    old_desc = old_tx.get('description', '')
+    old_category = old_tx.get('category_slug', '')
+    old_type = old_tx.get('type', 'expense')
+    
     # Process edit with AI
     token = storage.get_user_token(user_id)
     api = MidasAPIClient(config.API_BASE_URL)
@@ -151,9 +158,12 @@ async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         from .ai_agent import AIAgent
         agent = AIAgent(api)
         
-        # Parse user input as a normal transaction (don't say "edit")
-        # Just send their text like "200k" or "64к такси"
-        result = await agent.process_message(user_id, text)
+        # Give AI context about what's being edited
+        context_prompt = (
+            f"Было: {old_amount} {old_tx.get('currency', 'uzs')} {old_desc} ({old_category or 'no category'}). "
+            f"Обновить на: {text}"
+        )
+        result = await agent.process_message(user_id, context_prompt)
         
         # Extract new transaction data
         response = result.get("response", "")
