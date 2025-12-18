@@ -20,7 +20,7 @@ HELP_MESSAGES = {
    • "покажи статистику"
 
 **В ВЕБ-ПРИЛОЖЕНИИ:**
-🌐 Нажми кнопку "📊 Открыть Midas" → откроется приложение
+🌐 Нажми кнопку "Stats" → откроется приложение
    
 📈 Там можно:
    • Смотреть графики расходов
@@ -55,7 +55,7 @@ HELP_MESSAGES = {
    • "show statistics"
 
 **IN THE WEB APP:**
-🌐 Click "📊 Open Midas" button → app opens
+🌐 Click "Stats" button → app opens
    
 📈 You can:
    • View expense charts
@@ -90,7 +90,7 @@ HELP_MESSAGES = {
    • "statistikani ko'rsat"
 
 **VEB ILOVADA:**
-🌐 "📊 Midas ochish" tugmasini bosing → ilova ochiladi
+🌐 "Stats" tugmasini bosing → ilova ochiladi
    
 📈 Mumkin:
    • Xarajatlar grafiklarini ko'rish
