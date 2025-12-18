@@ -52,8 +52,8 @@ class AIAgent:
                             },
                             "category_slug": {
                                 "type": "string",
-                                "enum": ["food", "transport", "entertainment", "shopping", "bills", "healthcare", "education", "housing", "salary", "freelance", "investment", "gift", "other"],
-                                "description": "Категория: food (еда/кафе), transport (такси/транспорт), entertainment (развлечения), shopping (покупки), bills (счета/связь), healthcare (здоровье), education (образование), housing (жильё), salary (зарплата), freelance (фриланс), investment (инвестиции), gift (подарок), other (прочее)"
+                                "enum": ["food", "transport", "taxi", "housing", "entertainment", "health", "education", "clothing", "communication", "gifts", "sports", "beauty", "travel", "cafes", "groceries", "utilities", "other_expense", "salary", "freelance", "investments", "gift_income", "other_income"],
+                                "description": "Категория: food (еда), transport (транспорт), taxi (такси - ТОЛЬКО для такси!), housing (жильё), entertainment (развлечения), health (здоровье), education (образование), clothing (одежда), communication (связь), gifts (подарки), sports (спорт), beauty (красота), travel (путешествия), cafes (кафе), groceries (продукты), utilities (коммуналка), other_expense (другое расход), salary (зарплата), freelance (фриланс), investments (инвестиции), gift_income (подарок), other_income (другое доход)"
                             }
                         },
                         "required": ["type", "amount", "description"]
@@ -126,14 +126,34 @@ class AIAgent:
 Пользователь: "Привет!"
 Ты НЕ вызываешь функции, просто отвечаешь: "Привет! Я помогу тебе вести учёт финансов. Просто напиши о своих тратах или доходах!"
 
-КАТЕГОРИИ:
-- food - еда, кафе, рестораны, кофе, обеды
-- transport - такси, транспорт, проезд
-- bills - счета, связь, интернет, Beeline, Click
-- shopping - покупки, одежда, техника
-- entertainment - развлечения, кино, игры
-- salary - зарплата, оклад
-- other - всё остальное
+КАТЕГОРИИ (выбери самую подходящую):
+Расходы:
+- food - еда общее
+- groceries - продукты в магазине  
+- cafes - кафе, рестораны
+- taxi - ТОЛЬКО такси (Yandex, Uzum)
+- transport - другой транспорт (метро, автобус, бензин)
+- housing - жильё, аренда
+- utilities - коммуналка
+- communication - связь, интернет
+- clothing - одежда
+- health - здоровье, лекарства
+- beauty - красота, салон
+- education - образование, курсы
+- sports - спорт
+- entertainment - развлечения, кино
+- travel - путешествия
+- gifts - подарки
+- other_expense - прочее
+
+Доходы:
+- salary - зарплата
+- freelance - фриланс
+- investments - инвестиции
+- gift_income - подарок деньгами
+- other_income - прочее
+
+ВАЖНО: такси = taxi, НЕ transport!
 
 Будь кратким и дружелюбным!
 Всегда отвечай на языке на котором говорит пользователь"""
