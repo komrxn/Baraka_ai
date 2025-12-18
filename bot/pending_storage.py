@@ -21,9 +21,14 @@ class PendingTransactionStorage:
         }
         return tx_id
     
-    def get(self, tx_id: str) -> Dict[str, Any] | None:
-        """Get pending transaction by ID."""
+    def get(self, tx_id: str) -> Optional[Dict]:
+        """Get pending transaction."""
         return self._storage.get(tx_id)
+    
+    def update(self, tx_id: str, data: Dict):
+        """Update pending transaction."""
+        if tx_id in self._storage:
+            self._storage[tx_id] = data
     
     def remove(self, tx_id: str):
         """Remove pending transaction."""

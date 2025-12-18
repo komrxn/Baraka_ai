@@ -22,6 +22,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     user_id = update.effective_user.id
     
+    # Check if user is editing a transaction
+    if context.user_data.get('editing_tx'):
+        from ..confirmation_handlers import handle_edit_message
+        await handle_edit_message(update, context)
+        return
+    
     # Handle menu buttons first
     if text == "💰 Баланс":
         await get_balance(update, context)

@@ -126,6 +126,74 @@ async def handle_transaction_callback(update: Update, context: ContextTypes.DEFA
         context.user_data['editing_tx'] = tx_id
 
 
+async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle message when user is editing a transaction."""
+    tx_id = context.user_data.pop('editing_tx', None)
+    if not tx_id:
+        return
+    
+    # Get pending transaction
+    pending = pending_storage.get(tx_id)
+    if not pending:
+        await update.message.reply_text("⏰ Время редактирования истекло")
+        return
+    
+    user_id = update.effective_user.id
+    text = update.message.text
+    
+    # Process edit with AI
+    token = storage.get_user_token(user_id)
+    api = MidasAPIClient(config.API_BASE_URL)
+    api.set_token(token)
+    
+    try:
+        from ..ai_agent import AIAgent
+        agent = AIAgent(api)
+        
+        # Ask AI to parse the edit
+        result = await agent.process_message(
+            user_id, 
+            f"Изменить транзакцию: {text}"
+        )
+        
+        # Extract new transaction data
+        response = result.get("response", "")
+        parsed_transactions = result.get("parsed_transactions", [])
+        
+        if parsed_transactions:
+            # Update pending transaction with new data
+            new_data = parsed_transactions[0]
+            tx_data = pending['tx_data']
+            
+            # Merge changes (keep old values if not provided)
+            if 'amount' in new_data:
+                tx_data['amount'] = new_data['amount']
+            if 'description' in new_data:
+                tx_data['description'] = new_data['description']
+            if 'category_slug' in new_data:
+                tx_data['category_slug'] = new_data['category_slug']
+            if 'type' in new_data:
+                tx_data['type'] = new_data['type']
+            
+            # Update pending storage
+            pending['tx_data'] = tx_data
+            pending_storage.update(tx_id, pending)
+            
+            # Show updated confirmation
+            await show_transaction_confirmation(update, user_id, tx_data)
+        else:
+            await update.message.reply_text(
+                f"{response}\n\nПопробуй ещё раз или отмени /start",
+                reply_markup=get_main_keyboard()
+            )
+    except Exception as e:
+        logger.exception(f"Edit error: {e}")
+        await update.message.reply_text(
+            "❌ Ошибка редактирования. Попробуй заново.",
+            reply_markup=get_main_keyboard()
+        )
+
+
 # Export handler
 transaction_callback_handler = CallbackQueryHandler(
     handle_transaction_callback,
