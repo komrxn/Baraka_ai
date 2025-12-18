@@ -78,20 +78,21 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response_text = result.get("response", "")
         parsed_transactions = result.get("parsed_transactions", [])
         
-        # Send response
-        try:
-            await update.message.reply_text(
-                f"🎤 *Ты сказал:* {transcribed_text}\n\n{response_text}",
-                parse_mode='Markdown',
-                reply_markup=get_main_keyboard()
-            )
-        except Exception:
-            await update.message.reply_text(
-                f"🎤 Ты сказал: {transcribed_text}\n\n{response_text}",
-                reply_markup=get_main_keyboard()
-            )
+        # Only send AI response if no transactions (confirmations will show the data)
+        if not parsed_transactions:
+            try:
+                await update.message.reply_text(
+                    f"🎤 *Ты сказал:* {transcribed_text}\n\n{response_text}",
+                    parse_mode='Markdown',
+                    reply_markup=get_main_keyboard()
+                )
+            except Exception:
+                await update.message.reply_text(
+                    f"🎤 Ты сказал: {transcribed_text}\n\n{response_text}",
+                    reply_markup=get_main_keyboard()
+                )
         
-        # Show confirmations
+        # Show confirmations (this is the main response when transactions exist)
         if parsed_transactions:
             for tx_data in parsed_transactions:
                 await show_transaction_confirmation(update, user_id, tx_data)

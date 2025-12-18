@@ -8,6 +8,7 @@ from .api_client import MidasAPIClient
 from .config import config
 from .user_storage import storage
 from .pending_storage import pending_storage
+from .handlers.common import get_main_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -147,7 +148,7 @@ async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     api.set_token(token)
     
     try:
-        from ..ai_agent import AIAgent
+        from .ai_agent import AIAgent
         agent = AIAgent(api)
         
         # Ask AI to parse the edit

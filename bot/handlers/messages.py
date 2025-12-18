@@ -89,20 +89,20 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = result.get("response", "")
     parsed_transactions = result.get("parsed_transactions", [])
     
-    # Try to send with Markdown, fallback to plain text if fails
-    try:
-        await update.message.reply_text(
-            response,
-            parse_mode='Markdown',
-            reply_markup=get_main_keyboard()
-        )
-    except Exception as markdown_error:
-        # Markdown parsing failed, send plain text
-        logger.warning(f"Markdown parsing failed, sending plain text: {markdown_error}")
-        await update.message.reply_text(
-            response,
-            reply_markup=get_main_keyboard()
-        )
+    # Only send AI response if no transactions (confirmations will show everything)
+    if not parsed_transactions:
+        try:
+            await update.message.reply_text(
+                response,
+                parse_mode='Markdown',
+                reply_markup=get_main_keyboard()
+            )
+        except Exception as markdown_error:
+            logger.warning(f"Markdown parsing failed, sending plain text: {markdown_error}")
+            await update.message.reply_text(
+                response,
+                reply_markup=get_main_keyboard()
+            )
     
     # Show confirmation for each parsed transaction
     if parsed_transactions:
