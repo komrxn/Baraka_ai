@@ -384,3 +384,6 @@ ON CONFLICT DO NOTHING;
 SELECT COUNT(*), type FROM categories GROUP BY type;
 EOF
 ```
+
+# Проверить количество категорий 
+docker compose exec -T db psql -U postgres -d midas_db -c "SELECT COUNT(*), type FROM categories GROUP BY type ORDER BY type;"

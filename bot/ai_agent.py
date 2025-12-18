@@ -162,6 +162,9 @@ Be brief. Match user's language!"""
             # Track parsed transactions
             parsed_transactions = []
             
+            # Add user message to context
+            dialog_context.add_message(user_id, "user", message)
+            
             # Get conversation history
             history = dialog_context.get_openai_messages(user_id)
             
