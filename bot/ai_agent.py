@@ -151,11 +151,16 @@ IMPORTANT: "taksi"/"такси" → use "taxi" NOT "transport"!
 
 Be brief. Match user's language!"""
     
-    async def process_message(self, user_id: int, message: str) -> str:
-        """Process user message with AI agent."""
+    async def process_message(self, user_id: int, message: str) -> dict:
+        """Process user message with AI agent.
+        
+        Returns dict with:
+        - response: str - AI response text
+        - parsed_transactions: List[Dict] - transactions awaiting confirmation
+        """
         try:
-            # Add user message to context
-            dialog_context.add_message(user_id, "user", message)
+            # Track parsed transactions
+            parsed_transactions = []
             
             # Get conversation history
             history = dialog_context.get_openai_messages(user_id)
@@ -186,6 +191,11 @@ Be brief. Match user's language!"""
                     
                     # Execute the function
                     result = await self._execute_tool(function_name, function_args)
+                    
+                    # Collect parsed transactions
+                    if result.get("pending_confirmation") and result.get("parsed_transaction"):
+                        parsed_transactions.append(result["parsed_transaction"])
+                    
                     tool_results.append({
                         "tool_call_id": tool_call.id,
                         "output": json.dumps(result, ensure_ascii=False)
@@ -229,38 +239,35 @@ Be brief. Match user's language!"""
             # Save assistant response to context
             dialog_context.add_message(user_id, "assistant", final_text or "")
             
-            return final_text or "Понял!"
+            return {
+                "response": final_text or "Понял!",
+                "parsed_transactions": parsed_transactions
+            }
             
         except Exception as e:
             logger.exception(f"AI agent error: {e}")
-            return "❌ Произошла ошибка. Попробуй ещё раз."
+            return {
+                "response": "❌ Произошла ошибка. Попробуй ещё раз.",
+                "parsed_transactions": []
+            }
     
     async def _execute_tool(self, function_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a tool function."""
         try:
             if function_name == "create_transaction":
-                # Create transaction via API
+                # PARSE ONLY - return data for confirmation, don't create yet
                 tx_data = {
                     "type": arguments["type"],
                     "amount": float(arguments["amount"]),
                     "description": arguments["description"],
                     "currency": arguments.get("currency", "uzs"),
-                    "transaction_date": None  # API will use current time
+                    "category_slug": arguments.get("category_slug"),
                 }
                 
-                # Add category if provided
-                if arguments.get("category_slug"):
-                    # Get category ID from slug
-                    categories = await self.api_client.get_categories()
-                    for cat in categories:
-                        if cat.get("slug") == arguments["category_slug"]:
-                            tx_data["category_id"] = cat["id"]
-                            break
-                
-                result = await self.api_client.create_transaction(tx_data)
                 return {
                     "success": True,
-                    "transaction": result
+                    "pending_confirmation": True,
+                    "parsed_transaction": tx_data
                 }
             
             elif function_name == "get_balance":
