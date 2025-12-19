@@ -48,10 +48,15 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             balance_value = float(balance.get('balance', 0))
             stats_text += f"💰 Баланс: {balance_value:,.0f} {balance.get('currency', 'UZS')}\n\n"
             
-            if breakdown:
-                stats_text += "**По категориям:**\n"
-                for cat in breakdown[:5]:  # Top 5
-                    stats_text += f"• {cat.get('category', 'Другое')}: {cat.get('total', 0):,.0f}\n"
+            # Extract categories list from breakdown response
+            if breakdown and isinstance(breakdown, dict):
+                categories = breakdown.get('categories', [])
+                if categories:
+                    stats_text += "**По категориям:**\n"
+                    for cat in categories[:5]:  # Top 5
+                        cat_name = cat.get('category', 'Другое')
+                        cat_total = float(cat.get('total', 0))
+                        stats_text += f"• {cat_name}: {cat_total:,.0f}\n"
             
             await update.message.reply_text(
                 stats_text,

@@ -44,11 +44,31 @@ class UserStorage:
         with open(self.pending_file, 'w') as f:
             json.dump(self.pending, f, indent=2)
     
-    def save_user_token(self, user_id: int, token: str):
-        """Save user authentication token."""
-        self.users[str(user_id)] = {"token": token}
+    def save_user_token(self, user_id: int, token: str, username: str = ""):
+        """Save user token and username."""
+        # Ensure user_id is stored as a string key
+        user_id_str = str(user_id)
+        self.users[user_id_str] = {
+            'token': token,
+            'username': username,
+            'language': self.users.get(user_id_str, {}).get('language', 'uz')  # Preserve language
+        }
         self._save_users()
         logger.info(f"Saved token for user {user_id}")
+    
+    def get_user_language(self, user_id: int) -> str:
+        """Get user's preferred language (default: uz)."""
+        return self.users.get(str(user_id), {}).get('language', 'uz')
+    
+    def set_user_language(self, user_id: int, language: str):
+        """Set user's preferred language."""
+        user_id_str = str(user_id)
+        if user_id_str in self.users:
+            self.users[user_id_str]['language'] = language
+        else:
+            # If user doesn't exist, create a minimal entry with just language
+            self.users[user_id_str] = {'language': language}
+        self._save_users()
     
     def clear_user_token(self, telegram_id: int):
         """Clear user token when it expires or becomes invalid."""

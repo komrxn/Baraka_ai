@@ -57,6 +57,10 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         token = result['access_token']
         storage.save_user_token(telegram_id, token)
         
+        # Save language preference (default to uz if not set)
+        lang = context.user_data.get('registration_language', 'uz')
+        storage.set_user_language(telegram_id, lang)
+        
         await update.message.reply_text(
             "✅ Регистрация завершена!\n\nТеперь можешь добавлять транзакции.",
             reply_markup=get_main_keyboard()
