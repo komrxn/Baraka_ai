@@ -8,6 +8,7 @@ from .config import config
 from .api_client import MidasAPIClient
 from .user_storage import storage
 from .lang_messages import get_message
+from .handlers.common import get_main_keyboard
 
 logger = logging.getLogger(__name__)
 

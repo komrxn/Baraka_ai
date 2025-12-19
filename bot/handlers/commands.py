@@ -6,6 +6,7 @@ import logging
 from ..user_storage import storage
 from ..help_messages import HELP_MESSAGES
 from ..lang_messages import get_message
+from .common import get_main_keyboard
 
 logger = logging.getLogger(__name__)
 
