@@ -137,7 +137,6 @@ async def show_balance(update: Update, api: MidasAPIClient, lang: str):
         
         await update.message.reply_text(
             balance_text,
-            parse_mode='Markdown',
             reply_markup=get_main_keyboard()
         )
     except Exception as e:

@@ -166,6 +166,9 @@ Be brief. Match user's language!"""
             # Add user message to context
             dialog_context.add_message(user_id, "user", message)
             
+            # Initialize created_transactions list
+            created_transactions = []
+            
             # Get conversation history
             history = dialog_context.get_openai_messages(user_id)
             
