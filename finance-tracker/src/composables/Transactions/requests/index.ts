@@ -34,7 +34,7 @@ export const useTransactionsRequests = () => {
 
     const updateTransaction = async (id: string, transaction: TransactionUpdateData): Promise<Transaction> => {
         try {
-            const response = await $axios.put<Transaction>(`/transactions/${id}`, transaction);
+            const response = await $axios.patch<Transaction>(`/transactions/${id}`, transaction);
             return response.data;
         } catch (error) {
             console.error(error);

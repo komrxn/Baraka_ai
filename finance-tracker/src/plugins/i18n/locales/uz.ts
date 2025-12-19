@@ -115,6 +115,16 @@ export default {
     noCategory: 'Kategoriyasiz',
     created: 'Yaratilgan',
     updated: 'Yangilangan',
+    addTransaction: 'Tranzaksiya qo‘shish',
+    editTransaction: 'Tranzaksiyani tahrirlash',
+    selectType: 'Turni tanlang',
+    selectCurrency: 'Valyutani tanlang',
+    selectCategory: 'Kategoriyani tanlang',
+    descriptionOptional: 'Tavsif (ixtiyoriy)',
+    deleteSuccess: 'Tranzaksiya muvaffaqiyatli o‘chirildi',
+    deleteError: 'Tranzaksiyani o‘chirib bo‘lmadi',
+    updateSuccess: 'Tranzaksiya muvaffaqiyatli yangilandi',
+    updateError: 'Tranzaksiyani yangilab bo‘lmadi',
   },
 
   // Kategoriyalar

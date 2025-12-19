@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Transaction, GetTransactionsParams, TransactionGroup } from '@/composables/Transactions/types';
+import type { Transaction, GetTransactionsParams, TransactionGroup, TransactionUpdateData } from '@/composables/Transactions/types';
 import { useTransactionsRequests } from '@/composables/Transactions/requests';
 import { groupTransactionsByDay } from '@/composables/Transactions/utils';
 
@@ -16,8 +16,9 @@ export const useTransactionsStore = defineStore('transactions', () => {
     const currentFilters = ref<GetTransactionsParams | undefined>(undefined);
     const drawerVisible = ref(false);
     const filterDrawerVisible = ref(false);
+    const editingTransaction = ref<Transaction | null>(null);
 
-    const { getTransactions: fetchTransactions } = useTransactionsRequests();
+    const { getTransactions: fetchTransactions, updateTransaction: updateTransactionRequest, deleteTransaction: deleteTransactionRequest } = useTransactionsRequests();
 
     const groupedTransactions = computed<TransactionGroup[]>(() => {
         return groupTransactionsByDay(transactions.value);
@@ -131,6 +132,45 @@ export const useTransactionsStore = defineStore('transactions', () => {
         await loadTransactions(currentFilters.value, false, true);
     };
 
+    const updateTransaction = async (id: string, transactionData: TransactionUpdateData) => {
+        try {
+            loading.value = true;
+            const updatedTransaction = await updateTransactionRequest(id, transactionData);
+            // Обновляем транзакцию в списке
+            const index = transactions.value.findIndex(tx => tx.id === id);
+            if (index !== -1) {
+                transactions.value[index] = updatedTransaction;
+            }
+            return updatedTransaction;
+        } catch (error) {
+            console.error('Failed to update transaction:', error);
+            throw error;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const removeTransaction = async (id: string) => {
+        try {
+            loading.value = true;
+            await deleteTransactionRequest(id);
+            // Удаляем транзакцию из списка
+            transactions.value = transactions.value.filter(tx => tx.id !== id);
+            // Обновляем total
+            total.value = Math.max(0, total.value - 1);
+        } catch (error) {
+            console.error('Failed to delete transaction:', error);
+            throw error;
+        } finally {
+            loading.value = false;
+        }
+    };
+
+    const editTransaction = (transaction: Transaction) => {
+        editingTransaction.value = transaction;
+        drawerVisible.value = true;
+    };
+
     return {
         transactions,
         groupedTransactions,
@@ -143,10 +183,14 @@ export const useTransactionsStore = defineStore('transactions', () => {
         currentFilters,
         drawerVisible,
         filterDrawerVisible,
+        editingTransaction,
         loadTransactions,
         loadMoreTransactions,
         applyFilters,
         resetFilters,
         refreshTransactions,
+        updateTransaction,
+        removeTransaction,
+        editTransaction,
     };
 });

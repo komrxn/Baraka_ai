@@ -44,6 +44,13 @@
                 <span class="transaction-details__info-value">{{ formatDateTime(transaction.updated_at) }}</span>
             </div>
         </div>
+
+        <div class="transaction-details__actions">
+            <Button :label="t('common.edit')" severity="secondary" outlined fluid @click="$emit('edit')"
+                class="transaction-details__action-button" />
+            <Button :label="t('common.delete')" severity="danger" outlined fluid @click="$emit('remove')"
+                class="transaction-details__action-button" />
+        </div>
     </div>
 </template>
 
@@ -51,6 +58,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { Button } from 'primevue';
 import type { Transaction } from '@/composables/Transactions/types';
 import { useCategoriesStore } from '@/store/categoriesStore';
 import { formatAmount, formatDate, formatDateTime } from '@/utils';
@@ -60,6 +68,11 @@ const { t } = useI18n();
 
 const props = defineProps<{
     transaction: Transaction;
+}>();
+
+defineEmits<{
+    (e: 'edit'): void;
+    (e: 'remove'): void;
 }>();
 
 const { categories } = storeToRefs(useCategoriesStore());
@@ -196,6 +209,18 @@ const categoryColor = computed(() => {
         font: var(--font-14-b);
         color: var(--text-color);
         text-align: right;
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    &__action-button {
+        width: 100%;
     }
 }
 </style>

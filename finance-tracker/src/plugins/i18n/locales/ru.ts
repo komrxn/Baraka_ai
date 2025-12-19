@@ -115,6 +115,16 @@ export default {
     noCategory: 'Без категории',
     created: 'Создано',
     updated: 'Обновлено',
+    addTransaction: 'Добавить транзакцию',
+    editTransaction: 'Редактировать транзакцию',
+    selectType: 'Выберите тип',
+    selectCurrency: 'Выберите валюту',
+    selectCategory: 'Выберите категорию',
+    descriptionOptional: 'Описание (необязательно)',
+    deleteSuccess: 'Транзакция успешно удалена',
+    deleteError: 'Не удалось удалить транзакцию',
+    updateSuccess: 'Транзакция успешно обновлена',
+    updateError: 'Не удалось обновить транзакцию',
   },
 
   // Категории
