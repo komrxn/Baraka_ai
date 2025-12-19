@@ -68,42 +68,18 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         logger.info(f"Transcribed: {transcribed_text}")
         
-        # Use AI agent to process
-        async def _process_transcribed():
-            from ..ai_agent import AIAgent
-            agent = AIAgent(api)
-            return await agent.process_message(user_id, transcribed_text)
+        # Process transcribed text using common pipeline
+        from .messages import process_text_message
         
-        result = await with_auth_check(update, user_id, _process_transcribed)
-        if result is None:
-            return  # Auth failed
+        # Show what was heard
+        await update.message.reply_text(f"🎤 {transcribed_text}")
         
-        # Extract response and transactions
-        response_text = result.get("response", "")
-        parsed_transactions = result.get("parsed_transactions", [])
-        
-        # Only send AI response if no transactions (confirmations will show the data)
-        if not parsed_transactions:
-            try:
-                await update.message.reply_text(
-                    f"🎤 *Ты сказал:* {transcribed_text}\n\n{response_text}",
-                    parse_mode='Markdown',
-                    reply_markup=get_main_keyboard()
-                )
-            except Exception:
-                await update.message.reply_text(
-                    f"🎤 Ты сказал: {transcribed_text}\n\n{response_text}",
-                    reply_markup=get_main_keyboard()
-                )
-        
-        # Show confirmations (this is the main response when transactions exist)
-        if parsed_transactions:
-            for tx_data in parsed_transactions:
-                await show_transaction_confirmation(update, user_id, tx_data)
-                
+        # Process as if it was a text message
+        await process_text_message(update, context, transcribed_text, user_id)
+
     except Exception as e:
-        logger.exception(f"Voice error: {e}")
+        logger.error(f"Voice error: {e}")
         await update.message.reply_text(
-            "❌ Не смог обработать голосовое.\nПопробуй ещё раз или напиши текстом.",
+            "❌ Ошибка при обработке голосового сообщения.\nПопробуй ещё раз или напиши текстом.",
             reply_markup=get_main_keyboard()
         )

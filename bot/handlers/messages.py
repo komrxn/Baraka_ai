@@ -31,6 +31,11 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_edit_message(update, context)
         return
     
+    await process_text_message(update, context, text, user_id)
+
+
+async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str, user_id: int):
+    """Process any text message (typed or transcribed) through the main pipeline."""
     # Handle menu buttons first
     if text == "💰 Баланс":
         token = storage.get_user_token(user_id)
@@ -53,7 +58,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await help_command(update, context)
         return
     
-    # Check if user is editing a transaction
+    # Check if user is editing a transaction (action buttons flow)
     is_editing = await handle_edit_transaction_message(update, context)
     if is_editing:
         return  # Edit handled
@@ -73,7 +78,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response_text = result.get("response", "")
     created_transactions = result.get("created_transactions", [])
     
-    # Show AI response only if no transactions created
+    # Show AI response
     if not created_transactions and response_text:
         try:
             await update.message.reply_text(
@@ -86,9 +91,16 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 response_text,
                 reply_markup=get_main_keyboard()
             )
-    
+            
     # Show each created transaction with Edit/Delete buttons
     if created_transactions:
+        # If there's an AI partial response with transactions, show it too
+        if response_text:
+             try:
+                 await update.message.reply_text(response_text)
+             except Exception:
+                 pass
+                 
         for tx_data in created_transactions:
             await show_transaction_with_actions(update, user_id, tx_data)
 
