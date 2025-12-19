@@ -45,15 +45,16 @@ class MidasAPIClient:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
     
-    async def register(self, telegram_id: int, phone_number: str, name: str) -> Dict[str, Any]:
-        """Register new user via Telegram."""
+    async def register(self, telegram_id: int, phone: str, name: str, language: str = "uz") -> Dict[str, Any]:
+        """Register a new user."""
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/auth/register",
                 json={
                     "telegram_id": telegram_id,
-                    "phone_number": phone_number,
-                    "name": name
+                    "phone_number": phone,
+                    "name": name,
+                    "language": language
                 }
             )
             response.raise_for_status()

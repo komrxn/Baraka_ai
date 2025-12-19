@@ -44,21 +44,28 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not contact:
         await update.message.reply_text("❌ Используй кнопку 'Поделиться номером'")
-        return PHONE
+        return PHONE # Keep returning PHONE if contact is not provided via button
     
-    phone = contact.phone_number
+    phone = contact.phone_number # Get phone from contact if provided
+    context.user_data['register_phone'] = phone # Store it for later use if needed, or if the instruction implies it's always taken from user_data
+    
+    # Get phone from user data (this line is added as per instruction, assuming it might be set elsewhere or as a fallback)
+    phone = context.user_data.get('register_phone')
     telegram_id = update.effective_user.id
     name = context.user_data['register_name']
+    
+    # Get language preference (default uz)
+    lang = context.user_data.get('registration_language', 'uz')
     
     api = MidasAPIClient(config.API_BASE_URL)
     
     try:
-        result = await api.register(telegram_id, phone, name)
+        # Register with language
+        result = await api.register(telegram_id, phone, name, language=lang)
         token = result['access_token']
         storage.save_user_token(telegram_id, token)
         
-        # Save language preference (default to uz if not set)
-        lang = context.user_data.get('registration_language', 'uz')
+        # Save language preference
         storage.set_user_language(telegram_id, lang)
         
         await update.message.reply_text(

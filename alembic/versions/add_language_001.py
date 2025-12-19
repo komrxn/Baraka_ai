@@ -1,7 +1,7 @@
 """add_user_language_field
 
 Revision ID: add_language_001
-Revises: phone_auth_migration
+Revises: seed_default_categories
 Create Date: 2025-12-19 17:15:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_language_001'
-down_revision = 'phone_auth_migration'
+down_revision = 'seed_default_categories'
 branch_labels = None
 depends_on = None
 
