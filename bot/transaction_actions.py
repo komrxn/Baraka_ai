@@ -95,43 +95,40 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
     api.set_token(token)
     
     try:
-        # Process edit with AI
-        from .ai_agent import AIAgent
-        agent = AIAgent(api)
+        # Parse the edit text to extract updates
+        # Simple parsing: look for numbers (amount) and text (description)
+        import re
         
-        result = await agent.process_message(user_id, text)
-        created_transactions = result.get("created_transactions", [])
+        updates = {}
         
-        if created_transactions:
-            # Get new data from AI parsed transaction
-            new_data = created_transactions[0]
-            
-            # Update via API
-            updates = {}
-            if 'amount' in new_data:
-                updates['amount'] = new_data['amount']
-            if 'description' in new_data:
-                updates['description'] = new_data['description']
-            if 'category_slug' in new_data:
-                # Convert slug to ID
-                categories = await api.get_categories()
-                for cat in categories:
-                    if cat.get('slug') == new_data['category_slug']:
-                        updates['category_id'] = cat['id']
-                        break
-            
-            # Apply updates
-            await api.update_transaction(tx_id, **updates)
-            
-            await update.message.reply_text(
-                "✅ Обновлено!",
-                reply_markup=get_main_keyboard()
-            )
-        else:
-            await update.message.reply_text(
-                "❌ Не понял. Попробуй ещё раз или отмени /start",
-                reply_markup=get_main_keyboard()
-            )
+        # Try to find amount (numbers)
+        amount_match = re.search(r'(\d+(?:[.,]\d+)?)', text)
+        if amount_match:
+            amount_str = amount_match.group(1).replace(',', '.')
+            updates['amount'] = float(amount_str)
+        
+        # Get description (remove numbers, clean up)
+        description = re.sub(r'\d+(?:[.,]\d+)?', '', text).strip()
+        if description:
+            updates['description'] = description
+        
+        # If no changes detected, use whole text as description
+        if not updates:
+            updates['description'] = text
+        
+        # Update transaction
+        result = await api.update_transaction(tx_id, **updates)
+        
+        # Show updated transaction with Edit/Delete buttons
+        tx_data = {
+            'transaction_id': str(result['id']),
+            'amount': result.get('amount', 0),
+            'description': result.get('description', ''),
+            'type': result.get('type', 'expense'),
+            'currency': result.get('currency', 'uzs')
+        }
+        
+        await show_transaction_with_actions(update, user_id, tx_data)
         
         return True  # Handled
         
