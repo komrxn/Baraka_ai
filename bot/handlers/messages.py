@@ -120,7 +120,7 @@ async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
         if breakdown and isinstance(breakdown, dict):
             categories = breakdown.get('categories', [])
             if categories:
-                stats_text += "**" + get_message(lang, 'by_categories') + ":**\n"
+                stats_text += get_message(lang, 'by_categories') + ":\n"
                 for cat in categories[:5]:  # Top 5
                     cat_name = cat.get('category', get_message(lang, 'other'))
                     cat_total = float(cat.get('total', 0))
@@ -128,7 +128,6 @@ async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
         
         await update.message.reply_text(
             stats_text,
-            parse_mode='Markdown',
             reply_markup=get_main_keyboard()
         )
     except Exception as e:

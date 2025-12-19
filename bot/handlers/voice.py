@@ -72,7 +72,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         from .messages import process_text_message
         
         # Show what was heard
-        await update.message.reply_text(f"🎤 {transcribed_text}")
+        # await update.message.reply_text(f"🎤 {transcribed_text}")
         
         # Process as if it was a text message
         await process_text_message(update, context, transcribed_text, user_id)

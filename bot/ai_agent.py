@@ -284,7 +284,7 @@ Be brief. Match user's language!"""
                 amount = float(args.get("amount", 0))
                 description = args.get("description", "")
                 currency = args.get("currency", "uzs").lower()
-                category_slug = args.get("category")
+                category_slug = args.get("category_slug") or args.get("category")
                 date_str = args.get("date")
                 
                 # Prepare transaction data
