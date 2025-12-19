@@ -25,7 +25,7 @@ async def show_transaction_with_actions(
     
     type_emoji = "📈" if tx_data['type'] == 'income' else "📉"
     type_text = get_message(lang, 'income') if tx_data['type'] == 'income' else get_message(lang, 'expense')
-    amount_text = f"{tx_data['amount']:,.0f} {tx_data.get('currency', 'UZS')}"
+    amount_text = f"{float(tx_data['amount']):,.0f} {tx_data.get('currency', 'UZS')}"
     
     desc = tx_data.get('description', '')
     category = tx_data.get('category')
