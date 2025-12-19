@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 
 async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Get user balance and show stats."""
-    if not storage.is_user_authorized(update.effective_user.id):
-        await update.message.reply_text("⛔ Сначала авторизуйся: /start")
+    user_id = update.effective_user.id
+    
+    if not storage.is_user_authorized(user_id):
+        from ..lang_messages import get_message
+        lang = storage.get_user_language(user_id)
+        await update.message.reply_text(get_message(lang, 'auth_required'))
         return
     
-    user_id = update.effective_user.id
     token = storage.get_user_token(user_id)
     api = MidasAPIClient(config.API_BASE_URL)
     api.set_token(token)
@@ -36,11 +39,15 @@ async def get_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total = float(balance.get("balance", 0))
     currency = balance.get("currency", "UZS")
     
+    # Get user language
+    from ..lang_messages import get_message
+    lang = storage.get_user_language(user_id)
+    
     await update.message.reply_text(
-        f"💰 **Баланс за месяц**\n\n"
-        f"📈 Доход: {income:,.0f} {currency}\n"
-        f"📉 Расход: {expense:,.0f} {currency}\n"
-        f"💵 Итого: {total:,.0f} {currency}",
+        f"{get_message(lang, 'balance_month')}"
+        f"{get_message(lang, 'income')}: {income:,.0f} {currency}\n"
+        f"{get_message(lang, 'expense')}: {expense:,.0f} {currency}\n"
+        f"{get_message(lang, 'total')}: {total:,.0f} {currency}",
         parse_mode='Markdown',
         reply_markup=get_main_keyboard()
     )
