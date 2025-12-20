@@ -25,7 +25,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=get_main_keyboard(lang)
         )
     else:
-        # New user - show language selection first
+        # New user
         if not lang:
             # First time - show language selector
             keyboard = [
@@ -42,11 +42,29 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=reply_markup
             )
         else:
-            # Language already set, show welcome
-            await update.message.reply_text(
-                t('auth.registration.welcome_new', lang, name=user.first_name),
-                reply_markup=ReplyKeyboardRemove()
+            # Language set but not registered - show trilingual welcome + buttons
+            welcome_msg = (
+                f"👋 Assalomu alaykum, {user.first_name}!\n"
+                "Bu bot Sizning shaxsiy moliyaviy yordamchingiz.\n\n"
+                f"👋 Здравствуйте, {user.first_name}!\n"
+                "Этот бот — ваш личный финансовый помощник.\n\n"
+                f"👋 Hello, {user.first_name}!\n"
+                "This bot is your personal finance assistant."
             )
+            
+            # Show registration/login buttons
+            from telegram import KeyboardButton, ReplyKeyboardMarkup
+            
+            reg_text = "📝 " + ("Ro'yxatdan o'tish" if lang == 'uz' else ("Регистрация" if lang == 'ru' else "Register"))
+            login_text = "🔑 " + ("Kirish" if lang == 'uz' else ("Войти" if lang == 'ru' else "Login"))
+            
+            keyboard = [
+                [KeyboardButton(reg_text)],
+                [KeyboardButton(login_text)]
+            ]
+            reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+            
+            await update.message.reply_text(welcome_msg, reply_markup=reply_markup)
 
 
 async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
