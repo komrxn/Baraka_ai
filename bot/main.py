@@ -15,7 +15,7 @@ from bot.handlers import (
     handle_voice,
     handle_photo
 )
-from bot.handlers.commands import start, help_command, help_callback
+from bot.handlers.commands import start, help_command, help_callback, language_selector_handler
 from bot.handlers.balance import get_balance
 from bot.auth_handlers import register_conv, login_conv
 from bot.transaction_actions import transaction_action_handler
@@ -41,7 +41,8 @@ def main():
     application.add_handler(CommandHandler("balance", get_balance))
     application.add_handler(CommandHandler("help", help_command))
     
-    # Callback handler for help language selection
+    # Callback handlers
+    application.add_handler(language_selector_handler)  # Language selection at /start
     application.add_handler(CallbackQueryHandler(help_callback, pattern="^help_"))
     
     # Callback handler for transaction actions (Edit/Delete)
