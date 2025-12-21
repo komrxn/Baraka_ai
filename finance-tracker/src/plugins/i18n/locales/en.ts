@@ -115,6 +115,16 @@ export default {
     noCategory: 'No category',
     created: 'Created',
     updated: 'Updated',
+    addTransaction: 'Add transaction',
+    editTransaction: 'Edit transaction',
+    selectType: 'Select type',
+    selectCurrency: 'Select currency',
+    selectCategory: 'Select category',
+    descriptionOptional: 'Description (optional)',
+    deleteSuccess: 'Transaction successfully deleted',
+    deleteError: 'Failed to delete transaction',
+    updateSuccess: 'Transaction successfully updated',
+    updateError: 'Failed to update transaction',
   },
 
   // Categories

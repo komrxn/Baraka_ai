@@ -26,7 +26,8 @@
                             @transaction-click="handleTransactionClick" />
                     </div>
                     <div v-if="hasMore" class="transactions-page__load-more">
-                        <Button :label="t('common.loadMore')" severity="secondary" outlined @click="loadMoreTransactions" />
+                        <Button :label="t('common.loadMore')" severity="secondary" outlined
+                            @click="loadMoreTransactions" />
                     </div>
                 </template>
             </template>
@@ -39,13 +40,17 @@
             <template #header>
                 <h2 class="transaction-details-drawer__title">{{ t('transactions.details') }}</h2>
             </template>
-            <TransactionDetails v-if="selectedTransaction" :transaction="selectedTransaction" />
+            <TransactionDetails v-if="selectedTransaction" :transaction="selectedTransaction"
+                @edit="handleEditTransaction" @remove="handleRemoveTransaction" />
         </VDrawer>
+
+        <TransactionForm v-model:visible="formDrawerVisible" :edit-data="formEditData"
+            @submit="handleSubmitTransaction" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { arrowLeft, filter, warning } from '@/assets/icons';
@@ -58,15 +63,18 @@ import VDrawer from '@/components/UI/VDrawer.vue';
 import TransactionGroup from '@/components/Transactions/TransactionGroup.vue';
 import TransactionFilterForm from '@/components/Transactions/TransactionFilterForm.vue';
 import TransactionDetails from '@/components/Transactions/TransactionDetails.vue';
-import type { GetTransactionsParams, Transaction } from '@/composables/Transactions/types';
+import TransactionForm from '@/components/Transactions/TransactionForm.vue';
+import type { GetTransactionsParams, Transaction, TransactionFormData, TransactionUpdateData } from '@/composables/Transactions/types';
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useCategoriesStore } from '@/store/categoriesStore';
+import { useToastStore } from '@/store/toastsStore';
 
 const transactionsStore = useTransactionsStore();
 const categoriesStore = useCategoriesStore();
+const $toast = useToastStore();
 
-const { groupedTransactions, loading, hasMore, currentFilters, filterDrawerVisible } = storeToRefs(transactionsStore);
-const { loadTransactions, loadMoreTransactions, applyFilters, resetFilters } = transactionsStore;
+const { groupedTransactions, loading, hasMore, currentFilters, filterDrawerVisible, editingTransaction } = storeToRefs(transactionsStore);
+const { loadTransactions, loadMoreTransactions, applyFilters, resetFilters, updateTransaction, removeTransaction, editTransaction, refreshTransactions } = transactionsStore;
 const { loadCategories } = categoriesStore;
 
 const handleApplyFilters = async (filters: GetTransactionsParams) => {
@@ -79,10 +87,68 @@ const handleResetFilters = async () => {
 
 const detailsDrawerVisible = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
+const formDrawerVisible = ref(false);
+
+const formEditData = computed(() => {
+    return editingTransaction.value;
+});
 
 const handleTransactionClick = (transaction: Transaction) => {
     selectedTransaction.value = transaction;
     detailsDrawerVisible.value = true;
+};
+
+const handleEditTransaction = () => {
+    if (selectedTransaction.value) {
+        editTransaction(selectedTransaction.value);
+        detailsDrawerVisible.value = false;
+        formDrawerVisible.value = true;
+    }
+};
+
+const handleRemoveTransaction = async () => {
+    if (!selectedTransaction.value) return;
+
+    try {
+        await removeTransaction(selectedTransaction.value.id);
+        detailsDrawerVisible.value = false;
+        selectedTransaction.value = null;
+        await refreshTransactions();
+        $toast.success(t('common.success'), t('transactions.deleteSuccess'));
+    } catch (error) {
+        $toast.error(t('common.error'), t('transactions.deleteError'));
+    }
+};
+
+const convertFormDataToUpdateData = (formData: TransactionFormData): TransactionUpdateData => {
+    const updateData: TransactionUpdateData = {
+        type: formData.type,
+        amount: formData.amount.toString(),
+        currency: formData.currency,
+        description: formData.description,
+        transaction_date: formData.transaction_date,
+    };
+
+    // Добавляем category_id только если он выбран
+    if (formData.category_id && formData.category_id.trim() !== '') {
+        updateData.category_id = formData.category_id;
+    }
+
+    return updateData;
+};
+
+const handleSubmitTransaction = async (formData: TransactionFormData) => {
+    if (!editingTransaction.value) return;
+
+    try {
+        const updateData = convertFormDataToUpdateData(formData);
+        await updateTransaction(editingTransaction.value.id, updateData);
+        formDrawerVisible.value = false;
+        await refreshTransactions();
+        $toast.success(t('common.success'), t('transactions.updateSuccess'));
+    } catch (error) {
+        $toast.error(t('common.error'), t('transactions.updateError'));
+    }
 };
 
 onMounted(async () => {

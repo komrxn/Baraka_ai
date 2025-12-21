@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { Button } from 'primevue';
@@ -42,6 +42,7 @@ import { arrowDownLeft, arrowUpRight, eyeIcon, eyeClosedIcon } from '@/assets/ic
 import VIcon from '../UI/VIcon.vue';
 import { formatAmount, formatAmountWithSign } from '@/utils';
 import { useBalanceStore } from '@/store/balanceStore';
+import { useLocalStorage } from '@vueuse/core';
 
 const { t } = useI18n();
 
@@ -49,7 +50,7 @@ const balanceStore = useBalanceStore();
 const { balance: balanceData } = storeToRefs(balanceStore);
 const { loadBalance } = balanceStore;
 
-const isVisible = ref(true);
+const isVisible = useLocalStorage('isVisibleBalance', true);
 
 const toggleVisibility = () => {
     isVisible.value = !isVisible.value;
