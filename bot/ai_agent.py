@@ -9,6 +9,7 @@ from openai.types.chat import ChatCompletionMessageToolCall as ToolCall
 from .config import config
 from .api_client import MidasAPIClient
 from .dialog_context import dialog_context
+from .categories_data import DEFAULT_CATEGORIES  # <--- Imported category data
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class AIAgent:
         self.model = "gpt-5.1"  
         
         self.tools = [
+            # ... tools (unchanged) ...
             {
                 "type": "function",
                 "function": {
@@ -122,6 +124,10 @@ class AIAgent:
                 }
             }
         ]
+
+        # Extract slugs from DEFAULT_CATEGORIES
+        expense_category_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'expense']
+        income_category_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'income']
 
         # Build dynamic category lists for system prompt
         def format_slugs(slugs):
