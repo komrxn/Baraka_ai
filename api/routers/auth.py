@@ -198,24 +198,10 @@ async def telegram_auth(
     user = result.scalar_one_or_none()
     
     if not user:
-        # Auto-create user from Telegram data (new schema)
-        name = tg_user["first_name"]
-        if tg_user.get("last_name"):
-            name += f" {tg_user['last_name']}"
-        
-        # Use dummy phone for WebApp users (they don't share phone via WebApp)
-        phone_number = f"+{tg_user['id']}"  # Unique dummy phone based on telegram_id
-        
-        user = User(
-            telegram_id=tg_user["id"],
-            phone_number=phone_number,
-            name=name,
-            language=tg_user.get("language_code", "uz") # Add language from Telegram user data
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not registered. Please register via bot first."
         )
-        
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
     
     # Create access token
     access_token = create_access_token(data={"sub": str(user.id)})
