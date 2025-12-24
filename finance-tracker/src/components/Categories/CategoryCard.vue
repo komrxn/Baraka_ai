@@ -7,7 +7,7 @@
                     :class="{ 'category-card__icon-svg--hidden': hasEmojiIcon }" /> -->
             </div>
             <div class="category-card__info">
-                <h3 class="category-card__name">{{ category.name }}</h3>
+                <h3 class="category-card__name">{{ categoryName }}</h3>
                 <div class="category-card__meta">
                     <span class="category-card__type">{{ category.type === CategoryType.INCOME ? t('main.income') : t('main.expense')
                     }}</span>
@@ -56,6 +56,13 @@ const toggleMenu = (event: Event) => {
 // const hasEmojiIcon = computed(() => {
 //     return props.category.icon && props.category.icon.length > 0 && props.category.icon.length <= 2;
 // });
+
+const categoryName = computed(() => {
+    if (props.category.slug) {
+        return t(`categoryList.${props.category.slug}`);
+    }
+    return props.category.name;
+});
 
 const menuItems = computed<MenuItem[]>(() => [
     {
@@ -159,14 +166,11 @@ const menuItems = computed<MenuItem[]>(() => [
         min-width: 0;
     }
 
-const categoryName = computed(() => {
-    if (props.category.slug) {
-        return t(`categoryList.${props.category.slug}`);
+    &__name {
+        font: var(--font-16-b);
+        margin: 0;
+        color: var(--text-color);
     }
-    return props.category.name;
-});
-// ... 
-<h3 class="category-card__name">{{ categoryName }}</h3>
 
     &__meta {
         display: flex;
