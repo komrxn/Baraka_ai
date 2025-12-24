@@ -93,10 +93,20 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except httpx.HTTPStatusError as e:
         logger.error(f"Registration error: {e.response.status_code} - {e.response.text}")
         if e.response.status_code == 400:
-            await update.message.reply_text(
-                t('auth.registration.error_exists', lang),
-                reply_markup=get_main_keyboard(lang)
-            )
+            error_data = e.response.json()
+            if "already registered" in str(error_data):
+                msg = {
+                    'uz': "⚠️ Siz allaqachon ro'yxatdan o'tgansiz!\nIltimos, tizimga kiring: /login",
+                    'ru': "⚠️ Вы уже зарегистрированы!\nПожалуйста, войдите в систему: /login",
+                    'en': "⚠️ You are already registered!\nPlease login: /login"
+                }.get(lang, "Already registered")
+                
+                await update.message.reply_text(msg, reply_markup=get_main_keyboard(lang))
+            else:
+                await update.message.reply_text(
+                    t('auth.registration.error_exists', lang),
+                    reply_markup=get_main_keyboard(lang)
+                )
         else:
             await update.message.reply_text(
                 t('auth.registration.error_generic', lang),
@@ -147,7 +157,12 @@ async def login_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Login error: {e.response.status_code} - {e.response.text}")
         
         if e.response.status_code == 401:
-             msg = t('auth.login.error_unauthorized', lang)
+             # Phone number mismatch or invalid
+             msg = {
+                 'uz': "❌ Telefon raqami noto'g'ri yoki ro'yxatdan o'tmagansiz.\nIltimos, qayta ro'yxatdan o'ting: /register",
+                 'ru': "❌ Неверный номер телефона или вы не зарегистрированы.\nПожалуйста, зарегистрируйтесь заново: /register",
+                 'en': "❌ Invalid phone number or not registered.\nPlease register: /register"
+             }.get(lang, "Invalid phone number")
         elif e.response.status_code == 404:
              msg = t('auth.login.error_not_found', lang)
         else:
