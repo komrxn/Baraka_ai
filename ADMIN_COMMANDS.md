@@ -2,6 +2,14 @@
 
 ## 📊 Мониторинг пользователей
 
+### Удалить конкретного пользователя и его данные
+```bash
+# Замени TELEGRAM_ID
+docker compose exec -T db psql -U postgres -d midas_db << 'EOF'
+DELETE FROM users WHERE telegram_id = 2040216796;
+SELECT 'User deleted!' as status;
+EOF
+
 ### Список всех пользователей
 ```bash
 docker compose exec -T db psql -U postgres -d midas_db -c "
@@ -386,4 +394,6 @@ EOF
 ```
 
 # Проверить количество категорий 
+```bash
 docker compose exec -T db psql -U postgres -d midas_db -c "SELECT COUNT(*), type FROM categories GROUP BY type ORDER BY type;"
+```

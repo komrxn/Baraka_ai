@@ -1,79 +1,54 @@
-"""Seed default categories for the application."""
 import asyncio
+import os
 import sys
-from pathlib import Path
-
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from api.database import async_session_maker
-from api.models.category import Category
+from uuid import uuid4
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from api.database import get_db, async_session_maker
+from api.models.category import Category
+from bot.categories_data import DEFAULT_CATEGORIES
 
-
-DEFAULT_CATEGORIES = [
-    # Расходы
-    {"name": "Еда", "slug": "food", "type": "expense", "icon": "🍔", "color": "#FF6B6B"},
-    {"name": "Транспорт", "slug": "transport", "type": "expense", "icon": "🚗", "color": "#4ECDC4"},
-    {"name": "Жильё", "slug": "housing", "type": "expense", "icon": "🏠", "color": "#95E1D3"},
-    {"name": "Развлечения", "slug": "entertainment", "type": "expense", "icon": "🎮", "color": "#F38181"},
-    {"name": "Здоровье", "slug": "health", "type": "expense", "icon": "💊", "color": "#AA96DA"},
-    {"name": "Образование", "slug": "education", "type": "expense", "icon": "📚", "color": "#FCBAD3"},
-    {"name": "Одежда", "slug": "clothing", "type": "expense", "icon": "👔", "color": "#A8D8EA"},
-    {"name": "Связь", "slug": "communication", "type": "expense", "icon": "📱", "color": "#FFD93D"},
-    {"name": "Подарки", "slug": "gifts", "type": "expense", "icon": "🎁", "color": "#6BCB77"},
-    {"name": "Спорт", "slug": "sports", "type": "expense", "icon": "⚽", "color": "#4D96FF"},
-    {"name": "Красота", "slug": "beauty", "type": "expense", "icon": "💄", "color": "#FDA7DF"},
-    {"name": "Путешествия", "slug": "travel", "type": "expense", "icon": "✈️", "color": "#F6A5C0"},
-    {"name": "Кафе/Рестораны", "slug": "cafes", "type": "expense", "icon": "☕", "color": "#F3D250"},
-    {"name": "Продукты", "slug": "groceries", "type": "expense", "icon": "🛒", "color": "#90CCF4"},
-    {"name": "Такси", "slug": "taxi", "type": "expense", "icon": "🚕", "color": "#F78888"},
-    {"name": "Коммуналка", "slug": "utilities", "type": "expense", "icon": "💡", "color": "#5EAAA8"},
-    {"name": "Другое", "slug": "other_expense", "type": "expense", "icon": "💰", "color": "#B8B5FF"},
-    
-    # Доходы
-    {"name": "Зарплата", "slug": "salary", "type": "income", "icon": "💵", "color": "#26de81"},
-    {"name": "Фриланс", "slug": "freelance", "type": "income", "icon": "💻", "color": "#45aaf2"},
-    {"name": "Инвестиции", "slug": "investments", "type": "income", "icon": "📈", "color": "#a55eea"},
-    {"name": "Подарок", "slug": "gift_income", "type": "income", "icon": "🎁", "color": "#fd79a8"},
-    {"name": "Другое", "slug": "other_income", "type": "income", "icon": "💸", "color": "#00b894"},
-    
-    # Долги
-    {"name": "Заняли", "slug": "borrowed", "type": "debt_out", "icon": "💸", "color": "#ee5a6f"},
-    {"name": "Дали взаймы", "slug": "lent", "type": "debt_in", "icon": "🤝", "color": "#20bf6b"},
-    {"name": "Вернули мне", "slug": "returned_to_me", "type": "income", "icon": "💰", "color": "#4b7bec"},
-    {"name": "Я вернул", "slug": "i_returned", "type": "expense", "icon": "💵", "color": "#fa8231"},
-]
+# Add project root to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 async def seed_categories():
-    """Seed default categories into database."""
+    print("Seeding categories...")
     async with async_session_maker() as session:
-        # Check if categories already exist
-        result = await session.execute(select(Category))
-        existing = result.scalars().all()
-        
-        if len(existing) > 5:
-            print(f"⚠️ Categories already exist ({len(existing)} found). Skipping seed.")
-            return
-        
-        print(f"📦 Seeding {len(DEFAULT_CATEGORIES)} default categories...")
-        
         for cat_data in DEFAULT_CATEGORIES:
-            # Check if category with this slug exists
-            result = await session.execute(
-                select(Category).where(Category.slug == cat_data["slug"])
-            )
-            existing_cat = result.scalar_one_or_none()
+            slug = cat_data['slug']
+            # Find category by slug (system default)
+            stmt = select(Category).where(Category.slug == slug)
+            result = await session.execute(stmt)
+            category = result.scalar_one_or_none()
             
-            if not existing_cat:
-                category = Category(**cat_data)
-                session.add(category)
-                print(f"  ✅ Added: {cat_data['name']} ({cat_data['type']})")
+            if category:
+                print(f"Updating {slug}...")
+                category.icon = cat_data['icon']
+                category.color = cat_data['color']
+                category.type = cat_data['type']
+                # Don't overwrite name if it might be customized? 
+                # Actually user wants to reset defaults.
+                category.name = cat_data['name'] 
+                category.is_default = True
+            else:
+                print(f"Creating {slug}...")
+                new_cat = Category(
+                    id=uuid4(),
+                    name=cat_data['name'],
+                    slug=slug,
+                    type=cat_data['type'],
+                    icon=cat_data['icon'],
+                    color=cat_data['color'],
+                    is_default=True,
+                    user_id=None # Default category
+                )
+                session.add(new_cat)
         
         await session.commit()
-        print("✅ Categories seeded successfully!")
-
+        print("Categories seeded successfully.")
 
 if __name__ == "__main__":
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(seed_categories())

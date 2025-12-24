@@ -82,6 +82,9 @@ const category = computed(() => {
 });
 
 const categoryName = computed(() => {
+    if (category.value?.slug) {
+        return t(`categoryList.${category.value.slug}`);
+    }
     return category.value?.name || t('transactions.noCategory');
 });
 

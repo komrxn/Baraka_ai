@@ -159,11 +159,14 @@ const menuItems = computed<MenuItem[]>(() => [
         min-width: 0;
     }
 
-    &__name {
-        font: var(--font-16-b);
-        margin: 0;
-        color: var(--text-color);
+const categoryName = computed(() => {
+    if (props.category.slug) {
+        return t(`categoryList.${props.category.slug}`);
     }
+    return props.category.name;
+});
+// ... 
+<h3 class="category-card__name">{{ categoryName }}</h3>
 
     &__meta {
         display: flex;

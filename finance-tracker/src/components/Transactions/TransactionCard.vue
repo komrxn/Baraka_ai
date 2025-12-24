@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import type { Transaction } from '@/composables/Transactions/types';
 import { useCategoriesStore } from '@/store/categoriesStore';
@@ -31,6 +32,7 @@ const props = defineProps<{
     transaction: Transaction;
 }>();
 
+const { t } = useI18n();
 const { categories } = storeToRefs(useCategoriesStore());
 
 const category = computed(() => {
@@ -38,7 +40,10 @@ const category = computed(() => {
 });
 
 const categoryName = computed(() => {
-    return category.value?.name || 'Без категории';
+    if (category.value?.slug) {
+        return t(`categoryList.${category.value.slug}`);
+    }
+    return category.value?.name || t('transactions.noCategory');
 });
 
 const categoryIcon = computed(() => {

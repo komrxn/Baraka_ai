@@ -69,30 +69,25 @@ class AIAgent:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "period": {
-                                "type": "string",
-                                "enum": ["day", "week", "month", "year"],
-                                "default": "month",
-                                "description": "Период: day, week, month, year"
-                            }
-                        }
-                    }
+                    "description": "Get current balance and limits status",
+                    "parameters": {"type": "object", "properties": {}}
                 }
             },
             {
                 "type": "function",
                 "function": {
                     "name": "get_statistics",
-                    "description": "Получить статистику по категориям расходов",
+                    "description": "Get expense statistics for a period",
                     "parameters": {
                         "type": "object",
                         "properties": {
                             "period": {
                                 "type": "string",
-                                "enum": ["day", "week", "month", "year"],
-                                "default": "month"
+                                "enum": ["today", "week", "month", "year"],
+                                "description": "Time period for statistics"
                             }
-                        }
+                        },
+                        "required": ["period"]
                     }
                 }
             },
@@ -100,25 +95,16 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "create_category",
-                    "description": "Create a new category. Only use IF user explicitly asks to create/add a category.",
+                    "description": "Create a new category",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "Category name (e.g. 'Crypto', 'Flowers')"
-                            },
-                            "type": {
-                                "type": "string",
-                                "enum": ["expense", "income"],
-                                "default": "expense"
-                            },
-                            "icon": {
-                                "type": "string",
-                                "description": "Emoji icon for category (e.g. 🪙, 💐)"
-                            }
+                            "name": {"type": "string", "description": "Category name"},
+                            "type": {"type": "string", "enum": ["income", "expense"], "description": "Category type"},
+                            "icon": {"type": "string", "description": "Emoji icon for the category"},
+                            "color": {"type": "string", "description": "Color in HEX format (e.g. #FF0000)"}
                         },
-                        "required": ["name", "type"]
+                        "required": ["name", "type", "icon"]
                     }
                 }
             },
@@ -126,38 +112,18 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "create_debt",
-                    "description": "Создать запись о долге. Используй когда пользователь говорит 'Я дал в долг', 'Мне должны', 'Занял у...'.",
+                    "description": "Record a new debt (someone owes me or I owe someone)",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "type": {
-                                "type": "string",
-                                "enum": ["i_owe", "owe_me"],
-                                "description": "Тип долга: i_owe (Я должен), owe_me (Мне должны)"
-                            },
-                            "person_name": {
-                                "type": "string",
-                                "description": "Имя человека (кому дал или у кого взял)"
-                            },
-                            "amount": {
-                                "type": "number",
-                                "description": "Сумма долга"
-                            },
-                            "currency": {
-                                "type": "string",
-                                "enum": ["uzs", "usd"],
-                                "default": "uzs"
-                            },
-                             "description": {
-                                "type": "string",
-                                "description": "Описание (на что, когда вернуть и т.д.)"
-                            },
-                            "due_date": {
-                                "type": "string",
-                                "description": "Дата возврата в формате YYYY-MM-DD (если указана). Если 'завтра', 'через неделю' - преобразуй в дату."
-                            }
+                            "person_name": {"type": "string", "description": "Name of the person"},
+                            "amount": {"type": "number", "description": "Debt amount"},
+                            "currency": {"type": "string", "enum": ["uzs", "usd"], "description": "Currency code"},
+                            "type": {"type": "string", "enum": ["i_owe", "owe_me"], "description": "Debt type: 'i_owe' if I borrowed, 'owe_me' if I lent"},
+                            "description": {"type": "string", "description": "Description (optional)"},
+                            "due_date": {"type": "string", "description": "Due date in YYYY-MM-DD format (optional)"}
                         },
-                        "required": ["type", "person_name", "amount"]
+                        "required": ["person_name", "amount", "currency", "type"]
                     }
                 }
             },
@@ -165,53 +131,63 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "settle_debt",
-                    "description": "Пометить долг как оплаченный/возвращенный. Используй когда пользователь говорит 'Сахина вернула долг', 'Я отдал долг Али'.",
+                    "description": "Mark a debt as paid/settled",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "person_name": {
-                                "type": "string",
-                                "description": "Имя человека"
-                            },
-                             "amount": {
-                                "type": "number",
-                                "description": "Сумма (опционально, для уточнения, если долгов несколько)"
-                            }
+                            "person_name": {"type": "string", "description": "Name of the person to settle debt with"},
+                            "amount": {"type": "number", "description": "Amount to pay (optional, if not specified tries to settle full debt)"}
                         },
                         "required": ["person_name"]
                     }
                 }
             }
         ]
-        
-        self.system_prompt = """You are Midas AI, a smart finance assistant.
 
-CORE OBJECTIVE:
+        # Build dynamic category lists for system prompt
+        def format_slugs(slugs):
+            lines = []
+            for i in range(0, len(slugs), 10):
+                lines.append(", ".join(slugs[i:i+10]))
+            return "\n".join(lines)
+
+        self.system_prompt = f"""You are Midas - an intelligent financial assistant. Your goal is to help users manage their finances.
+You communicate in a friendly, concise manner. You can analyze natural language and perform actions.
+
+CAPABILITIES:
+1. Register transactions (expenses/income)
+2. Show balance and limits
+3. Show statistics
+4. Create new categories
+5. Manage debts (create and settle)
+
+CURRENT DATE: {datetime.datetime.now().strftime('%Y-%m-%d')}
+
 Record transactions and debts, and help manage finances.
 
 AVAILABLE CATEGORIES (use slug):
-EXPENSES: food, groceries, cafes, transport, taxi, housing, utilities, entertainment, health, education, clothing, communication, gifts, sports, beauty, travel, other_expense
-INCOME: salary, freelance, investments, gift_income, other_income
+EXPENSES: 
+{format_slugs(expense_category_slugs)}
+
+INCOME: 
+{format_slugs(income_category_slugs)}
 
 CATEGORY MAPPING RULES (IMPORTANT):
-- "shopping" / "xarid" / "покупки" → clothing (одежда, обувь)
-- "market" / "bozor" / "магазин продуктов" → groceries (продукты питания)
-- "restaurant" / "restoran" → cafes
-- "fuel" / "benzin" / "газ" → transport
-- "internet" / "phone bill" → communication
-- "rent" / "ijara" / "аренда" → housing
-- "gym" / "fitnes" → sports
-- "medicine" / "dori" / "лекарства" → health
-- "книги" / "kitoblar" / "course" → education
+- "food" / "ovqat" / "еда" -> groceries (if cooking ingredients) OR cafes
+- "yandex" / "taxi" -> taxi
+- "click" / "payme" -> utilities (often)
+- "netflix" / "spotify" / "apple" -> subscriptions
+- "zara" / "nike" -> clothing or shoes
+- "shop" / "bozor" -> groceries or home_other
+- "u cell" / "beeline" -> internet or communication (use 'internet' for now if phone bill)
+- "benzin" / "zapravka" -> fuel
+- "metro" / "bus" -> public_transport
+- "apteka" / "dori" -> medicine
+- "kurs" / "o'qish" -> courses (short term) or education (long term)
 
 MAP intelligently based on context. If unsure, use 'other_expense'.
 
 RULES:
-1. **Transactions:**
-   - If user gives Amount + (Category OR Description) → CALL `create_transaction` IMMEDIATELY.
-   - If info is missing (e.g. "Spent 50k"), ASK briefly: "What for?" (in user's language).
-
-2. **Debts (NEW):**
    - If user says "I lent 50k to Ali" / "Daler qarz oldi 50k" / "Дал в долг Али 50к" → CALL `create_debt` (type="owe_me").
    - If user says "I borrowed 100$ from John" / "Men Alidan 100$ qarz oldim" / "Взял в долг у Джона 100$" → CALL `create_debt` (type="i_owe").
    - If user says "Ali returned debt" / "Ali qarzini berdi" / "Али вернул долг" → CALL `settle_debt`.
