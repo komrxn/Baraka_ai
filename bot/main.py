@@ -19,6 +19,7 @@ from bot.handlers.commands import start, help_command, help_callback, language_s
 from bot.handlers.balance import get_balance
 from bot.auth_handlers import register_conv, login_conv
 from bot.transaction_actions import transaction_action_handler
+from bot.debt_actions import debt_action_handler
 
 # Configure logging
 logging.basicConfig(
@@ -47,6 +48,7 @@ def main():
     
     # Callback handler for transaction actions (Edit/Delete)
     application.add_handler(transaction_action_handler)
+    application.add_handler(debt_action_handler)
     
     # Message handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))

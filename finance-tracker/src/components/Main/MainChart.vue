@@ -71,7 +71,7 @@ const expensesData = computed(() => {
         return [];
     }
     return categoryBreakdown.value.categories.map((cat: any) => ({
-        name: cat.category_name,
+        name: cat.category_slug ? t(`categories.${cat.category_slug}`) : cat.category_name,
         value: parseFloat(cat.amount),
         percentage: cat.percentage.toString(),
         color: cat.color || 'rgb(149, 165, 166)',

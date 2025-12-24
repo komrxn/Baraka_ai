@@ -6,5 +6,12 @@
     "amount": "💰 Summa",
     "due_date": "📅 Qaytarish sanasi",
     "description": "📝 Izoh",
-    "debt_settled": "✅ Qarz so'ndirildi"
+    "debt_settled": "✅ Qarz so'ndirildi",
+    "actions": {
+        "settle": "✅ To'lash",
+        "settle_confirm": "❓ To'lashni tasdiqlang",
+        "settled_success": "✅ Qarz to'langan deb belgilandi!",
+        "deleted": "🗑 Qarz o'chirildi",
+        "edit_prompt": "✍️ Qarz ma'lumotlarini yangilang"
+    }
 }

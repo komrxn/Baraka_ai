@@ -11,6 +11,8 @@ from ..transaction_actions import show_transaction_with_actions, handle_edit_tra
 from .common import with_auth_check, get_main_keyboard
 from ..i18n import t, translate_category
 
+from ..debt_actions import show_debt_with_actions, handle_edit_debt_message
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,6 +29,10 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get('editing_tx'):
         from ..confirmation_handlers import handle_edit_message
         await handle_edit_message(update, context)
+        return
+
+    if context.user_data.get('editing_debt_id'):
+        await handle_edit_debt_message(update, context)
         return
     
     await process_text_message(update, context, text, user_id)
@@ -96,31 +102,10 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         for tx_data in created_transactions:
             await show_transaction_with_actions(update, user_id, tx_data)
 
-    # Show created debts
+    # Show created debts with actions
     if created_debts:
         for debt in created_debts:
-            # debt: {debt_id, person, amount, type}
-            amount_val = float(debt.get('amount', 0))
-            amount_str = f"{amount_val:,.0f}".replace(",", " ")
-            currency = debt.get('currency', 'UZS')
-            
-            debt_type_key = 'debts.i_owe' if debt.get('type') == 'i_owe' else 'debts.owe_me'
-            
-            text = f"{t('debts.new_debt_created', lang)}\n\n"
-            text += f"{t(debt_type_key, lang)}\n"
-            text += f"{t('debts.person', lang)}: {debt.get('person')}\n"
-            text += f"{t('debts.amount', lang)}: {amount_str} {currency}\n"
-            
-            if debt.get('due_date'):
-               text += f"{t('debts.due_date', lang)}: {debt.get('due_date')}\n"
-
-            if debt.get('description'):
-               text += f"{t('debts.description', lang)}: {debt.get('description')}\n"
-            
-            await update.message.reply_text(
-                text,
-                reply_markup=get_main_keyboard(lang)
-            )
+            await show_debt_with_actions(update, user_id, debt)
 
     # Show settled debts
     if settled_debts:

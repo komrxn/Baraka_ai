@@ -246,3 +246,25 @@ class MidasAPIClient:
             )
             response.raise_for_status()
             return response.json()
+
+    @handle_auth_errors
+    async def update_debt(self, debt_id: str, **updates) -> Dict[str, Any]:
+        """Update debt via PUT."""
+        async with httpx.AsyncClient() as client:
+            response = await client.put(
+                f"{self.base_url}/debts/{debt_id}",
+                json=updates,
+                headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()
+
+    @handle_auth_errors
+    async def delete_debt(self, debt_id: str) -> None:
+        """Delete debt."""
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(
+                f"{self.base_url}/debts/{debt_id}",
+                headers=self.headers
+            )
+            response.raise_for_status()
