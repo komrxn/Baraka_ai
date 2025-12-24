@@ -173,6 +173,7 @@ export default {
     accessories: 'Accessories',
     household_chemicals: 'Household Chemicals',
     hygiene: 'Hygiene',
+    cosmetics: 'Cosmetics',
     home_other: 'Home (Other)',
     entertainment: 'Entertainment',
     subscriptions: 'Subscriptions',
