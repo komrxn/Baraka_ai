@@ -39,7 +39,7 @@ export const toggleButtonConfig = (): ToggleButtonDesignTokens => {
           checkedColor: '{formField.color}',
 
 
-          background: 'var(--card-default)',
+          background: 'var(--secondary-500)',
           // borderColor: '{formField.borderColor}',
           checkedBorderColor: '{formField.borderColor}',
           hoverBackground: 'var(--card-hover)',

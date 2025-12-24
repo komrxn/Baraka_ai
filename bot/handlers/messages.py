@@ -100,6 +100,7 @@ async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
     try:
         balance = await api.get_balance(period="month")
         breakdown = await api.get_category_breakdown(period="month")
+        logger.info(f"Statistics breakdown response: {breakdown}")
         
         stats_text = t('transactions.stats.month', lang)
         
