@@ -74,9 +74,10 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     
     response_text = result.get("response", "")
     created_transactions = result.get("created_transactions", [])
+    created_debts = result.get("created_debts", [])
     
-    # Show AI response (only if no transactions created)
-    if not created_transactions and response_text:
+    # Show AI response (only if no transactions/debts created)
+    if not created_transactions and not created_debts and response_text:
         try:
             await update.message.reply_text(
                 response_text,
@@ -93,6 +94,32 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     if created_transactions:
         for tx_data in created_transactions:
             await show_transaction_with_actions(update, user_id, tx_data)
+
+    # Show created debts
+    if created_debts:
+        for debt in created_debts:
+            # debt: {debt_id, person, amount, type}
+            amount_val = float(debt.get('amount', 0))
+            amount_str = f"{amount_val:,.0f}".replace(",", " ")
+            currency = debt.get('currency', 'UZS')
+            
+            debt_type_key = 'debts.i_owe' if debt.get('type') == 'i_owe' else 'debts.owe_me'
+            
+            text = f"{t('debts.new_debt_created', lang)}\n\n"
+            text += f"{t(debt_type_key, lang)}\n"
+            text += f"{t('debts.person', lang)}: {debt.get('person')}\n"
+            text += f"{t('debts.amount', lang)}: {amount_str} {currency}\n"
+            
+            if debt.get('due_date'):
+               text += f"{t('debts.due_date', lang)}: {debt.get('due_date')}\n"
+
+            if debt.get('description'):
+               text += f"{t('debts.description', lang)}: {debt.get('description')}\n"
+            
+            await update.message.reply_text(
+                text,
+                reply_markup=get_main_keyboard(lang)
+            )
 
 
 async def show_statistics(update: Update, api: MidasAPIClient, lang: str):

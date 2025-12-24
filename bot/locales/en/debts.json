@@ -1,0 +1,9 @@
+{
+    "new_debt_created": "🆕 Debt recorded",
+    "i_owe": "🔴 I owe",
+    "owe_me": "🟢 Owe me",
+    "person": "👤 Who",
+    "amount": "💰 Amount",
+    "due_date": "📅 Due date",
+    "description": "📝 Description"
+}

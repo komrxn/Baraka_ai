@@ -280,6 +280,7 @@ Action: create_debt(type="owe_me", person_name="Daler", amount=500000, descripti
                 # Execute all tool calls
                 tool_results = []
                 created_transactions = [] # Initialize list to collect created transactions
+                created_debts = [] # Initialize list to collect created debts
                 
                 for tool_call in tool_calls:
                     try:
@@ -294,12 +295,13 @@ Action: create_debt(type="owe_me", person_name="Daler", amount=500000, descripti
                             "output": output_str
                         })
                         
-                        # Collect successfully created transactions or categories
+                        # Collect successfully created transactions, debts or categories
                         if tool_result.get("success"):
                             if "transaction_id" in tool_result:
                                 created_transactions.append(tool_result)
-                            # You can handle category success here if needed, 
-                            # but usually the AI explains it in the final response.
+                            elif "debt_id" in tool_result:
+                                created_debts.append(tool_result)
+                            # You can handle category success here if needed
                             
                     except Exception as e:
                         logger.exception(f"Error executing tool {tool_call.function.name}: {e}")
@@ -333,13 +335,15 @@ Action: create_debt(type="owe_me", person_name="Daler", amount=500000, descripti
             else:
                 # No tools called, just conversation
                 final_text = assistant_message.content
+                created_debts = []
             
             # Save assistant response to context
             dialog_context.add_message(user_id, "assistant", final_text or "")
             
             return {
                 "response": final_text or "Готово!",
-                "created_transactions": created_transactions
+                "created_transactions": created_transactions,
+                "created_debts": created_debts
             }
             
         except Exception as e:
