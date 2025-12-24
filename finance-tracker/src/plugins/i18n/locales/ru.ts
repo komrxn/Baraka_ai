@@ -173,6 +173,7 @@ export default {
     accessories: 'Аксессуары',
     household_chemicals: 'Быт. химия',
     hygiene: 'Гигиена',
+    cosmetics: 'Косметика',
     home_other: 'Для дома',
     entertainment: 'Развлечения',
     subscriptions: 'Подписки',

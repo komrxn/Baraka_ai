@@ -173,6 +173,7 @@ export default {
     accessories: 'Aksessuarlar',
     household_chemicals: 'Maishiy kimyo',
     hygiene: 'Gigiena',
+    cosmetics: 'Kosmetika',
     home_other: 'Uy uchun',
     entertainment: 'O\'yin-kulgi',
     subscriptions: 'Obunalar',

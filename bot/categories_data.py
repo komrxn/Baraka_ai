@@ -19,6 +19,7 @@ DEFAULT_CATEGORIES = [
     {'name': 'Аксессуары', 'slug': 'accessories', 'type': 'expense', 'icon': '👓', 'color': '#FCBAD3'},
     {'name': 'Быт. химия', 'slug': 'household_chemicals', 'type': 'expense', 'icon': '🧼', 'color': '#95E1D3'},
     {'name': 'Гигиена', 'slug': 'hygiene', 'type': 'expense', 'icon': '🧴', 'color': '#F38181'},
+    {'name': 'Косметика', 'slug': 'cosmetics', 'type': 'expense', 'icon': '💄', 'color': '#FFB7B2'},
     {'name': 'Для дома', 'slug': 'home_other', 'type': 'expense', 'icon': '🛋️', 'color': '#FCE38A'},
     {'name': 'Развлечения', 'slug': 'entertainment', 'type': 'expense', 'icon': '🎮', 'color': '#F06292'},
     {'name': 'Подписки', 'slug': 'subscriptions', 'type': 'expense', 'icon': '📺', 'color': '#BA68C8'},
