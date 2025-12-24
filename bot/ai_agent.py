@@ -28,36 +28,18 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "create_transaction",
-                    "description": "Создать транзакцию дохода или расхода. Вызывай эту функцию когда пользователь говорит о трате денег или получении дохода.",
+                    "description": "Create a new transaction (expense or income)",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "type": {
-                                "type": "string",
-                                "enum": ["income", "expense"],
-                                "description": "Тип: income (доход) или expense (расход)"
-                            },
-                            "amount": {
-                                "type": "number",
-                                "description": "Сумма в числовом формате. Если написано '30к' или '30 тысяч', преобразуй в 30000"
-                            },
-                            "currency": {
-                                "type": "string",
-                                "enum": ["uzs", "usd", "eur", "rub"],
-                                "default": "uzs",
-                                "description": "Валюта: uzs, usd, eur, rub"
-                            },
-                            "description": {
-                                "type": "string",
-                                "description": "Краткое описание транзакции"
-                            },
-                            "category_slug": {
-                                "type": "string",
-                                "enum": ["food", "transport", "taxi", "housing", "entertainment", "health", "education", "clothing", "communication", "gifts", "sports", "beauty", "travel", "cafes", "groceries", "utilities", "other_expense", "salary", "freelance", "investments", "gift_income", "other_income"],
-                                "description": "Категория: food (еда), transport (транспорт), taxi (такси - ТОЛЬКО для такси!), housing (жильё), entertainment (развлечения), health (здоровье), education (образование), clothing (одежда), communication (связь), gifts (подарки), sports (спорт), beauty (красота), travel (путешествия), cafes (кафе), groceries (продукты), utilities (коммуналка), other_expense (другое расход), salary (зарплата), freelance (фриланс), investments (инвестиции), gift_income (подарок), other_income (другое доход)"
-                            }
+                            "amount": {"type": "number", "description": "Transaction amount"},
+                            "currency": {"type": "string", "enum": ["uzs", "usd"], "description": "Currency code"},
+                            "category_slug": {"type": "string", "description": "Category slug (must be from available list)"},
+                            "description": {"type": "string", "description": "Description of the transaction"},
+                            "date": {"type": "string", "description": "Date in YYYY-MM-DD format (optional)"},
+                            "type": {"type": "string", "enum": ["income", "expense"], "description": "Transaction type"}
                         },
-                        "required": ["type", "amount", "description"]
+                        "required": ["amount", "currency", "category_slug", "type"]
                     }
                 }
             },
@@ -65,10 +47,6 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "get_balance",
-                    "description": "Получить текущий баланс, доходы и расходы за период",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
                     "description": "Get current balance and limits status",
                     "parameters": {"type": "object", "properties": {}}
                 }
