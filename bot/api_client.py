@@ -211,3 +211,15 @@ class MidasAPIClient:
             )
             response.raise_for_status()
             return response.json()
+
+    @handle_auth_errors
+    async def create_debt(self, debt_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new debt record."""
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/debts",
+                json=debt_data,
+                headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()

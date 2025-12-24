@@ -141,7 +141,7 @@ const convertFormDataToCreateData = (formData: DebtFormData): DebtCreateData => 
         amount: formData.amount,
         currency: formData.currency,
         description: formData.description,
-        due_date: formData.due_date,
+        due_date: formData.due_date || null,
     };
 };
 
@@ -151,7 +151,7 @@ const convertFormDataToUpdateData = (formData: DebtFormData): DebtUpdateData => 
         amount: formData.amount,
         description: formData.description,
         status: editingDebt.value?.status || DebtStatus.OPEN,
-        due_date: formData.due_date,
+        due_date: formData.due_date || null,
         settled_at: editingDebt.value?.settled_at || null,
     };
 };

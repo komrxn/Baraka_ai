@@ -30,7 +30,7 @@ export interface DebtCreateData {
     amount: number;
     currency: string;
     description: string;
-    due_date: string;
+    due_date?: string | null;
 }
 
 export interface DebtUpdateData {
@@ -38,7 +38,7 @@ export interface DebtUpdateData {
     amount: number;
     description: string;
     status: DebtStatus;
-    due_date: string;
+    due_date?: string | null;
     settled_at: string | null;
 }
 
