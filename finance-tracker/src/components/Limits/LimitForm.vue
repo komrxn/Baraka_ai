@@ -7,7 +7,7 @@
         <VForm @submit-form="handleSubmit" class="limit-form__form-wrapper">
             <div class="limit-form__form">
                 <div class="limit-form__form-section">
-                    <VSelect v-model="formData.category" :options="categoriesOptions" option-label="name"
+                    <VSelect v-model="formData.category" :options="categoriesOptions" option-label="localizedName"
                         option-value="name" :placeholder="t('limits.selectCategory')" :label="t('limits.category')"
                         :rules="categoryRules" size="small" class="font-14-r" />
                 </div>
@@ -70,7 +70,12 @@ const props = withDefaults(
 const { categories } = storeToRefs(useCategoriesStore());
 
 const categoriesOptions = computed(() => {
-    return categories.value.filter((cat: any) => cat.type === CategoryType.EXPENSE);
+    return categories.value
+        .filter((cat: any) => cat.type === CategoryType.EXPENSE)
+        .map((cat: any) => ({
+            ...cat,
+            localizedName: t(`categoryList.${cat.slug}`)
+        }));
 });
 
 const emit = defineEmits<{

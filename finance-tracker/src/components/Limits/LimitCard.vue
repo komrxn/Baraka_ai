@@ -76,7 +76,19 @@ const menuItems = computed<MenuItem[]>(() => [
     },
 ]);
 
+import { storeToRefs } from 'pinia';
+import { useCategoriesStore } from '@/store/categoriesStore';
+
+const categoriesStore = useCategoriesStore();
+const { categories } = storeToRefs(categoriesStore);
+
 const categoryName = computed(() => {
+    if (props.limit.category_id) {
+        const category = categories.value.find((c: any) => c.id === props.limit.category_id);
+        if (category && category.slug) {
+            return t(`categoryList.${category.slug}`);
+        }
+    }
     return props.limit.category_name || t('limits.notSelected');
 });
 
