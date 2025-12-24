@@ -18,10 +18,7 @@ html {
 #app {
   min-height: 100dvh;
   width: 100%;
-}
-
-html:has(.face-id-page) {
-  overflow: hidden;
+  background-color: var(--site-bg);
 }
 
 .page-wrapper+.page-wrapper {
