@@ -13,18 +13,18 @@
             <div class="main-balance__divider"></div>
             <div class="main-balance__items">
                 <div class="main-balance__item">
-                    <Button :icon="arrowUpRight" severity="danger" outlined class="main-balance__item-button" />
-                    <div class="main-balance__item-content">
-                        <h5>{{ t('main.expense') }}</h5>
-                        <p v-if="isVisible" class="gold-text">{{ formatAmountWithSign(-expense) }} UZS</p>
-                        <p v-else class="gold-text">••••••</p>
-                    </div>
-                </div>
-                <div class="main-balance__item">
                     <Button :icon="arrowDownLeft" severity="success" outlined class="main-balance__item-button" />
                     <div class="main-balance__item-content">
                         <h5>{{ t('main.income') }}</h5>
                         <p v-if="isVisible" class="gold-text">{{ formatAmountWithSign(income) }} UZS</p>
+                        <p v-else class="gold-text">••••••</p>
+                    </div>
+                </div>
+                <div class="main-balance__item">
+                    <Button :icon="arrowUpRight" severity="danger" outlined class="main-balance__item-button" />
+                    <div class="main-balance__item-content">
+                        <h5>{{ t('main.expense') }}</h5>
+                        <p v-if="isVisible" class="gold-text">{{ formatAmountWithSign(-expense) }} UZS</p>
                         <p v-else class="gold-text">••••••</p>
                     </div>
                 </div>
