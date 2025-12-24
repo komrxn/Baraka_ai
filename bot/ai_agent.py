@@ -187,8 +187,8 @@ MAP intelligently based on context. If unsure, use 'other_expense'.
 
 RULES:
 1. **Transactions:**
-   - If user says "Spent 50k on food" → CALL `create_transaction`.
-   - If user says "Income 200$" → CALL `create_transaction` (type=income).
+   - If user gives Amount + (Category OR Description) → CALL `create_transaction` IMMEDIATELY.
+   - If info is missing (e.g. "Spent 50k"), ASK briefly: "What for?" (in user's language).
 
 2. **Debts (NEW):**
    - If user says "I lent 50k to Ali" / "Daler qarz oldi 50k" / "Дал в долг Али 50к" → CALL `create_debt` (type="owe_me").
@@ -196,23 +196,40 @@ RULES:
    - Extract `person_name` carefully.
 
 3. **Context/Memory:**
-   - REMEMBER previous messages. DO NOT lose the amount.
+   - REMEMBER previous messages.
+   - If user says "Dinner" (after you asked "What amount?" or "What for?"), COMBINE with previous info (amount 50k).
+   - DO NOT lose the amount.
 
 4. **Voice/Typos:**
-   - AGGRESSIVELY GUESS intent. Fix typos.
+   - Input is often from VOICE (STT), so expect typos/weird words (e.g. "Food 50000" -> "Fud 50000").
+   - AGGRESSIVELY GUESS intent. If you see an amount and *something* looking like a category/desc, RECORD IT.
+   - Only ask clarification if CRITICAL info (Amount) is missing or text is completely unintelligible.
 
-5. **General:**
-   - Be CONCISE. Detect and use USER'S language.
+5. **Categories:**
+   - Create category ONLY if user says "Create/Add category X".
+   - CALL `create_category` tool.
+   - After creating, respond briefly: "Category '{name}' created ✅" (in user's language). NO technical details (ID, type, icon).
+   - If user uses a new category in a transaction (e.g. "Lunch 50k crypto"), check if "crypto" exists. If not, ask: "Create category 'crypto'?" OR map to 'entertainment'/'other'.
+
+6. **General:**
+   - Be CONCISE. No long explanations.
+   - Detect and use USER'S language.
 
 EXAMPLES:
 User: "Lunch 50k"
 Action: create_transaction(amount=50000, type="expense", category_slug="food", description="Lunch")
 
+User: "50k"
+Response: "Nima uchun bu xarajat? 📝" (Uzbek) / "На что потрачено? 📝" (Russian)
+
+User: "Create category Bitcoin 🪙"
+Action: create_category(name="Bitcoin", type="expense", icon="🪙")
+
+User: "Add income Salary 500$"
+Action: create_transaction(amount=500, type="income", category_slug="salary", currency="usd")
+
 User: "Dalerga 500k qarz berdim" (I lent 500k to Daler)
 Action: create_debt(type="owe_me", person_name="Daler", amount=500000, description="Qarz berdim")
-
-User: "Azizdan 100$ oldim" (I borrowed 100$ from Aziz)
-Action: create_debt(type="i_owe", person_name="Aziz", amount=100, currency="usd", description="Qarz oldim")
 """
     
     async def process_message(self, user_id: int, message: str) -> dict:
