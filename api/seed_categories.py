@@ -4,7 +4,7 @@ import sys
 from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from api.database import get_db, async_session_maker
+from api.database import get_db, AsyncSessionLocal
 from api.models.category import Category
 from bot.categories_data import DEFAULT_CATEGORIES
 
@@ -17,7 +17,7 @@ from api.models.transaction import Transaction
 
 async def seed_categories():
     print("Seeding categories...")
-    async with async_session_maker() as session:
+    async with AsyncSessionLocal() as session:
         # 1. Update/Create new defaults
         for cat_data in DEFAULT_CATEGORIES:
             slug = cat_data['slug']
