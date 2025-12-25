@@ -127,6 +127,8 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
     """Show user statistics."""
+    from ..api_client import UnauthorizedError
+    
     try:
         balance = await api.get_balance(period="month")
         breakdown = await api.get_category_breakdown(period="month")
@@ -144,28 +146,36 @@ async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
                 valid_cats = [c for c in categories if float(c.get('amount', 0)) > 0]
                 valid_cats.sort(key=lambda x: float(x.get('amount', 0)), reverse=True)
                 
-                for cat in valid_cats[:7]:
-                    # Get category slug and translate
-                    cat_slug = cat.get('category_slug') or cat.get('slug', '')
-                    cat_name = translate_category(cat_slug, lang) if cat_slug else translate_category('other', lang)
+                for cat in valid_cats[:10]:  # Top 10
+                    category_name = cat.get('category_name', 'Unknown')
+                    category_slug = cat.get('category_slug')
+                    amount = float(cat.get('amount', 0))
                     
-                    cat_total = float(cat.get('amount', 0))
+                    # Try to translate category
+                    if category_slug:
+                        from ..i18n import translate_category
+                        category_display = translate_category(category_slug, lang)
+                    else:
+                        category_display = category_name
                     
-                    # Calculate percentage
-                    percentage = 0
-                    if total_expense > 0:
-                        percentage = (cat_total / total_expense) * 100
-                    
-                    stats_text += f"• {cat_name}: {cat_total:,.0f} ({percentage:.1f}%)\n"
+                    stats_text += f"\n{category_display}: {amount:,.0f}"
                 
                 currency = balance.get('currency', 'UZS')
-                stats_text += f"\n{t('common.common.total', lang)}: {total_expense:,.0f} {currency}"
+                stats_text += f"\n\n{t('common.common.total', lang)}: {total_expense:,.0f} {currency}"
             else:
                 stats_text += t('transactions.stats.no_data', lang)
         
         await update.message.reply_text(
             stats_text,
             reply_markup=get_main_keyboard(lang)
+        )
+    except UnauthorizedError:
+        # Token expired or invalid - clear it and prompt re-auth
+        user_id = update.effective_user.id
+        storage.clear_user_token(user_id)
+        await update.message.reply_text(
+            t('auth.errors.auth_required', lang),
+            reply_markup=ReplyKeyboardRemove()
         )
     except Exception as e:
         logger.exception(f"Statistics error: {e}")
@@ -177,6 +187,8 @@ async def show_statistics(update: Update, api: MidasAPIClient, lang: str):
 
 async def show_balance(update: Update, api: MidasAPIClient, lang: str):
     """Show user balance."""
+    from ..api_client import UnauthorizedError
+    
     try:
         balance_data = await api.get_balance()
         balance_value = float(balance_data.get('balance', 0))
@@ -198,32 +210,46 @@ async def show_balance(update: Update, api: MidasAPIClient, lang: str):
                 transactions = []
 
             if transactions:
-                balance_text += t('transactions.balance.last_transactions', lang)
+                balance_text += f"📝 {t('transactions.balance.recent', lang)}:\n"
+                
                 for tx in transactions:
-                    icon = "📈" if tx['type'] == 'income' else "📉"
-                    amount = float(tx['amount'])
+                    # Parse transaction
+                    tx_type = tx.get('type', 'expense')
+                    amount = float(tx.get('amount', 0))
+                    desc = tx.get('description', 'No description')
+                    category_slug = tx.get('category', {}).get('slug') if isinstance(tx.get('category'), dict) else None
                     
-                    # Get description or category
-                    desc = tx.get('description', '')
-                    if not desc:
-                        category = tx.get('category', {})
-                        if isinstance(category, dict):
-                            cat_slug = category.get('slug', '')
-                            desc = translate_category(cat_slug, lang) if cat_slug else t('categories.other', lang)
-                        else:
-                            desc = translate_category('other', lang)
+                    # Try to translate category
+                    if category_slug:
+                        from ..i18n import translate_category
+                        category_display = translate_category(category_slug, lang)
+                    else:
+                        category_display = desc
                     
-                    balance_text += f"{icon} {amount:,.0f} - {desc}\n"
+                    # Format amount with sign
+                    sign = "+" if tx_type == "income" else "-"
+                    balance_text += f"\n{sign}{amount:,.0f} {currency} - {category_display}"
+            else:
+                balance_text += t('transactions.balance.no_recent', lang)
         except Exception as e:
-            logger.error(f"Failed to fetch recent transactions: {e}")
-
+            logger.warning(f"Failed to load recent transactions: {e}")
+            balance_text += t('transactions.balance.no_recent', lang)
+        
         await update.message.reply_text(
             balance_text,
             reply_markup=get_main_keyboard(lang)
         )
+    except UnauthorizedError:
+        # Token expired or invalid - clear it and prompt re-auth
+        user_id = update.effective_user.id
+        storage.clear_user_token(user_id)
+        await update.message.reply_text(
+            t('auth.errors.auth_required', lang),
+            reply_markup=ReplyKeyboardRemove()
+        )
     except Exception as e:
         logger.exception(f"Balance error: {e}")
         await update.message.reply_text(
-            t('common.common.error', lang),
+            t('transactions.balance.error', lang),
             reply_markup=get_main_keyboard(lang)
         )
