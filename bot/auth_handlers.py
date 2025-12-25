@@ -48,6 +48,14 @@ async def register_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     lang = context.user_data.get('selected_language') or storage.get_user_language(user_id) or 'uz'
+    
+    logger.info(f"=== REGISTRATION DEBUG ===")
+    logger.info(f"User ID: {user_id}")
+    logger.info(f"context.user_data.get('selected_language'): {context.user_data.get('selected_language')}")
+    logger.info(f"storage.get_user_language({user_id}): {storage.get_user_language(user_id)}")
+    logger.info(f"Final lang: {lang}")
+    logger.info(f"========================")
+    
     contact = update.message.contact
     
     if not contact:
@@ -63,6 +71,7 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     api = MidasAPIClient(config.API_BASE_URL)
     
     try:
+        logger.info(f"Calling API register with language={lang}")
         result = await api.register(telegram_id, phone, name, language=lang)
         token = result['access_token']
         storage.save_user_token(telegram_id, token)
