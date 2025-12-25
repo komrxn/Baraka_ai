@@ -268,3 +268,15 @@ class MidasAPIClient:
                 headers=self.headers
             )
             response.raise_for_status()
+
+    @handle_auth_errors
+    async def update_user_language(self, language: str) -> Dict[str, Any]:
+        """Update user's language preference."""
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(
+                f"{self.base_url}/auth/me/language",
+                params={"language": language},
+                headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()

@@ -76,8 +76,25 @@ async def language_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = query.data.split('_')[1]
     user_id = query.from_user.id
     
-    # Save language preference
+    # Save language preference in local storage
     storage.set_user_language(user_id, lang)
+    
+    # If user is authorized, also update language in database via API
+    if storage.is_user_authorized(user_id):
+        try:
+            from ..api_client import MidasAPIClient
+            from ..config import config
+            
+            token = storage.get_user_token(user_id)
+            api = MidasAPIClient(config.API_BASE_URL)
+            api.set_token(token)
+            
+            # Update language in database
+            await api.update_user_language(lang)
+            logger.info(f"Updated language to {lang} for user {user_id} in database")
+        except Exception as e:
+            logger.error(f"Failed to update language in database: {e}")
+            # Continue anyway - at least local storage is updated
     
     # Show welcome message
     await query.edit_message_text(

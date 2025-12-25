@@ -64,6 +64,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         telegram_id=user_data.telegram_id,
         phone_number=normalized_phone,  # Store without +
         name=user_data.name,
+        language=user_data.language,  # Use language from request
     )
     
     db.add(new_user)
@@ -123,6 +124,28 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current authenticated user information."""
+    return UserResponse.model_validate(current_user)
+
+
+@router.patch("/me/language", response_model=UserResponse)
+async def update_user_language(
+    language: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Update current user's language preference."""
+    # Validate language
+    if language not in ["uz", "ru", "en"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Language must be one of: uz, ru, en"
+        )
+    
+    # Update user language
+    current_user.language = language
+    await db.commit()
+    await db.refresh(current_user)
+    
     return UserResponse.model_validate(current_user)
 
 

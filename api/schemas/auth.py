@@ -9,6 +9,7 @@ class UserCreate(BaseModel):
     telegram_id: int = Field(..., description="Telegram user ID")
     phone_number: str = Field(..., min_length=10, max_length=20, description="Phone number")
     name: str = Field(..., min_length=1, max_length=100, description="User name")
+    language: str = Field(default="uz", description="User interface language (uz, ru, en)")
 
 
 class UserLogin(BaseModel):

@@ -60,11 +60,44 @@ class UserStorage:
         logger.info(f"Saved token for user {user_id}")
     
     def get_user_language(self, user_id: int) -> str:
-        """Get user's preferred language (default: uz)."""
-        return self.users.get(str(user_id), {}).get('language', 'uz')
+        """Get user's preferred language (default: uz).
+        
+        For authorized users, fetches from database.
+        For unauthorized users, uses local storage.
+        """
+        # First check local storage (fast path)
+        local_lang = self.users.get(str(user_id), {}).get('language', 'uz')
+        
+        # If user is authorized, try to get language from API
+        if self.is_user_authorized(user_id):
+            try:
+                import asyncio
+                from .api_client import MidasAPIClient
+                from .config import config
+                
+                token = self.get_user_token(user_id)
+                if token:
+                    api = MidasAPIClient(config.API_BASE_URL)
+                    api.set_token(token)
+                    
+                    # Fetch user info from API
+                    loop = asyncio.get_event_loop()
+                    user_info = loop.run_until_complete(api.get_me())
+                    
+                    # Update local storage with fetched language
+                    db_lang = user_info.get('language', 'uz')
+                    if db_lang != local_lang:
+                        self.set_user_language(user_id, db_lang)
+                    
+                    return db_lang
+            except Exception as e:
+                logger.warning(f"Failed to fetch language from API for user {user_id}: {e}")
+                # Fallback to local storage
+        
+        return local_lang
     
     def set_user_language(self, user_id: int, language: str):
-        """Set user's preferred language."""
+        """Set user's preferred language (local storage only)."""
         user_id_str = str(user_id)
         if user_id_str in self.users:
             self.users[user_id_str]['language'] = language
