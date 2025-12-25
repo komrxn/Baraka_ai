@@ -1,6 +1,6 @@
 """Message handler module."""
 import logging
-from telegram import Update
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 
 from ..ai_agent import AIAgent
