@@ -13,7 +13,9 @@
                 </div>
 
                 <div class="transaction-form__form-section">
-                    <VInputNumber v-model="formData.amount" class="font-14-r" :min="0" :max-fraction-digits="2"
+                    <VInputNumber :model-value="(formData.amount ?? undefined) as number | undefined"
+                        @update:model-value="val => formData.amount = (val ?? null) as number | null"
+                        class="font-14-r" :min="0" :max-fraction-digits="2"
                         :suffix="` ${formData.currency.toUpperCase()}`" placeholder="0" :label="t('transactions.amount')" :rules="amountRules" />
                 </div>
 
@@ -125,9 +127,9 @@ const formatLocalToDatetime = (localString: string): string => {
     return `${localString}:00`;
 };
 
-const formData = ref<TransactionFormData & { transaction_date: string }>({
+const formData = ref<Omit<TransactionFormData & { transaction_date: string }, 'amount'> & { amount: number | null }>({
     type: 'expense' as TransactionType,
-    amount: 0,
+    amount: null,
     currency: 'uzs' as Currency,
     description: '',
     category_id: '',
@@ -211,7 +213,7 @@ const typeRules: FormRule<string | number>[] = [
     },
 ];
 
-const amountRules: FormRule<number>[] = [
+const amountRules: FormRule<number | null | undefined>[] = [
     (value) => {
         if (!value || value <= 0) return t('limits.amountGreaterThanZero');
         return true;
@@ -228,7 +230,7 @@ const currencyRules: FormRule<string | number>[] = [
 const resetForm = () => {
     formData.value = {
         type: 'expense' as TransactionType,
-        amount: 0,
+        amount: null,
         currency: 'uzs' as Currency,
         description: '',
         category_id: '',
@@ -237,8 +239,10 @@ const resetForm = () => {
 };
 
 const handleSubmit = () => {
+    // Если amount пустой, отправляем 0
     const submitData: TransactionFormData = {
         ...formData.value,
+        amount: formData.value.amount ?? 0,
         transaction_date: formatLocalToDatetime(formData.value.transaction_date),
     };
     emit('submit', submitData);

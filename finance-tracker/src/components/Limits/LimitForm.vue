@@ -9,12 +9,15 @@
                 <div class="limit-form__form-section">
                     <VSelect v-model="formData.category" :options="categoriesOptions" option-label="localizedName"
                         option-value="name" :placeholder="t('limits.selectCategory')" :label="t('limits.category')"
-                        :rules="categoryRules" size="small" class="font-14-r" />
+                        :rules="categoryRules" size="small" class="font-14-r" filter
+                        :emptyFilterMessage="t('common.noResults')" />
                 </div>
 
                 <div class="limit-form__form-section">
-                    <VInputNumber v-model="formData.budget" class="font-14-r" :min="0" :max-fraction-digits="0"
-                        suffix=" UZS" placeholder="0" :label="t('limits.monthlyBudget')" :rules="budgetRules" />
+                    <VInputNumber :model-value="(formData.budget ?? undefined) as number | undefined"
+                        @update:model-value="val => formData.budget = (val ?? null) as number | null" class="font-14-r"
+                        :min="0" :max-fraction-digits="0" suffix=" UZS" placeholder="0"
+                        :label="t('limits.monthlyBudget')" :rules="budgetRules" />
                 </div>
 
                 <div class="limit-form__form-section">
@@ -116,9 +119,9 @@ const handleVisibilityChange = (value: boolean) => {
     }
 };
 
-const formData = ref<LimitFormData>({
+const formData = ref<Omit<LimitFormData, 'budget'> & { budget: number | null }>({
     category: undefined,
-    budget: 0,
+    budget: null,
 });
 
 import { MONTHS_FULL } from '@/composables/data';
@@ -136,7 +139,7 @@ const categoryRules: FormRule<string | number | undefined>[] = [
     },
 ];
 
-const budgetRules: FormRule<number>[] = [
+const budgetRules: FormRule<number | null | undefined>[] = [
     (value) => {
         if (!value || value <= 0) return t('limits.amountGreaterThanZero');
         return true;
@@ -146,12 +149,17 @@ const budgetRules: FormRule<number>[] = [
 const resetForm = () => {
     formData.value = {
         category: undefined,
-        budget: 0,
+        budget: null,
     };
 };
 
 const handleSubmit = () => {
-    emit('submit', formData.value);
+    // Если budget пустой, отправляем 0
+    const submitData: LimitFormData = {
+        ...formData.value,
+        budget: formData.value.budget ?? 0,
+    };
+    emit('submit', submitData);
     localVisible.value = false;
     emit('update:visible', false);
     resetForm();

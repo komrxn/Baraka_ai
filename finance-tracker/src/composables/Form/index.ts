@@ -22,10 +22,14 @@ export const useFormField = <MODEL_VALUE_TYPE extends string | number, FIELD_PRO
 
   const errorMessage = computed(() => {
     if ((!props.rules || !props.rules.length) && !props.mask) return '';
-    if (props.rules && props.rules.length) {
+    // Показываем ошибки валидации только при финальной валидации формы
+    // Это позволяет пользователю вводить значения без ошибок во время ввода
+    if (props.rules && props.rules.length && isValidated.value) {
       for (const rule of props.rules) {
-        if (typeof val.value !== 'undefined' && typeof rule(val.value) === 'string') {
-          return rule(props.modelValue) as string;
+        // Проверяем валидацию для любого значения (включая null и undefined)
+        const result = rule(val.value as MODEL_VALUE_TYPE);
+        if (typeof result === 'string') {
+          return result;
         }
       }
     }

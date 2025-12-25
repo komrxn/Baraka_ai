@@ -52,6 +52,7 @@ export default {
     loadMore: 'Yana yuklash',
     today: 'Bugun',
     yesterday: 'Kecha',
+    noResults: 'Hech narsa topilmadi',
   },
 
   // Asosiy sahifa

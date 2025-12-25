@@ -52,6 +52,7 @@ export default {
     loadMore: 'Загрузить еще',
     today: 'Сегодня',
     yesterday: 'Вчера',
+    noResults: 'Ничего не найдено',
   },
 
   // Главная страница

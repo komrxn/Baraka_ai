@@ -52,6 +52,7 @@ export default {
     loadMore: 'Load more',
     today: 'Today',
     yesterday: 'Yesterday',
+    noResults: 'No results found',
   },
 
   // Main page

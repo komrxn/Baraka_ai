@@ -8,28 +8,31 @@
             <div class="debt-form__form">
                 <div class="debt-form__form-section">
                     <VSelect v-model="formData.type" :options="typeOptions" option-label="label" option-value="value"
-                        :placeholder="t('debts.selectDebtType')" :label="t('debts.type')" :rules="typeRules" size="small"
+                        :placeholder="t('debts.selectDebtType')" :label="t('debts.type')" :rules="typeRules"
+                        size="small" class="font-14-r" />
+                </div>
+
+                <div class="debt-form__form-section">
+                    <VInputText v-model="formData.person_name" :placeholder="t('debts.enterPersonName')"
+                        :label="t('debts.personName')" :rules="nameRules" size="small" class="font-14-r" />
+                </div>
+
+                <div class="debt-form__form-section">
+                    <VInputNumber :model-value="(formData.amount ?? undefined) as number | undefined"
+                        @update:model-value="val => formData.amount = (val ?? null) as number | null" class="font-14-r"
+                        :min="0" :max-fraction-digits="0" suffix=" UZS" placeholder="0" :label="t('debts.amount')"
+                        :rules="amountRules" />
+
+                </div>
+
+                <div class="debt-form__form-section">
+                    <VInputText v-model="formData.description" :placeholder="t('debts.descriptionOptional')"
+                        :label="t('debts.description')" size="small" class="font-14-r" />
+                </div>
+
+                <div class="debt-form__form-section">
+                    <VInputText v-model="formData.due_date" type="date" :label="t('debts.dueDateOptional')" size="small"
                         class="font-14-r" />
-                </div>
-
-                <div class="debt-form__form-section">
-                    <VInputText v-model="formData.person_name" :placeholder="t('debts.enterPersonName')" :label="t('debts.personName')"
-                        :rules="nameRules" size="small" class="font-14-r" />
-                </div>
-
-                <div class="debt-form__form-section">
-                    <VInputNumber v-model="formData.amount" class="font-14-r" :min="0" :max-fraction-digits="0"
-                        suffix=" UZS" placeholder="0" :label="t('debts.amount')" :rules="amountRules" />
-                </div>
-
-                <div class="debt-form__form-section">
-                    <VInputText v-model="formData.description" :placeholder="t('debts.descriptionOptional')" :label="t('debts.description')"
-                        size="small" class="font-14-r" />
-                </div>
-
-                <div class="debt-form__form-section">
-                    <VInputText v-model="formData.due_date" type="date" :label="t('debts.dueDateOptional')"
-                        size="small" class="font-14-r" />
                 </div>
             </div>
 
@@ -116,10 +119,10 @@ const handleVisibilityChange = (value: boolean) => {
     }
 };
 
-const formData = ref<DebtFormData>({
+const formData = ref<Omit<DebtFormData, 'amount'> & { amount: number | null }>({
     type: DebtType.I_OWE,
     person_name: '',
-    amount: 0,
+    amount: null,
     currency: 'uzs',
     description: '',
     due_date: '',
@@ -140,9 +143,11 @@ const typeRules: FormRule<string | number>[] = [
     },
 ];
 
-const amountRules: FormRule<number>[] = [
+const amountRules: FormRule<number | null | undefined>[] = [
     (value) => {
-        if (!value || value <= 0) return t('limits.amountGreaterThanZero');
+        if (!value || value <= 0) {
+            return t('limits.amountGreaterThanZero');
+        }
         return true;
     },
 ];
@@ -151,7 +156,7 @@ const resetForm = () => {
     formData.value = {
         type: DebtType.I_OWE,
         person_name: '',
-        amount: 0,
+        amount: null,
         currency: 'uzs',
         description: '',
         due_date: '',
@@ -159,7 +164,12 @@ const resetForm = () => {
 };
 
 const handleSubmit = () => {
-    emit('submit', { ...formData.value });
+    // Если amount пустой (null или undefined), отправляем 0
+    const submitData: DebtFormData = {
+        ...formData.value,
+        amount: formData.value.amount ?? 0,
+    };
+    emit('submit', submitData);
     localVisible.value = false;
     emit('update:visible', false);
     resetForm();

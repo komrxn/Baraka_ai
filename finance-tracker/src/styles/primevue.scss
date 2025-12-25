@@ -113,6 +113,11 @@ body {
     }
   }
 
+  .p-select-filter {
+    padding: 1rem;
+    border: 1px solid var(--primary-500);
+  }
+
   .p-inputotp-input {
     width: auto;
     max-width: 100%;
