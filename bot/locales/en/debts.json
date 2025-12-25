@@ -6,5 +6,12 @@
     "amount": "💰 Amount",
     "due_date": "📅 Due date",
     "description": "📝 Description",
-    "debt_settled": "✅ Debt settled"
+    "debt_settled": "✅ Debt settled",
+    "actions": {
+        "settle": "✅ Settle",
+        "settle_confirm": "❓ Confirm settlement",
+        "settled_success": "✅ Debt marked as settled!",
+        "deleted": "🗑 Debt deleted",
+        "edit_prompt": "✍️ Enter new debt details"
+    }
 }

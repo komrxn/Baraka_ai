@@ -42,17 +42,15 @@ async def show_debt_with_actions(
         type_text = t('debts.owe_me', lang)
 
     # Format Date
-    # If created just now, we can use today. Or if it has created_at
     created_at_iso = debt_data.get('created_at')
     if created_at_iso:
         try:
             date_obj = datetime.fromisoformat(created_at_iso.replace('Z', '+00:00'))
-            date_str = date_obj.strftime("%d.%m.%Y")
+            # date_str = date_obj.strftime("%d.%m.%Y")
         except:
-            date_str = datetime.now().strftime("%d.%m.%Y")
-    else:
-        date_str = datetime.now().strftime("%d.%m.%Y")
-
+            pass
+            # date_str = datetime.now().strftime("%d.%m.%Y")
+    
     # Construct Message
     text = (
         f"**{t('debts.new_debt_created', lang)} {type_emoji}**\n\n"
@@ -70,7 +68,7 @@ async def show_debt_with_actions(
     # Add Edit / Delete / Settle buttons
     keyboard = []
     
-    # First row: Settle (Söndirish/Погасить)
+    # First row: Settle
     keyboard.append([
         InlineKeyboardButton(f"{t('debts.actions.settle', lang)}", callback_data=f"settle_debt_{debt_id}")
     ])
@@ -98,10 +96,6 @@ async def handle_debt_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await query.answer()
     
     parts = query.data.split('_')
-    # Expected format: action_debt_ID -> split('_') -> [action, "debt", ID...]
-    # action = parts[0] (settle/edit/delete)
-    # debt_id = parts[2:] joined
-    
     action = parts[0]
     debt_id = '_'.join(parts[2:])
     
@@ -113,8 +107,6 @@ async def handle_debt_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
     api.set_token(token)
 
     if action == "settle":
-        # Usually settle means paid. We can confirm or just do it.
-        # Let's do it immediately for simplicity as per request "add button settle"
         try:
             result = await api.mark_debt_as_paid(debt_id)
             # Edit usage to show it is settled
@@ -162,10 +154,6 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
         updates = {}
         
         # Parse amount like transaction editing
-        # "Ali 50k" -> name + amount? Or just description/amount?
-        # Let's support updating amount and description/person
-        # Re-use simple parsing logic
-        
         ming_match = re.search(r'(\d+(?:[.,]\d+)?)\s*(?:ming|минг)', text, re.IGNORECASE)
         k_match = re.search(r'(\d+(?:[.,]\d+)?)\s*k\b', text, re.IGNORECASE)
         plain_match = re.search(r'(\d+(?:[.,]\d+)?)', text)
@@ -176,7 +164,6 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
         elif k_match:
             amount = float(k_match.group(1).replace(',', '.')) * 1000
         elif plain_match:
-            # If plain number is significant part of message
             amount = float(plain_match.group(1).replace(',', '.'))
         
         description = re.sub(r'\d+(?:[.,]\d+)?\s*(?:ming|минг|k)?', '', text, flags=re.IGNORECASE).strip()
@@ -185,14 +172,9 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
             updates['amount'] = amount
             
         if description:
-            # Check if user meant person_name or description
-            # Since simpler editing is ambiguous, let's treat text as description 
-            # OR we could just update description.
-            # But user might want to change person name.
-            # Let's update description for now.
             updates['description'] = description
 
-        # If only text provided without numbers, maybe update description
+        # If only text provided without numbers, update description
         if not amount and text:
             updates['description'] = text
 

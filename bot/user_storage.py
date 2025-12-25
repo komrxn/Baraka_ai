@@ -36,7 +36,7 @@ class UserStorage:
     def _save_users(self):
         """Save users to file."""
         with open(self.users_file, 'w') as f:
-            json.dump(self.users, f, indent=2)
+            # json.dump(self.users, f, indent=2)
             json.dump(self.users, f, indent=2, default=str) # Added default=str for datetime objects
     
     def _save_pending(self):
@@ -48,10 +48,13 @@ class UserStorage:
         """Save user token and username."""
         # Ensure user_id is stored as a string key
         user_id_str = str(user_id)
+        current_data = self.users.get(user_id_str, {})
+        current_lang = current_data.get('language', 'uz')
+        
         self.users[user_id_str] = {
             'token': token,
             'username': username,
-            'language': self.users.get(user_id_str, {}).get('language', 'uz')  # Preserve language
+            'language': current_lang
         }
         self._save_users()
         logger.info(f"Saved token for user {user_id}")
@@ -72,25 +75,24 @@ class UserStorage:
     
     def clear_user_token(self, telegram_id: int):
         """Clear user token when it expires or becomes invalid."""
-        if str(telegram_id) in self.users:
-            # Username is no longer stored, so this line is removed/adjusted
-            self.users.pop(str(telegram_id))
+        user_id_str = str(telegram_id)
+        if user_id_str in self.users:
+            # Preserve language, just remove token (set to None or empty)
+            # Or if strict about structure, we can just pop 'token' key if we handled it safely elsewhere.
+            # But get_user_token expects 'token' key.
+            # Let's set token to None
+            self.users[user_id_str]['token'] = None
             self._save_users()
-            # If a logger is available, you might log this event
-            # logger.info(f"Cleared expired token for user {telegram_id} ({username})")
-        else:
-            # If a logger is available, you might log this event
-            # logger.warning(f"Attempted to clear token for non-existent user {telegram_id}")
-            pass # No action needed if user not found
     
     def get_user_token(self, telegram_id: int) -> Optional[str]:
         """Get user auth token."""
         user_data = self.users.get(str(telegram_id))
-        return user_data["token"] if user_data else None
+        return user_data.get("token") if user_data else None
     
     def is_user_authorized(self, telegram_id: int) -> bool:
         """Check if user is authorized."""
-        return str(telegram_id) in self.users
+        user = self.users.get(str(telegram_id))
+        return user is not None and user.get('token') is not None
     
     def save_pending_transaction(self, telegram_id: int, transaction_data: Dict[str, Any]):
         """Save pending transaction for confirmation."""
@@ -109,10 +111,7 @@ class UserStorage:
     
     def logout_user(self, telegram_id: int):
         """Logout user."""
-        if str(telegram_id) in self.users:
-            del self.users[str(telegram_id)]
-
-            self._save_users()
+        self.clear_user_token(telegram_id)
         self.clear_pending_transaction(telegram_id)
 
 
