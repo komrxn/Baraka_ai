@@ -257,7 +257,7 @@ register_conv = ConversationHandler(
 login_conv = ConversationHandler(
     entry_points=[
         MessageHandler(
-            filters.Text(["🔑 Kirish", "🔑 Войти", "🔑 Login"]),
+            filters.Text(["🔑 Kirish", "🔑 Войти", "🔑 Login", "🔑 Kirish / Войти / Login"]),
             login_start
         )
     ],
