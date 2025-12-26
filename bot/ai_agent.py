@@ -534,19 +534,33 @@ Action: settle_debt(person_name="Daler")
     async def edit_transaction(self, old_data: Dict[str, Any], user_input: str) -> Dict[str, Any]:
         """Smartly edit transaction based on user input."""
         try:
+            # Get available category slugs to guide AI
+            categories = await self.api_client.get_categories()
+            
+            # Filter by type if possible, or just provide all
+            tx_type = old_data.get('type', 'expense')
+            valid_slugs = [c['slug'] for c in categories if c.get('type') == tx_type]
+            
+            # Formatted list
+            slugs_str = ", ".join(valid_slugs)
+
             prompt = f"""You are smart transaction editor.
             
 CURRENT TRANSACTION JSON:
 {json.dumps(old_data, ensure_ascii=False)}
+
+VALID CATEGORY SLUGS for '{tx_type}':
+{slugs_str}
 
 USER INPUT: "{user_input}"
 
 TASK:
 Update fields based on user input.
 - If user attempts to change amount (e.g. "40k", "50000"), update 'amount'.
-- If user attempts to change category/description (e.g. "taxi", "lunch"), update 'description' AND 'category_slug' (map intelligently).
+- If user attempts to change category/description (e.g. "taxi", "lunch"), update 'description' AND 'category_slug'.
+- IMPORTANT: 'category_slug' MUST be one of the VALID CATEGORY SLUGS provided above. Pick the closest match.
 - If user says something unrelated, try to interpret it as description update.
-- Return ONLY valid JSON with updated fields. Fields not mentioned should NOT be included (or include unchanged if easier, but prefer partial).
+- Return ONLY valid JSON with updated fields.
 
 EXAMPLE 1:
 Old: {{ "amount": 30000, "description": "Taxi" }}
@@ -578,7 +592,6 @@ Return JSON:"""
             if "category_slug" in updates:
                 category_slug = updates["category_slug"]
                 try:
-                    categories = await self.api_client.get_categories()
                     category_id = None
                     target_slug = category_slug.lower().strip()
                     
