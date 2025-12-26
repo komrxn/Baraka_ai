@@ -194,18 +194,21 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
              return True
              
         # Update transaction
-        result = await api.update_transaction(tx_id, **updates)
+        await api.update_transaction(tx_id, **updates)
+        
+        # Fetch fresh transaction data to ensure we have full category details
+        fresh_tx = await api.get_transaction(tx_id)
         
         # Show updated transaction
-        category_data = result.get('category', {})
+        category_data = fresh_tx.get('category', {})
         category_slug = category_data.get('slug', 'other_expense') if isinstance(category_data, dict) else 'other_expense'
         
         tx_data = {
-            'transaction_id': str(result['id']),
-            'amount': result.get('amount', 0),
-            'description': result.get('description', ''),
-            'type': result.get('type', 'expense'),
-            'currency': result.get('currency', 'uzs'),
+            'transaction_id': str(fresh_tx['id']),
+            'amount': fresh_tx.get('amount', 0),
+            'description': fresh_tx.get('description', ''),
+            'type': fresh_tx.get('type', 'expense'),
+            'currency': fresh_tx.get('currency', 'uzs'),
             'category': category_slug
         }
         
