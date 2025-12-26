@@ -32,7 +32,10 @@
     "balance": {
         "month": "💰 Oylik balans\n\n",
         "your_balance": "Sizning balansingiz",
-        "last_transactions": "Oxirgi tranzaksiyalar:\n"
+        "recent": "So'nggi o'tkazmalar",
+        "no_recent": "So'nggi o'tkazmalar mavjud emas",
+        "last_transactions": "\n📝 So'nggi o'tkazmalar:\n",
+        "error": "❌ Balansni yuklashda xatolik"
     },
     "voice": {
         "listening": "🎤 Eshityapman...",

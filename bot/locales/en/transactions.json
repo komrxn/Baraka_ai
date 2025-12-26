@@ -32,7 +32,10 @@
     "balance": {
         "month": "💰 Monthly balance\n\n",
         "your_balance": "Your balance",
-        "last_transactions": "Recent transactions:\n"
+        "recent": "Recent transactions",
+        "no_recent": "No recent transactions",
+        "last_transactions": "\n📝 Recent transactions:\n",
+        "error": "❌ Error loading balance"
     },
     "voice": {
         "listening": "🎤 Listening...",
