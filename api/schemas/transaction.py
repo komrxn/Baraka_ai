@@ -29,12 +29,15 @@ class TransactionUpdate(BaseModel):
     transaction_date: Optional[datetime] = None
 
 
+from .category import CategoryResponse
+
 class TransactionResponse(TransactionBase):
     """Schema for transaction response."""
     id: UUID
     user_id: UUID
     ai_parsed_data: Optional[dict[str, Any]] = None
     ai_confidence: Optional[Decimal] = None
+    category: Optional[CategoryResponse] = None  # <--- Added
     created_at: datetime
     updated_at: datetime
     

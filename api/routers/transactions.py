@@ -62,7 +62,9 @@ async def list_transactions(
     total = total_result.scalar() or 0
     
     # Pagination
+    from sqlalchemy.orm import joinedload
     query = query.order_by(Transaction.transaction_date.desc())
+    query = query.options(joinedload(Transaction.category)) # <--- Eager load categories
     query = query.offset((page - 1) * page_size).limit(page_size)
     
     result = await db.execute(query)
@@ -106,7 +108,15 @@ async def create_transaction(
     
     db.add(new_transaction)
     await db.commit()
-    await db.refresh(new_transaction)
+    
+    # Fetch full object with category
+    from sqlalchemy.orm import joinedload
+    result = await db.execute(
+        select(Transaction)
+        .options(joinedload(Transaction.category))
+        .where(Transaction.id == new_transaction.id)
+    )
+    new_transaction = result.scalar_one()
     
     return TransactionResponse.model_validate(new_transaction)
 
@@ -118,9 +128,12 @@ async def get_transaction(
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific transaction by ID."""
+    from sqlalchemy.orm import joinedload
     
     result = await db.execute(
-        select(Transaction).where(
+        select(Transaction)
+        .options(joinedload(Transaction.category))  # <--- Eager load
+        .where(
             Transaction.id == transaction_id,
             Transaction.user_id == current_user.id
         )
@@ -165,7 +178,14 @@ async def update_transaction(
         setattr(transaction, field, value)
     
     await db.commit()
-    await db.refresh(transaction)
+    # Fetch again with relationship to return full data
+    from sqlalchemy.orm import joinedload
+    result = await db.execute(
+        select(Transaction)
+        .options(joinedload(Transaction.category))
+        .where(Transaction.id == transaction_id)
+    )
+    transaction = result.scalar_one()
     
     return TransactionResponse.model_validate(transaction)
 
