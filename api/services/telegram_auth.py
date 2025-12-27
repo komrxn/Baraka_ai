@@ -122,7 +122,8 @@ def validate_telegram_init_data(
         logger.error(f"Received Hash: {received_hash}")
         logger.error(f"Calculated Hash: {calculated_hash}")
         logger.error(f"Bot Token (masked): {bot_token[:5]}...{bot_token[-5:]}")
-        logger.error(f"Data Check String:\n{data_check_string.replace(chr(10), '\\n')}")
+        check_str_debug = data_check_string.replace('\n', '\\n')
+        logger.error(f"Data Check String:\n{check_str_debug}")
         
         raise InvalidSignatureError("Telegram signature validation failed")
     
