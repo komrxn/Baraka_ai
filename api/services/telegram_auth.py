@@ -116,6 +116,14 @@ def validate_telegram_init_data(
     
     # Constant-time comparison to prevent timing attacks
     if not hmac.compare_digest(calculated_hash, received_hash):
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Telegram Auth Failed: Signature Mismatch")
+        logger.error(f"Received Hash: {received_hash}")
+        logger.error(f"Calculated Hash: {calculated_hash}")
+        logger.error(f"Bot Token (masked): {bot_token[:5]}...{bot_token[-5:]}")
+        logger.error(f"Data Check String:\n{data_check_string.replace(chr(10), '\\n')}")
+        
         raise InvalidSignatureError("Telegram signature validation failed")
     
     # Signature valid, return parsed data
