@@ -125,18 +125,50 @@ class AIAgent:
             }
         ]
 
-        # Extract slugs from DEFAULT_CATEGORIES
-        expense_category_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'expense']
-        income_category_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'income']
 
-        # Build dynamic category lists for system prompt
-        def format_slugs(slugs):
-            lines = []
-            for i in range(0, len(slugs), 10):
-                lines.append(", ".join(slugs[i:i+10]))
-            return "\n".join(lines)
+    
+    async def process_message(self, user_id: int, message: str) -> dict:
+        """Process user message with AI agent.
+        
+        Returns dict with:
+        - response: str - AI response text
+        - parsed_transactions: List[Dict] - transactions awaiting confirmation
+        """
+        from .user_storage import storage
+        from .i18n import t
+        lang = storage.get_user_language(user_id) or 'uz'
+        
+        try:
+            # Track parsed transactions
+            parsed_transactions = []
+            
+            # Add user message to context
+            dialog_context.add_message(user_id, "user", message)
+            
+            # Initialize created_transactions list
+            created_transactions = []
+            
+            # Get fresh categories from API to update system prompt
+            try:
+                categories = await self.api_client.get_categories()
+                expense_slugs = [c['slug'] for c in categories if c.get('type') == 'expense']
+                income_slugs = [c['slug'] for c in categories if c.get('type') == 'income']
+            except Exception as e:
+                logger.error(f"Failed to fetch categories for prompt: {e}")
+                # Fallback to defaults
+                from .categories_data import DEFAULT_CATEGORIES
+                expense_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'expense']
+                income_slugs = [c['slug'] for c in DEFAULT_CATEGORIES if c['type'] == 'income']
 
-        self.system_prompt = f"""You are Midas - an intelligent financial assistant. Your goal is to help users manage their finances.
+            # Helper to format slugs
+            def format_slugs(slugs):
+                lines = []
+                for i in range(0, len(slugs), 10):
+                    lines.append(", ".join(slugs[i:i+10]))
+                return "\n".join(lines)
+
+            # Dynamic system prompt with FRESH categories
+            dynamic_prompt = f"""You are Midas - an intelligent financial assistant. Your goal is to help users manage their finances.
 You communicate in a friendly, concise manner. You can analyze natural language and perform actions.
 
 CAPABILITIES:
@@ -152,10 +184,10 @@ Record transactions and debts, and help manage finances.
 
 AVAILABLE CATEGORIES (use slug):
 EXPENSES: 
-{format_slugs(expense_category_slugs)}
+{format_slugs(expense_slugs)}
 
 INCOME: 
-{format_slugs(income_category_slugs)}
+{format_slugs(income_slugs)}
 
 CATEGORY MAPPING RULES (IMPORTANT):
 - "food" / "ovqat" / "еда" -> groceries (if cooking ingredients) OR cafes
@@ -217,33 +249,12 @@ Action: create_debt(type="owe_me", person_name="Daler", amount=500000, descripti
 User: "Daler qaytardi" (Daler returned)
 Action: settle_debt(person_name="Daler")
 """
-    
-    async def process_message(self, user_id: int, message: str) -> dict:
-        """Process user message with AI agent.
-        
-        Returns dict with:
-        - response: str - AI response text
-        - parsed_transactions: List[Dict] - transactions awaiting confirmation
-        """
-        from .user_storage import storage
-        from .i18n import t
-        lang = storage.get_user_language(user_id) or 'uz'
-        
-        try:
-            # Track parsed transactions
-            parsed_transactions = []
-            
-            # Add user message to context
-            dialog_context.add_message(user_id, "user", message)
-            
-            # Initialize created_transactions list
-            created_transactions = []
             
             # Get conversation history
             history = dialog_context.get_openai_messages(user_id)
             
             # Add system prompt
-            messages = [{"role": "system", "content": self.system_prompt}] + history
+            messages = [{"role": "system", "content": dynamic_prompt}] + history
             
             # Call OpenAI with function calling
             response = await self.client.chat.completions.create(
@@ -450,9 +461,16 @@ Action: settle_debt(person_name="Daler")
                 icon = args.get("icon", "🏷")
                 
                 logger.info(f"Creating category: {name} ({type_})")
-                result = await self.api_client.create_category(name, type_, icon)
-                # Return minimal info - AI will handle user-facing message
-                return {"success": True, "category_id": result["id"], "name": name, "created": True}
+                try:
+                    result = await self.api_client.create_category(name, type_, icon)
+                    return {"success": True, "category_id": result["id"], "name": name, "created": True}
+                except Exception as e:
+                    # If 400 Bad Request, likely category already exists.
+                    # We return success so AI continues flow.
+                    if "400" in str(e):
+                        logger.warning(f"Category creation failed (likely exists): {e}")
+                        return {"success": True, "name": name, "created": False, "note": "Category already exists"}
+                    raise e
             
             elif function_name == "get_balance":
                 period = args.get("period", "month")
