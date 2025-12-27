@@ -213,12 +213,13 @@ class BarakaAPIClient:
             return response.json()
 
     @handle_auth_errors
-    async def create_category(self, name: str, type: str, icon: str = "🏷") -> Dict[str, Any]:
+    async def create_category(self, name: str, type: str, icon: str = "🏷", slug: Optional[str] = None) -> Dict[str, Any]:
         """Create a new category."""
+        final_slug = slug if slug else name.lower().replace(" ", "_")
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/categories",
-                json={"name": name, "type": type, "icon": icon, "slug": name.lower().replace(" ", "_")},
+                json={"name": name, "type": type, "icon": icon, "slug": final_slug},
                 headers=self.headers
             )
             response.raise_for_status()

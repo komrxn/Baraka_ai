@@ -80,7 +80,8 @@ class AIAgent:
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "name": {"type": "string", "description": "Category name"},
+                            "name": {"type": "string", "description": "Category name (in user's language)"},
+                            "slug": {"type": "string", "description": "English unique slug (e.g. 'server_costs' for 'Серверы')"},
                             "type": {"type": "string", "enum": ["income", "expense"], "description": "Category type"},
                             "icon": {"type": "string", "description": "Emoji icon for the category"},
                             "color": {"type": "string", "description": "Color in HEX format (e.g. #FF0000)"}
@@ -457,12 +458,14 @@ Action: settle_debt(person_name="Daler")
 
             elif function_name == "create_category":
                 name = args.get("name")
+                slug = args.get("slug")  # AI generated English slug
                 type_ = args.get("type", "expense")
                 icon = args.get("icon", "🏷")
                 
-                logger.info(f"Creating category: {name} ({type_})")
+                logger.info(f"Creating category: {name} ({type_}) slug={slug}")
                 try:
-                    result = await self.api_client.create_category(name, type_, icon)
+                    # Pass the explicit slug if available
+                    result = await self.api_client.create_category(name, type_, icon, slug=slug)
                     return {"success": True, "category_id": result["id"], "name": name, "created": True}
                 except Exception as e:
                     # If 400 Bad Request, likely category already exists.

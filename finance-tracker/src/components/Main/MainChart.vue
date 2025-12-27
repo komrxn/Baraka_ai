@@ -43,7 +43,7 @@ import { formatAmountShort } from '@/utils';
 import { useBalanceStore } from '@/store/balanceStore';
 import { useCategoriesChartStore } from '@/store/categoriesChartStore';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const router = useRouter();
 
 const balanceStore = useBalanceStore();
@@ -74,12 +74,19 @@ const expensesData = computed(() => {
     if (!categoryBreakdown.value) {
         return [];
     }
-    return categoryBreakdown.value.categories.map((cat: any) => ({
-        name: cat.category_slug ? t(`categoryList.${cat.category_slug}`) : cat.category_name,
-        value: parseFloat(cat.amount),
-        percentage: cat.percentage.toString(),
-        color: cat.color || 'rgb(149, 165, 166)',
-    }));
+    return categoryBreakdown.value.categories.map((cat: any) => {
+        const slug = cat.category_slug;
+        const nameKey = `categoryList.${slug}`;
+        // If translation exists, use it. Otherwise use the backend name.
+        const displayName = (slug && te(nameKey)) ? t(nameKey) : cat.category_name;
+        
+        return {
+            name: displayName,
+            value: parseFloat(cat.amount),
+            percentage: cat.percentage.toString(),
+            color: cat.color || 'rgb(149, 165, 166)',
+        };
+    });
 });
 
 // Форматированный баланс

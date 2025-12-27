@@ -38,7 +38,7 @@ export interface LineChartDataPoint {
 
 
 export const useAnalytics = () => {
-    const { t } = useI18n();
+    const { t, te } = useI18n();
     const { getSummary } = useAnalyticsRequests();
     const balanceStore = useBalanceStore();
     const { balance: balanceDataFromStore } = storeToRefs(balanceStore);
@@ -136,13 +136,20 @@ export const useAnalytics = () => {
             return [];
         }
 
-        return categoriesDataComputed.value.categories.map((cat: any) => ({
-            name: cat.category_slug ? t(`categoryList.${cat.category_slug}`) : cat.category_name,
-            value: parseFloat(cat.amount),
-            percentage: cat.percentage.toString(),
-            color: cat.color || 'rgb(149, 165, 166)',
-            slug: cat.category_slug, // Add slug for reference
-        }));
+        return categoriesDataComputed.value.categories.map((cat: any) => {
+            const slug = cat.category_slug;
+            const nameKey = `categoryList.${slug}`;
+            // If translation exists, use it. Otherwise use the backend name.
+            const displayName = (slug && te(nameKey)) ? t(nameKey) : cat.category_name;
+
+            return {
+                name: displayName,
+                value: parseFloat(cat.amount),
+                percentage: cat.percentage.toString(),
+                color: cat.color || 'rgb(149, 165, 166)',
+                slug: cat.category_slug, // Add slug for reference
+            };
+        });
     });
 
     const topCategories = computed(() => {
