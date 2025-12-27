@@ -59,7 +59,7 @@ const showBottomBar = computed(() => {
     position: relative;
 
     &--with-bottom-bar {
-        padding-bottom: 8rem;
+    padding-bottom: 8rem;
     }
 }
 

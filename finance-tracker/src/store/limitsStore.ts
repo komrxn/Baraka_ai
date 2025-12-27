@@ -137,6 +137,10 @@ export const useLimitsStore = defineStore('limits', () => {
         editingLimit.value = null;
     };
 
+    const refreshLimits = async () => {
+        await loadLimits(currentFilter.value, true);
+    };
+
     return {
         limits,
         loading,
@@ -153,6 +157,7 @@ export const useLimitsStore = defineStore('limits', () => {
         closeForm,
         convertFormDataToCreateData,
         convertFormDataToUpdateData,
+        refreshLimits,
     };
 });
 

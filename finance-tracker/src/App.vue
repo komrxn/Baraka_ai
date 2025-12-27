@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onBeforeMount, ref } from 'vue';
-import { useThemeMode } from '@/composables/UI/';
+import { useThemeMode, useAutoRefresh } from '@/composables/UI/';
 import AppLayout from '@/layouts/AppLayout.vue';
 import TelegramRequired from '@/components/TelegramRequired.vue';
 import { getCurrentLocale, setCurrentLocale } from '@/plugins/i18n/models';
@@ -8,6 +8,9 @@ import { isTelegramWebApp } from '@/telegramAuth';
 // import { usePageTransitionStore } from '@/store/pageTransitionStore.ts';
 
 const { setTheme } = useThemeMode();
+
+// Запускаем автоматическое обновление данных каждую минуту
+useAutoRefresh();
 
 const isTelegramMode = ref(false);
 const hasToken = ref(false);

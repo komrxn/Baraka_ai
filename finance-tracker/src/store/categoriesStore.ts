@@ -128,6 +128,10 @@ export const useCategoriesStore = defineStore('categories', () => {
         editingCategory.value = null;
     };
 
+    const refreshCategories = async () => {
+        await loadCategories(currentFilter.value, true);
+    };
+
     return {
         categories,
         loading,
@@ -142,5 +146,6 @@ export const useCategoriesStore = defineStore('categories', () => {
         editCategory,
         handleSubmit,
         closeForm,
+        refreshCategories,
     };
 });
