@@ -29,9 +29,18 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+from telegram.request import HTTPXRequest
+
 def main():
     """Start the bot."""
-    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).build()
+    # Increase timeouts for better stability in slow networks
+    request = HTTPXRequest(
+        connect_timeout=30.0,
+        read_timeout=30.0,
+        write_timeout=30.0,
+        pool_timeout=30.0
+    )
+    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).request(request).build()
     
     # Auth conversation handlers (priority)
     application.add_handler(register_conv)
