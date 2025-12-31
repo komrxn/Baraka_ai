@@ -18,6 +18,7 @@ from ..schemas.transaction import (
     TransactionListResponse
 )
 from ..auth.jwt import get_current_user
+from ..services.limits import check_limit_thresholds  # <--- Added import
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
@@ -116,7 +117,28 @@ async def create_transaction(
         .options(joinedload(Transaction.category))
         .where(Transaction.id == new_transaction.id)
     )
+    result = await db.execute(
+        select(Transaction)
+        .options(joinedload(Transaction.category))
+        .where(Transaction.id == new_transaction.id)
+    )
     new_transaction = result.scalar_one()
+
+    # Check limits
+    if new_transaction.type == "expense" and new_transaction.category_id:
+        warning = await check_limit_thresholds(
+            db, 
+            current_user.id, 
+            new_transaction.category_id, 
+            new_transaction.amount, 
+            new_transaction.transaction_date.date(),
+            current_user.language  # <--- Added language
+        )
+        if warning:
+            # We can't attach it to sqlalchemy model directly if it's not a column, 
+            # but we can attach it to the Pydantic model response
+            # Or simpler: monkey patch the object before validation, or construct response manually
+            setattr(new_transaction, "limit_warning", warning)
     
     return TransactionResponse.model_validate(new_transaction)
 
@@ -185,7 +207,27 @@ async def update_transaction(
         .options(joinedload(Transaction.category))
         .where(Transaction.id == transaction_id)
     )
+    result = await db.execute(
+        select(Transaction)
+        .options(joinedload(Transaction.category))
+        .where(Transaction.id == transaction_id)
+    )
     transaction = result.scalar_one()
+
+    # Check limits (only if expense)
+    if transaction.type == "expense" and transaction.category_id:
+        # For update, we consider the NEW amount as the one contributing to the threshold
+        # (check_limit_thresholds subtracts 'amount' from total to find 'before' state)
+        warning = await check_limit_thresholds(
+            db, 
+            current_user.id, 
+            transaction.category_id, 
+            transaction.amount, 
+            transaction.transaction_date.date(),
+            current_user.language  # <--- Added language
+        )
+        if warning:
+            setattr(transaction, "limit_warning", warning)
     
     return TransactionResponse.model_validate(transaction)
 

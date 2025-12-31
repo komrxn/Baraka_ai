@@ -123,6 +123,22 @@ class AIAgent:
                         "required": ["person_name"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "set_limit",
+                    "description": "Set a monthly budget limit for a category",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "category_slug": {"type": "string", "description": "Category slug"},
+                            "amount": {"type": "number", "description": "Limit amount"},
+                            "period": {"type": "string", "enum": ["month"], "description": "Period (default: month)"}
+                        },
+                        "required": ["category_slug", "amount"]
+                    }
+                }
             }
         ]
 
@@ -177,6 +193,7 @@ CAPABILITIES:
 3. Show statistics
 4. Create new categories
 5. Manage debts
+6. Set budgets/limits (e.g. "Limit food 200k")
 
 CURRENT DATE: {datetime.datetime.now().strftime('%Y-%m-%d')}
 
@@ -214,7 +231,12 @@ RULES:
    - "I borrowed 100k from John" -> `create_debt(type="i_owe")`
    - "Ali returned" -> `settle_debt`
 
-4. **Voice/Typos:**
+4. **Limits:**
+   - "Set limit for Food 300k" -> `set_limit(category_slug="groceries", amount=300000)`
+   - "Limit 50$" (if context implies category) -> `set_limit`
+   - If user asks to update limit, just call `set_limit` again (it overwrites).
+
+5. **Voice/Typos:**
    - Aggressively guess intent from voice text.
    - "Food 50000" -> Category: groceries/cafes.
 
@@ -433,6 +455,10 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 
                 logger.info(f"Creating transaction: {tx_data}")
                 result = await self.api_client.create_transaction(tx_data)
+                
+                # Check for limit warning from API
+                limit_warning = result.get("limit_warning")
+                
                 return {
                     "success": True, 
                     "transaction_id": result["id"], 
@@ -440,8 +466,27 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                     "currency": currency,
                     "type": transaction_type,
                     "description": description,
-                    "category": resolved_category_slug or category_slug or "other_expense"  # ← slug for i18n!
+                    "category": resolved_category_slug or category_slug or "other_expense",  # ← slug for i18n!
+                    "warning": limit_warning  # Pass warning to AI to display
                 }
+
+            elif function_name == "set_limit":
+                category_slug = args.get("category_slug")
+                amount = float(args.get("amount", 0))
+                period = args.get("period", "month")
+                
+                logger.info(f"Setting limit: {category_slug} {amount}")
+                try:
+                    result = await self.api_client.set_limit(category_slug, amount, period)
+                    return {
+                        "success": True, 
+                        "limit_id": result["id"], 
+                        "category": category_slug, 
+                        "amount": amount,
+                        "remaining": result["remaining"]
+                    }
+                except Exception as e:
+                    return {"success": False, "error": str(e)}
 
             elif function_name == "create_category":
                 name = args.get("name")

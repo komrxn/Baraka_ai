@@ -37,7 +37,8 @@ class TransactionResponse(TransactionBase):
     user_id: UUID
     ai_parsed_data: Optional[dict[str, Any]] = None
     ai_confidence: Optional[Decimal] = None
-    category: Optional[CategoryResponse] = None  # <--- Added
+    category: Optional[CategoryResponse] = None
+    limit_warning: Optional[str] = None  # <--- Added for limit notifications
     created_at: datetime
     updated_at: datetime
     

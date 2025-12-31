@@ -304,3 +304,81 @@ class BarakaAPIClient:
             )
             response.raise_for_status()
             return response.json()
+
+    async def set_limit(self, category_slug: str, amount: float, period: str = "month") -> Dict[str, Any]:
+        """Set limit for a category (Create or Update)."""
+        import datetime
+        from dateutil.relativedelta import relativedelta
+        
+        # 1. Resolve category
+        categories = await self.get_categories()
+        category_id = None
+        target_slug = category_slug.lower().strip()
+        
+        for cat in categories:
+            if cat.get("slug") == target_slug:
+                category_id = cat.get("id")
+                break
+        
+        if not category_id:
+            # Try name match
+            for cat in categories:
+                if cat.get("name", "").lower() == target_slug:
+                    category_id = cat.get("id")
+                    break
+        
+        if not category_id:
+             # Try fallback "other_expense"
+             for cat in categories:
+                if cat.get("slug") == "other_expense":
+                    category_id = cat.get("id")
+                    break
+                    
+        if not category_id:
+            raise ValueError(f"Category '{category_slug}' not found.")
+
+        # 2. Determine period dates
+        today = datetime.date.today()
+        start_date = datetime.date(today.year, today.month, 1)
+        end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
+        
+        # 3. Check existing limit
+        # We need to fetch limits and check if one exists for this category/period
+        # The list_limits endpoint filters by period if provided, or we can just fetch all and filter in python
+        # Let's fetch current month limits
+        current_limits_summary = await self.get_balance(period="month") # This returns analytics... not specific limits list.
+        # Use GET /limits endpoint
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/limits",
+                params={"period_start": start_date.isoformat(), "period_end": end_date.isoformat()},
+                headers=self.headers
+            )
+            response.raise_for_status()
+            limits = response.json()
+            
+        existing_limit = next((l for l in limits if l["category_id"] == category_id), None)
+        
+        async with httpx.AsyncClient() as client:
+            if existing_limit:
+                # UPDATE
+                response = await client.put(
+                    f"{self.base_url}/limits/{existing_limit['id']}",
+                    json={"amount": amount},
+                    headers=self.headers
+                )
+            else:
+                # CREATE
+                response = await client.post(
+                    f"{self.base_url}/limits",
+                    json={
+                        "category_id": category_id,
+                        "amount": amount,
+                        "period_start": start_date.isoformat(),
+                        "period_end": end_date.isoformat()
+                    },
+                    headers=self.headers
+                )
+            response.raise_for_status()
+            return response.json()
+
