@@ -8,9 +8,10 @@ import logging
 
 from ..models.click_transaction import ClickTransaction
 from ..models.user import User
-from ..config import settings
+from ..config import get_settings
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 class ClickService:
     def __init__(self, db: AsyncSession):
