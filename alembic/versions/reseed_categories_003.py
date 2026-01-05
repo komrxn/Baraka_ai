@@ -81,8 +81,8 @@ def upgrade() -> None:
         if count == 0:
             connection.execute(
                 sa.text("""
-                    INSERT INTO categories (id, name, slug, type, icon, color, is_default, created_at, updated_at)
-                    VALUES (:id, :name, :slug, :type, :icon, :color, true, now(), now())
+                    INSERT INTO categories (id, name, slug, type, icon, color, is_default, created_at)
+                    VALUES (:id, :name, :slug, :type, :icon, :color, true, now())
                 """),
                 {
                     "id": str(uuid.uuid4()),
