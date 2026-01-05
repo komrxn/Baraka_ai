@@ -32,8 +32,19 @@ class UserResponse(BaseModel):
     subscription_ends_at: Optional[datetime] = None
     is_trial_used: bool = False
     
+    is_active: bool = False
+    
     class Config:
         from_attributes = True
+
+    @staticmethod
+    def resolve_is_active(user) -> bool:
+        if not user.is_premium:
+            return False
+        if not user.subscription_ends_at:
+            return False
+        # Naive check, assuming server time is acceptable or user object has been validated
+        return user.subscription_ends_at.timestamp() > datetime.now().timestamp()
 
 
 class TelegramRegister(BaseModel):

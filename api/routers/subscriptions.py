@@ -22,7 +22,28 @@ async def get_subscription_status(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    return current_user
+    # Calculate active status
+    is_active = False
+    if current_user.is_premium and current_user.subscription_ends_at:
+        if current_user.subscription_ends_at.timestamp() > datetime.now().timestamp():
+            is_active = True
+            
+    # We can't just return current_user because we need to inject is_active
+    # Pydantic v2 would use computed_field, but compatible way:
+    return UserResponse(
+        id=current_user.id,
+        telegram_id=current_user.telegram_id,
+        phone_number=current_user.phone_number,
+        name=current_user.name,
+        default_currency=current_user.default_currency,
+        language=current_user.language,
+        created_at=current_user.created_at,
+        is_premium=current_user.is_premium,
+        subscription_type=current_user.subscription_type,
+        subscription_ends_at=current_user.subscription_ends_at,
+        is_trial_used=current_user.is_trial_used,
+        is_active=is_active
+    )
 
 @router.post("/trial")
 async def activate_trial(
