@@ -30,10 +30,11 @@ def check_subscription(func):
             # Not active
             lang = storage.get_user_language(user.id) or 'uz'
             
-            keyboard = [
-                [InlineKeyboardButton(t("subscription.activate_trial_btn", lang), callback_data="activate_trial")],
-                [InlineKeyboardButton(t("subscription.buy_subscription_btn", lang), callback_data="buy_subscription")]
-            ]
+            keyboard = []
+            if not status.get("is_trial_used"):
+                keyboard.append([InlineKeyboardButton(t("subscription.activate_trial_btn", lang), callback_data="activate_trial")])
+            
+            keyboard.append([InlineKeyboardButton(t("subscription.buy_subscription_btn", lang), callback_data="buy_subscription")])
             
             text = (
                 f"{t('subscription.access_restricted', lang)}\n\n"
