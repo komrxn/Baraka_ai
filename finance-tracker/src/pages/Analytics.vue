@@ -154,7 +154,7 @@
                 </div>
             </div>
         </template>
-        <PremiumOverlay />
+
     </div>
 </template>
 
@@ -187,7 +187,7 @@ const {
     loading,
 } = useAnalytics();
 
-import PremiumOverlay from '@/components/PremiumOverlay.vue';
+
 
 const pieChartRef = ref<InstanceType<typeof VChart> | null>(null);
 const pieChartWrapperRef = ref<HTMLElement | null>(null);

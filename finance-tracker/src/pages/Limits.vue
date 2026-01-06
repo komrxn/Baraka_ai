@@ -29,7 +29,7 @@
         <LimitForm v-model:visible="drawerVisible" :edit-data="formEditData" @submit="handleSubmit"
             @update:visible="handleDrawerVisibilityChange" />
         
-        <PremiumOverlay />
+
     </div>
 </template>
 
@@ -44,7 +44,7 @@ import { Button, ProgressSpinner } from 'primevue';
 const { t } = useI18n();
 import LimitForm from '@/components/Limits/LimitForm.vue';
 import LimitCard from '@/components/Limits/LimitCard.vue';
-import PremiumOverlay from '@/components/PremiumOverlay.vue';
+
 import VIcon from '@/components/UI/VIcon.vue';
 import type { LimitFormData } from '@/composables/Limits/types';
 import { useLimitsStore } from '@/store/limitsStore';
