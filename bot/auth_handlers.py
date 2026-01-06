@@ -119,15 +119,8 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Sync language from database to local storage
         storage.set_user_language(telegram_id, db_lang)
         
-        # Trial text
-        trial_msg = {
-            'uz': "\n\n🎁 *Sizga 3 kunlik bepul sinov davri taqdim etildi!*",
-            'ru': "\n\n🎁 *Вам предоставлен бесплатный пробный период на 3 дня!*",
-            'en': "\n\n🎁 *You have been granted a 3-day free trial!*"
-        }.get(db_lang, "")
-        
         await update.message.reply_text(
-            f"{t('auth.registration.success', db_lang)}{trial_msg}",
+            f"{t('auth.registration.success', db_lang)}",
             reply_markup=get_main_keyboard(db_lang),
             parse_mode='Markdown'
         )

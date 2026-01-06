@@ -65,14 +65,13 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         phone_number=normalized_phone,  # Store without +
         name=user_data.name,
         language=user_data.language,  # Use language from request
-        is_premium=True,
-        subscription_type='trial',
-        is_trial_used=True,
+        is_premium=False,
+        subscription_type=None,
+        is_trial_used=False,
     )
     
-    # Calculate trial end date (3 days from now)
-    from datetime import datetime, timedelta
-    new_user.subscription_ends_at = datetime.now() + timedelta(days=3)
+    # No trial by default - user must activate it manually
+    new_user.subscription_ends_at = None
     
     db.add(new_user)
     await db.commit()
