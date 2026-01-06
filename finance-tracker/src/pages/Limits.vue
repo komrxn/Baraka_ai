@@ -1,5 +1,6 @@
 <template>
     <div class="limits-page">
+        <PremiumOverlay />
         <div class="limits-page__header">
             <Button :icon="arrowLeft" severity="secondary" @click="router.back()" class="limits-page__header-button" />
             <h1 class="gold-text">{{ t('limits.title') }}</h1>
@@ -28,7 +29,7 @@
         </div>
         <LimitForm v-model:visible="drawerVisible" :edit-data="formEditData" @submit="handleSubmit"
             @update:visible="handleDrawerVisibilityChange" />
-        
+
 
     </div>
 </template>
@@ -44,7 +45,7 @@ import { Button, ProgressSpinner } from 'primevue';
 const { t } = useI18n();
 import LimitForm from '@/components/Limits/LimitForm.vue';
 import LimitCard from '@/components/Limits/LimitCard.vue';
-
+import PremiumOverlay from '@/components/PremiumOverlay.vue';
 import VIcon from '@/components/UI/VIcon.vue';
 import type { LimitFormData } from '@/composables/Limits/types';
 import { useLimitsStore } from '@/store/limitsStore';
@@ -101,6 +102,7 @@ onBeforeMount(async () => {
 
 <style scoped lang="scss">
 .limits-page {
+    position: relative;
     padding: 2.4rem;
     padding-bottom: 10rem;
 

@@ -423,4 +423,11 @@ export default {
     subscribeButton: '{price} uchun obuna bo\'lish',
     trialActivated: 'Sinov davri faollashtirildi',
   },
+
+  // Premium Overlay
+  premiumOverlay: {
+    title: 'Premium versiyada mavjud',
+    description: 'Ushbu bo\'limga kirish uchun obuna bo\'ling',
+    activateButton: 'Faollashtirish',
+  },
 };

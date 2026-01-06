@@ -1,5 +1,6 @@
 <template>
     <div class="analytics-page">
+        <PremiumOverlay />
         <div class="analytics-page__header">
             <Button :icon="arrowLeft" severity="secondary" @click="router.back()"
                 class="analytics-page__header-button" />
@@ -167,6 +168,7 @@ import VChart from 'vue-echarts';
 import { arrowLeft, arrowUpRight, arrowDownLeft, dollar, analitcs, warning } from '@/assets/icons';
 import router from '@/router/router';
 import VIcon from '@/components/UI/VIcon.vue';
+import PremiumOverlay from '@/components/PremiumOverlay.vue';
 import { useAnalytics } from '@/composables/Analytics/useAnalytics';
 import type { Period } from '@/composables/Analytics/types';
 
@@ -223,6 +225,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .analytics-page {
+    position: relative;
     padding: 2.4rem;
     padding-bottom: 2rem;
 

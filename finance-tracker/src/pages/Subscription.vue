@@ -19,7 +19,7 @@
 
             <!-- Список функций -->
             <div class="subscription-page__features">
-                <div class="subscription-page__feature">    
+                <div class="subscription-page__feature">
                     <div class="subscription-page__feature-icon subscription-page__feature-icon--purple">
                         <VIcon icon="⚡" class="subscription-page__feature-icon-svg" />
                     </div>
@@ -37,7 +37,7 @@
                     </div>
                     <div class="subscription-page__feature-content">
                         <h3 class="subscription-page__feature-title">{{ t('subscription.features.categoryLimits.title')
-                        }}</h3>
+                            }}</h3>
                         <p class="subscription-page__feature-description">{{
                             t('subscription.features.categoryLimits.description') }}</p>
                     </div>
@@ -89,15 +89,16 @@
                 </div>
             </div>
 
+            <div v-if="!isTrialUsed && !hasActiveSubscription" class="subscription-page__button-container">
+                <Button label="Start Free Trial (3 days)" severity="secondary" fluid class="subscription-page__button"
+                    :loading="loading" @click="handleActivateTrial" />
+            </div>
+
             <!-- Кнопка подписки -->
             <div class="subscription-page__button-container">
                 <Button :label="t('subscription.subscribeButton', { price: selectedPlanPrice })" fluid
                     class="subscription-page__button" :loading="loading" @click="handleSubscribe" />
-            </div>
-            
-            <div v-if="!isTrialUsed && !hasActiveSubscription" class="subscription-page__trial-container">
-                 <Button label="Start Free Trial (3 days)" severity="secondary" fluid 
-                 class="subscription-page__trial-button" :loading="loading" @click="handleActivateTrial" />
+
             </div>
         </div>
     </div>
@@ -173,7 +174,7 @@ const handleSubscribe = async () => {
             window.location.href = data.url;
         }
     } catch (error) {
-        console.error("Subscription error:", error);
+        toast.error(t('subscription.subscribeError'));
     } finally {
         loading.value = false;
     }
@@ -509,17 +510,18 @@ onMounted(() => {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     &__trial-button {
         padding: 1.6rem 2rem;
         font: var(--font-16-b);
         border: 1px solid var(--border-medium) !important;
     }
-    
+
     &__trial-container {
         padding: 0 1.6rem 1.6rem 1.6rem;
         position: fixed;
-        bottom: 8rem; /* Place above the subscribe button area if separate, but better to put locally inside container */
+        bottom: 8rem;
+        /* Place above the subscribe button area if separate, but better to put locally inside container */
         left: 0;
         right: 0;
         z-index: 99;

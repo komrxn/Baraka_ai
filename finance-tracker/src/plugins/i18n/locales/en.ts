@@ -423,4 +423,11 @@ export default {
     subscribeButton: 'Subscribe for {price}',
     trialActivated: 'Trial period activated',
   },
+
+  // Premium Overlay
+  premiumOverlay: {
+    title: 'Available in Premium',
+    description: 'Subscribe to access this section',
+    activateButton: 'Activate',
+  },
 };

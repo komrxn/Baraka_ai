@@ -4,7 +4,7 @@
             <VIcon icon="👑" class="main-subscription-banner__icon-svg" />
         </div>
         <div class="main-subscription-banner__content">
-            <h3 class="main-subscription-banner__title">{{ t('main.subscriptionBanner.title') }}</h3>
+            <h3 class="main-subscription-banner__title gold-text">{{ t('main.subscriptionBanner.title') }}</h3>
             <p class="main-subscription-banner__description">{{ t('main.subscriptionBanner.description') }}</p>
         </div>
     </div>
@@ -96,4 +96,3 @@ const handleClick = () => {
     }
 }
 </style>
-

@@ -422,4 +422,11 @@ export default {
     subscribeButton: 'Подписка за {price}',
     trialActivated: 'Пробный период активирован',
   },
+
+  // Premium Overlay
+  premiumOverlay: {
+    title: 'Доступно в Premium',
+    description: 'Оформите подписку, чтобы пользоваться этим разделом',
+    activateButton: 'Активировать',
+  },
 };
