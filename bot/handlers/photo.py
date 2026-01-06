@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 @send_typing_action
-@check_subscription
+@send_typing_action
+# @check_subscription <-- REMOVED
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle photo messages (receipt scanning with Vision AI)."""
     user_id = update.effective_user.id
@@ -32,6 +33,25 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     api.set_token(token)
     
     try:
+        # 1. Check Limits (Freemium)
+        me = await api.get_me()
+        
+        is_premium = me.get('is_premium', False)
+        
+        if not is_premium:
+            usage = me.get('photo_usage_count', 0)
+            if usage >= 10:
+                # Limit reached
+                from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+                sub_keyboard = InlineKeyboardMarkup([
+                     [InlineKeyboardButton(t("subscription.buy_subscription_btn", lang), callback_data="buy_subscription")]
+                ])
+                await update.message.reply_text(
+                    f"🔒 {t('subscription.limit_reached_photo', lang)} (10/10).\n\n{t('subscription.upgrade_to_continue', lang)}",
+                    reply_markup=sub_keyboard
+                )
+                return
+
         # await update.message.reply_text("📸 Анализирую фото...")
         await update.message.reply_text(t('common.common.loading', lang)) # Using loading or I could add specific "analyzing" key
         await update.message.chat.send_action(action="typing")
@@ -101,6 +121,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if parsed_transactions:
             for tx_data in parsed_transactions:
                 await show_transaction_confirmation(update, user_id, tx_data)
+        
+        # Increment usage
+        if not is_premium:
+             try:
+                await api.increment_usage('photo')
+             except Exception as ex:
+                logger.error(f"Failed to increment usage: {ex}")
                 
     except Exception as e:
         logger.exception(f"Photo error: {e}")

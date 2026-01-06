@@ -420,3 +420,14 @@ class BarakaAPIClient:
             response.raise_for_status()
             return response.json()
 
+    @handle_auth_errors
+    async def increment_usage(self, usage_type: str) -> Dict[str, Any]:
+        """Increment usage counter (voice or photo)."""
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/auth/usage",
+                params={"type": usage_type},
+                headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()

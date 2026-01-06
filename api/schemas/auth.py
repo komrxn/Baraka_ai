@@ -34,6 +34,10 @@ class UserResponse(BaseModel):
     
     is_active: bool = False
     
+    # Usage Counters
+    voice_usage_count: int = 0
+    photo_usage_count: int = 0
+    
     class Config:
         from_attributes = True
 
