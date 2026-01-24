@@ -118,7 +118,7 @@ services:
       context: ./finance-tracker
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-https://baraka-ai.com/midas-api}
+        VITE_API_URL: ${VITE_API_URL:-https://midas-ai.org/midas-api}
         BASE_URL: /
     container_name: midas_frontend
     ports:
