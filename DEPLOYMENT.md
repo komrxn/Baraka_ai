@@ -297,8 +297,8 @@ server {
     server_name yourdomain.com www.yourdomain.com;
 
     # SSL Certificates (will be added by certbot)
-    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/baraka-ai.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/baraka-ai.com/privkey.pem;
     
     # SSL Configuration
     ssl_protocols TLSv1.2 TLSv1.3;
