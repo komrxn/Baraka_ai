@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -13,12 +13,14 @@ class Token(BaseModel):
     token_type: str
 
 class AdminResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     email: EmailStr
     is_super_admin: bool
 
 # User Schemas
 class UserBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     telegram_id: int
     name: str
     phone_number: str
@@ -31,7 +33,7 @@ class UserBase(BaseModel):
     voice_usage_count: int
 
 class UserList(BaseModel):
-    items: list[dict] # Simplified for now, or list[UserBase]
+    items: list[UserBase]
     total: int
     page: int
     size: int

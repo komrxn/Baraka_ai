@@ -39,7 +39,7 @@ async def get_users(
     users = result.scalars().all()
     
     return {
-        "items": [u.__dict__ for u in users], # Simple serialization
+        "items": users, # Pydantic will serialize this using UserBase with from_attributes=True
         "total": total,
         "page": page,
         "size": size
