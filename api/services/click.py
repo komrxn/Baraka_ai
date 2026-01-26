@@ -142,7 +142,7 @@ class ClickService:
         
         # Determine duration based on amount
         current_end = user.subscription_ends_at
-        if not current_end or current_end < datetime.now():
+        if not current_end or current_end.replace(tzinfo=None) < datetime.now():
             current_end = datetime.now()
 
         if transaction.amount > 150000:
