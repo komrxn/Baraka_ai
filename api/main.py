@@ -61,6 +61,33 @@ app.include_router(click.router)
 app.include_router(subscriptions.router)
 
 
+from fastapi import Request
+from jose import jwt
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log requests with user info if available."""
+    user_info = "Guest"
+    try:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            # Decode without verification just for logging (verification happens in endpoint)
+            # This avoids double verification overhead and expired token errors in logs
+            payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm], options={"verify_signature": False})
+            user_id = payload.get("sub")
+            if user_id:
+                user_info = f"User:{user_id}"
+    except Exception:
+        pass # Fail silently for logging
+
+    response = await call_next(request)
+    
+    logging.info(f"📡 API [{user_info}]: {request.method} {request.url.path} -> {response.status_code}")
+    
+    return response
+
+
 @app.get("/")
 async def root():
     """Root endpoint."""

@@ -17,6 +17,12 @@ def send_typing_action(func):
     @wraps(func)
     async def command_func(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
         try:
+            if update and update.effective_user:
+                 user = update.effective_user
+                 user_name = user.full_name or user.first_name or "Unknown"
+                 # Log action with user info
+                 logger.info(f"👤 User Activity [{user.id} | {user_name}]: Handler '{func.__name__}' triggered")
+
             if update and update.effective_message:
                 await update.effective_message.reply_chat_action(ChatAction.TYPING)
         except Exception as e:
