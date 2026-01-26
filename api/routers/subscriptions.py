@@ -85,7 +85,7 @@ async def generate_payment_link(
     """
     # 1. Determine amount
     if request.plan_id == "monthly":
-        amount = 19990.00
+        amount = 34990.00
     elif request.plan_id == "quarterly":
         amount = 56990.00
     elif request.plan_id == "annual":

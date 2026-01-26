@@ -43,10 +43,11 @@ async def buy_subscription_callback(update: Update, context: ContextTypes.DEFAUL
     
     await query.answer()
     
-    # Simple menu for now
+    # Updated plans menu
     keyboard = [
-        [InlineKeyboardButton(t("subscription.monthly_plan_btn", lang, price="19,990"), callback_data="pay_monthly")],
-        # [InlineKeyboardButton("Annual Plan - 150,000 UZS", callback_data="pay_annual")], # Not implemented yet
+        [InlineKeyboardButton(t("subscription.monthly_plan_btn", lang), callback_data="pay_monthly")],
+        [InlineKeyboardButton(t("subscription.quarterly_plan_btn", lang), callback_data="pay_quarterly")],
+        [InlineKeyboardButton(t("subscription.annual_plan_btn", lang), callback_data="pay_annual")],
         [InlineKeyboardButton(t("subscription.back_btn", lang), callback_data="profile_menu")] 
     ]
     await query.edit_message_text(
@@ -56,8 +57,8 @@ async def buy_subscription_callback(update: Update, context: ContextTypes.DEFAUL
         parse_mode="Markdown"
     )
 
-async def pay_monthly_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Generate payment link."""
+async def handle_payment_generation(update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: str):
+    """Helper to generate payment link."""
     query = update.callback_query
     user_id = query.from_user.id
     lang = storage.get_user_language(user_id) or 'uz'
@@ -69,7 +70,7 @@ async def pay_monthly_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     api.set_token(token)
     
     try:
-        data = await api.generate_payment_link(plan_id="monthly")
+        data = await api.generate_payment_link(plan_id=plan_id)
         url = data.get("url")
         
         keyboard = [
@@ -84,10 +85,24 @@ async def pay_monthly_callback(update: Update, context: ContextTypes.DEFAULT_TYP
             parse_mode="Markdown"
         )
     except Exception as e:
-        await query.edit_message_text(f"❌ Error generating link: {str(e)}", parse_mode="Markdown")
+        error_text = f"❌ Error: {str(e)}"
+        if "400" in str(e):
+             error_text = "❌ Error: Invalid plan or request."
+        await query.edit_message_text(error_text, parse_mode="Markdown")
+
+async def pay_monthly_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await handle_payment_generation(update, context, "monthly")
+
+async def pay_quarterly_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await handle_payment_generation(update, context, "quarterly")
+
+async def pay_annual_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await handle_payment_generation(update, context, "annual")
 
 subscription_handlers = [
     CallbackQueryHandler(activate_trial_callback, pattern="^activate_trial$"),
     CallbackQueryHandler(buy_subscription_callback, pattern="^buy_subscription$"),
     CallbackQueryHandler(pay_monthly_callback, pattern="^pay_monthly$"),
+    CallbackQueryHandler(pay_quarterly_callback, pattern="^pay_quarterly$"),
+    CallbackQueryHandler(pay_annual_callback, pattern="^pay_annual$"),
 ]
