@@ -14,7 +14,7 @@ async def prepare_transaction(
     service_id: int = Form(...),
     click_paydoc_id: int = Form(...),
     merchant_trans_id: str = Form(...),
-    amount: float = Form(...),
+    amount: str = Form(...),  # string to preserve exact format for md5
     action: int = Form(...),
     error: int = Form(...),
     error_note: str = Form(...),
@@ -46,8 +46,8 @@ async def complete_transaction(
     service_id: int = Form(...),
     click_paydoc_id: int = Form(...),
     merchant_trans_id: str = Form(...),
-    merchant_prepare_id: int = Form(...),  # Click might send this as int or string, safe to parse
-    amount: float = Form(...),
+    merchant_prepare_id: str = Form(...),  # UUID string
+    amount: str = Form(...),  # string
     action: int = Form(...),
     error: int = Form(...),
     error_note: str = Form(...),
