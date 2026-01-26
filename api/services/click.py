@@ -150,6 +150,11 @@ class ClickService:
              user.subscription_type = "annual"
              from dateutil.relativedelta import relativedelta
              user.subscription_ends_at = current_end + relativedelta(years=1)
+        elif transaction.amount > 50000:
+             # Quarterly (56k)
+             user.subscription_type = "quarterly"
+             from dateutil.relativedelta import relativedelta
+             user.subscription_ends_at = current_end + relativedelta(months=3)
         else:
              user.subscription_type = "monthly"
              from dateutil.relativedelta import relativedelta
