@@ -34,7 +34,14 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         is_active = sub_status.get("is_active", False)
         is_premium = sub_status.get("is_premium", False)
-        expires_at = sub_status.get("expires_at") or t("subscription.profile.never", lang)
+        expires_raw = sub_status.get("subscription_ends_at")
+        if expires_raw:
+             # Format date e.g. 2026-02-24
+             from datetime import datetime
+             dt = datetime.fromisoformat(expires_raw)
+             expires_at = dt.strftime("%d.%m.%Y")
+        else:
+             expires_at = t("subscription.profile.never", lang)
         
         status_icon = "✅" if is_active else "❌"
         status_text = t("subscription.profile.premium", lang) if is_premium else (
