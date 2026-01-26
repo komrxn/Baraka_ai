@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from app.models import AdminUser
+from app.models.admin import AdminUser
 from app.core.security import get_password_hash
 
 # Env vars should be loaded by the container environment
