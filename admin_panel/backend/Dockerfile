@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
-COPY app/ ./app/
+# Copy all application files (including reset_password.py)
+COPY . .
 
 # Environment variables
 ENV PYTHONPATH=/app
