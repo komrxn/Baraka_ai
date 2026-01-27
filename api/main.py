@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
 from .database import init_db
 from .routers import auth, transactions, ai, analytics, categories, debts, limits, subscriptions
-from .payment import router as payment_router
+from .payment.router import router as payment_router
 
 # Configure logging
 logging.basicConfig(
