@@ -228,7 +228,10 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
                 
                 # We can reuse the Agent for category resolution!
                 agent_updates = await agent.edit_transaction(old_data, f"change category to {text}")
-                if 'category_slug' in agent_updates:
+                
+                if 'category_id' in agent_updates:
+                    updates = {'category_id': agent_updates['category_id']}
+                elif 'category_slug' in agent_updates:
                     updates = {'category_slug': agent_updates['category_slug']}
                 else:
                     # Fallback or error
