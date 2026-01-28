@@ -285,28 +285,39 @@ async def handle_edit_field_callback(update: Update, context: ContextTypes.DEFAU
     query = update.callback_query
     await query.answer()
     
-    parts = query.data.split('_')
-    # pattern: edit_field_{tx_id}_{field}
-    # parts: [edit, field, tx, id, ..., field]
-    # Reconstruct tx_id carefully since it might contain underscores? UUIDs usually don't but just in case.
-    # Actually split logic: 
-    # query.data = "edit_field_<TX_ID>_<FIELD>"
-    # TX_ID is UUID? 
-    # Let's assume field is the LAST part.
-    
-    field = parts[-1]
-    tx_id = "_".join(parts[2:-1])
-    
-    context.user_data['editing_transaction_id'] = tx_id
-    context.user_data['editing_field'] = field
-    
-    user_id = query.from_user.id
-    lang = storage.get_user_language(user_id) or 'uz'
-    
-    prompt_key = f"transactions.actions.enter_{field}"
-    prompt = t(prompt_key, lang)
-    
-    await query.edit_message_text(prompt)
+    try:
+        parts = query.data.split('_')
+        logger.info(f"Edit field callback data: {query.data}, parts: {parts}")
+        
+        # pattern: edit_field_{tx_id}_{field}
+        # parts: [edit, field, tx, id, ..., field]
+        
+        if len(parts) < 4:
+            logger.error(f"Invalid callback data parts length: {len(parts)}")
+            return
+
+        field = parts[-1]
+        tx_id = "_".join(parts[2:-1])
+        
+        logger.info(f"Extracted tx_id: {tx_id}, field: {field}")
+        
+        context.user_data['editing_transaction_id'] = tx_id
+        context.user_data['editing_field'] = field
+        
+        user_id = query.from_user.id
+        lang = storage.get_user_language(user_id) or 'uz'
+        
+        prompt_key = f"transactions.actions.enter_{field}"
+        prompt = t(prompt_key, lang)
+        
+        logger.info(f"Prompt key: {prompt_key}, translated: {prompt}")
+        
+        await query.edit_message_text(prompt)
+        logger.info("Message edited successfully")
+        
+    except Exception as e:
+        logger.exception(f"Error in handle_edit_field_callback: {e}")
+        await query.edit_message_text(f"Error: {str(e)}")
 
 # Export handler
 transaction_action_handler = CallbackQueryHandler(
