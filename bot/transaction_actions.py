@@ -111,8 +111,20 @@ async def handle_transaction_action(update: Update, context: ContextTypes.DEFAUL
     api.set_token(token)
 
     if action == "edit":
-        context.user_data['editing_transaction_id'] = tx_id
-        await query.edit_message_text(t('transactions.actions.edit_prompt', lang))
+        # Show field selection keyboard
+        keyboard = [
+            [
+                InlineKeyboardButton(t('transactions.actions.edit_amount', lang), callback_data=f"edit_field_{tx_id}_amount"),
+                InlineKeyboardButton(t('transactions.actions.edit_category', lang), callback_data=f"edit_field_{tx_id}_category")
+            ],
+            [
+                InlineKeyboardButton(t('transactions.actions.edit_description', lang), callback_data=f"edit_field_{tx_id}_description")
+            ]
+        ]
+        await query.edit_message_text(
+            t('transactions.actions.select_field', lang),
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
         
     elif action == "delete":
         try:
@@ -187,7 +199,50 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
         from .ai_agent import AIAgent
         agent = AIAgent(api)
         
-        updates = await agent.edit_transaction(old_data, text)
+        if 'editing_field' in context.user_data:
+            field = context.user_data['editing_field']
+            updates = {}
+            
+            if field == 'amount':
+                # Parse amount
+                import re
+                # simple parser: remove non-numeric except dot
+                clean_text = re.sub(r'[^\d.]', '', text.replace(',', '.'))
+                try:
+                    amount = float(clean_text)
+                    updates = {'amount': amount}
+                except ValueError:
+                    await update.message.reply_text(t('common.common.error', lang))
+                    return True
+                    
+            elif field == 'category':
+                # For category, user types name. We might need slug.
+                # Let's assume API can take slug OR we try to find it.
+                # Actually, API usually expects ID or slug.
+                # Text input for category is tricky without lookup.
+                # Let's pass it as 'category_slug' if it matches known slugs,
+                # or rely on backend/agent to resolve it?
+                # agent.edit_transaction is smart. Let's use it but scoped?
+                # For now simplify: User text -> description? No.
+                # Let's use AI agent to resolve category from text.
+                
+                # We can reuse the Agent for category resolution!
+                agent_updates = await agent.edit_transaction(old_data, f"change category to {text}")
+                if 'category_slug' in agent_updates:
+                    updates = {'category_slug': agent_updates['category_slug']}
+                else:
+                    # Fallback or error
+                    pass
+            
+            elif field == 'description':
+                updates = {'description': text}
+                
+            # Clear field state
+            del context.user_data['editing_field']
+            
+        else:
+            # Legacy/Fallback: Generic AI edit
+            updates = await agent.edit_transaction(old_data, text)
         
         if not updates:
              await update.message.reply_text(t('common.common.error', lang))
@@ -225,8 +280,41 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
         return True
 
 
+async def handle_edit_field_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle field selection for editing."""
+    query = update.callback_query
+    await query.answer()
+    
+    parts = query.data.split('_')
+    # pattern: edit_field_{tx_id}_{field}
+    # parts: [edit, field, tx, id, ..., field]
+    # Reconstruct tx_id carefully since it might contain underscores? UUIDs usually don't but just in case.
+    # Actually split logic: 
+    # query.data = "edit_field_<TX_ID>_<FIELD>"
+    # TX_ID is UUID? 
+    # Let's assume field is the LAST part.
+    
+    field = parts[-1]
+    tx_id = "_".join(parts[2:-1])
+    
+    context.user_data['editing_transaction_id'] = tx_id
+    context.user_data['editing_field'] = field
+    
+    user_id = query.from_user.id
+    lang = storage.get_user_language(user_id) or 'uz'
+    
+    prompt_key = f"transactions.actions.enter_{field}"
+    prompt = t(prompt_key, lang)
+    
+    await query.edit_message_text(prompt)
+
 # Export handler
 transaction_action_handler = CallbackQueryHandler(
     handle_transaction_action,
     pattern="^(edit|delete)_tx_"
+)
+
+transaction_edit_field_handler = CallbackQueryHandler(
+    handle_edit_field_callback,
+    pattern="^edit_field_"
 )

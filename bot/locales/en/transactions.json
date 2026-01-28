@@ -20,6 +20,13 @@
     },
     "actions": {
         "edit_prompt": "✏️ Enter new data (amount and/or description):",
+        "select_field": "Select what you want to edit:",
+        "edit_amount": "💰 Amount",
+        "edit_category": "🏷 Category",
+        "edit_description": "📝 Description",
+        "enter_amount": "Please enter the new amount:",
+        "enter_category": "Please enter the new category name:",
+        "enter_description": "Please enter the new description:",
         "deleted": "🗑 Transaction deleted",
         "updated": "✅ Transaction updated"
     },

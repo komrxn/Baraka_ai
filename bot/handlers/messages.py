@@ -165,7 +165,7 @@ async def show_statistics(update: Update, api: BarakaAPIClient, lang: str):
                     else:
                         category_display = category_name
                     
-                    stats_text += f"\n{category_display}: {amount:,.0f}"
+                    stats_text += f"\n{category_display}: {amount:,.0f} ({cat.get('percentage', '0')}%)"
                 
                 currency = balance.get('currency', 'UZS')
                 stats_text += f"\n\n{t('common.common.total', lang)}: {total_expense:,.0f} {currency}"

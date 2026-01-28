@@ -20,6 +20,13 @@
     },
     "actions": {
         "edit_prompt": "✏️ Yangi ma'lumotlarni kiriting (summa va/yoki tavsif):",
+        "select_field": "O'zgartirmoqchi bo'lgan qismini tanlang:",
+        "edit_amount": "💰 Summa",
+        "edit_category": "🏷 Kategoriya",
+        "edit_description": "📝 Izoh",
+        "enter_amount": "Yangi summani kiriting:",
+        "enter_category": "Yangi kategoriya nomini kiriting:",
+        "enter_description": "Yangi izohni kiriting:",
         "deleted": "🗑 Tranzaksiya o'chirildi",
         "updated": "✅ Tranzaksiya yangilandi"
     },
