@@ -25,14 +25,13 @@ class PaymeService:
         except ValueError:
             return None
 
-    def _make_error(self, code: int, message_ru: str, message_uz: str, message_en: str = None) -> PaymeException:
+    def _make_error(self, code: int, message: str, data: str = None) -> PaymeException:
+        # JSON-RPC 2.0 requires message to be a String.
+        # -31050 requires data to be the field name.
         return PaymeException(
             code=code,
-            message={
-                "ru": message_ru,
-                "uz": message_uz,
-                "en": message_en or message_ru
-            }
+            message=message,
+            data=data
         )
     
     # ---------------------------------------------------------
@@ -42,22 +41,23 @@ class PaymeService:
     async def check_perform_transaction(self, params: dict) -> dict:
         amount = params.get("amount")
         account = params.get("account", {})
-        order_id = account.get("order_id") # Mapped ID
+        
+        # Payme might send "order_id" inside account, or custom field names.
+        # We enforce "order_id".
+        order_id = account.get("order_id")
 
         if not order_id:
-            raise self._make_error(-31050, "Order ID not found", "Buyurtma ID topilmadi")
+            # -31050 requires 'data' to be the name of the missing/invalid field
+            raise self._make_error(-31050, "Order ID not found", "order_id")
 
         # 1. Validate User
-        user = await self._get_user(order_id)
+        user = await self._get_user(str(order_id))
         if not user:
-            raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi")
+            raise self._make_error(-31050, "User not found", "order_id")
 
         # 2. Validate Amount
-        # E.g. Check against plans. 
-        # Click implementation accepted any amount and decided plan later properly.
-        # But we should enforce positive amount.
         if amount <= 0:
-            raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa")
+            raise self._make_error(-31001, "Invalid amount")
 
         return {"allow": True}
 
@@ -77,14 +77,14 @@ class PaymeService:
             # Idempotency check
             # If state != 1 (Waiting) -> Error -31008
             if tx.state != 1:
-                raise self._make_error(-31008, "Transaction already processed", "Tranzaksiya allaqachon bajarilgan")
+                raise self._make_error(-31008, "Transaction already processed")
             
             # Check timeout (12h = 43200000 ms)
             if (int(time.time() * 1000) - tx.create_time) > 43200000:
                 tx.state = -1
                 tx.reason = 4
                 await self.db.commit()
-                raise self._make_error(-31008, "Transaction timed out", "Tranzaksiya vaqti tugadi")
+                raise self._make_error(-31008, "Transaction timed out")
 
             return {
                 "create_time": tx.create_time,
@@ -99,7 +99,7 @@ class PaymeService:
         except Exception as e:
             # Re-raise error if it's already a defined PaymeError, else wrap
             if isinstance(e, PaymeException): raise e
-            raise self._make_error(-31008, "Validation failed", "Tekshiruv xatosi")
+            raise self._make_error(-31008, "Validation failed")
 
         # Create
         new_tx = PaymeTransaction(
@@ -129,7 +129,7 @@ class PaymeService:
         tx = result.scalar_one_or_none()
 
         if not tx:
-            raise self._make_error(-31003, "Transaction not found", "Tranzaksiya topilmadi")
+            raise self._make_error(-31003, "Transaction not found")
         
         if tx.state == 1:
             # Check timeout
@@ -137,7 +137,7 @@ class PaymeService:
                 tx.state = -1
                 tx.reason = 4
                 await self.db.commit()
-                raise self._make_error(-31008, "Transaction timed out", "Tranzaksiya vaqti tugadi")
+                raise self._make_error(-31008, "Transaction timed out")
             
             # Perform
             tx.state = 2
@@ -146,7 +146,7 @@ class PaymeService:
 
             # GRANT SUBSCRIPTION
             try:
-                user = await self._get_user(tx.order_id)
+                user = await self._get_user(str(tx.order_id))
                 if user:
                     # Amount Logic (Tiyins to UZS)
                     amount_uzs = tx.amount / 100.0
@@ -195,7 +195,7 @@ class PaymeService:
                 "state": tx.state
             }
         else:
-             raise self._make_error(-31008, "Transaction in invalid state", "Tranzaksiya holati noto'g'ri")
+             raise self._make_error(-31008, "Transaction in invalid state")
 
     async def cancel_transaction(self, params: dict) -> dict:
         paycom_id = params.get("id")
@@ -206,7 +206,7 @@ class PaymeService:
         tx = result.scalar_one_or_none()
 
         if not tx:
-             raise self._make_error(-31003, "Transaction not found", "Tranzaksiya topilmadi")
+             raise self._make_error(-31003, "Transaction not found")
 
         if tx.state == 1:
             tx.state = -1

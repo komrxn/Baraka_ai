@@ -9,7 +9,7 @@ class JsonRpcRequest(BaseModel):
 
 class PaymeError(BaseModel):
     code: int
-    message: dict | str # Payme often expects localized messages like {"ru": "Err", "uz": "Xato"}
+    message: str 
     data: Optional[str] = None
 
 class JsonRpcResponse(BaseModel):
