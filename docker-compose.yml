@@ -49,6 +49,9 @@ services:
       CLICK_SERVICE_ID: ${CLICK_SERVICE_ID}
       CLICK_MERCHANT_ID: ${CLICK_MERCHANT_ID}
       CLICK_SECRET_KEY: ${CLICK_SECRET_KEY}
+      PAYME_MERCHANT_ID: ${PAYME_MERCHANT_ID}
+      PAYME_KEY: ${PAYME_KEY}
+      PAYME_TEST_MODE: ${PAYME_TEST_MODE:-False}
       UZAI_STT_URL: ${UZAI_STT_URL:-https://api.uzai.uz/v1/stt}
       CORS_ORIGINS: "*" # Разрешаем CORS через nginx
     ports:

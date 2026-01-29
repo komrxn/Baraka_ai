@@ -101,7 +101,9 @@ async def generate_payment_link(
         amount_tiyin = int(amount * 100)
         params_str = f"m={settings.payme_merchant_id};ac.order_id={current_user.id};a={amount_tiyin}"
         b64_params = base64.b64encode(params_str.encode()).decode()
-        url = f"https://checkout.paycom.uz/{b64_params}"
+        
+        base_url = "https://test.paycom.uz" if settings.payme_test_mode else "https://checkout.paycom.uz"
+        url = f"{base_url}/{b64_params}"
     else:
         # Click Link Generation
         url = f"https://my.click.uz/services/pay?service_id={settings.click_service_id}&merchant_id={settings.click_merchant_id}&amount={amount}&transaction_param={merchant_trans_id}"

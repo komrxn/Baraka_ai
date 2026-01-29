@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     # Payme
     payme_merchant_id: str = "test_merchant"
     payme_key: str = "test_key"
+    payme_test_mode: bool = False
 
     
     # API
