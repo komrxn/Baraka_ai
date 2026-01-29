@@ -60,14 +60,17 @@ async def payme_rpc_endpoint(
         
     except PaymeException as pe:
         # Expected Logic Error
+        error_data = {
+            "code": pe.code,
+            "message": pe.message
+        }
+        if pe.data is not None:
+            error_data["data"] = pe.data
+
         return {
             "jsonrpc": "2.0",
             "id": response_id,
-            "error": {
-                "code": pe.code,
-                "message": pe.message,
-                "data": pe.data
-            }
+            "error": error_data
         }
     except Exception as e:
         # Unexpected System Error
