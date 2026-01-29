@@ -9,7 +9,7 @@ from .utils import verify_payme_auth
 
 router = APIRouter(prefix="/payme", tags=["Payme"])
 
-@router.post("", response_model=JsonRpcResponse)
+@router.post("")
 async def payme_rpc_endpoint(
     request: JsonRpcRequest, 
     raw_request: Request,
