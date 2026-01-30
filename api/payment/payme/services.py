@@ -14,16 +14,38 @@ class PaymeService:
         self.db = db
         # Amount in Tiyins. 1 UZS = 100 Tiyin.
 
-    async def _get_user(self, user_id_str: str) -> Optional[User]:
-        # 'account[order_id]' could be UUID or int (telegram_id).
-        # Assuming UUID string based on `account[order_id]` plan.
-        try:
-            from uuid import UUID
-            uid = UUID(user_id_str)
-            result = await self.db.execute(select(User).where(User.id == uid))
+    async def _get_user(self, account_or_id: dict | str) -> Optional[User]:
+        # If it's a string, assume it's a direct UUID (legacy/perform call)
+        if isinstance(account_or_id, str):
+             try:
+                from uuid import UUID
+                uid = UUID(account_or_id)
+                result = await self.db.execute(select(User).where(User.id == uid))
+                return result.scalar_one_or_none()
+             except ValueError:
+                return None
+        
+        # If dict, try 'order_id' or 'phone' match
+        account = account_or_id
+        
+        # 1. Check for 'order_id' (UUID)
+        order_id = account.get("order_id")
+        if order_id:
+            try:
+                from uuid import UUID
+                uid = UUID(str(order_id))
+                result = await self.db.execute(select(User).where(User.id == uid))
+                return result.scalar_one_or_none()
+            except ValueError:
+                pass 
+
+        # 2. Check for 'phone' or 'phone_number'
+        phone = account.get("phone") or account.get("phone_number")
+        if phone:
+            result = await self.db.execute(select(User).where(User.phone_number == str(phone)))
             return result.scalar_one_or_none()
-        except ValueError:
-            return None
+            
+        return None
 
     def _make_error(self, code: int, message_ru: str, message_uz: str, message_en: str = None, data: str = None) -> PaymeException:
         return PaymeException(
@@ -44,22 +66,16 @@ class PaymeService:
         amount = params.get("amount")
         account = params.get("account", {})
         
-        # Payme might send "order_id" inside account, or custom field names.
-        # We enforce "order_id".
-        order_id = account.get("order_id")
-
-        if not order_id:
-            # -31050 requires 'data' to be the name of the missing/invalid field
-            raise self._make_error(-31050, "Order ID not found", "Buyurtma ID topilmadi", "Order ID not found", "order_id")
-
         # 1. Validate User
-        user = await self._get_user(str(order_id))
+        user = await self._get_user(account)
         if not user:
-            raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi", "User not found", "order_id")
+            missing_field = "order_id"
+            if "phone" in account: missing_field = "phone"
+            raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi", "User not found", missing_field)
 
         # 2. Validate Amount
         if amount <= 0:
-            raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa")
+            raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa", "Invalid amount")
 
         return {"allow": True}
 
@@ -68,7 +84,16 @@ class PaymeService:
         paycom_time = params.get("time")
         amount = params.get("amount")
         account = params.get("account", {})
-        order_id = account.get("order_id")
+        
+        # Resolve 'order_id' (User ID) from account
+        user = await self._get_user(account)
+        if not user:
+             # Should have been caught by check_perform_transaction, but good to be safe
+             missing_field = "order_id"
+             if "phone" in account: missing_field = "phone"
+             raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi", "User not found", missing_field)
+        
+        order_id = str(user.id) # Use the resolved User ID
 
         # Check if transaction exists
         stmt = select(PaymeTransaction).where(PaymeTransaction.paycom_transaction_id == paycom_id)
@@ -77,11 +102,10 @@ class PaymeService:
 
         if tx:
             # Idempotency check
-            # If state != 1 (Waiting) -> Error -31008
             if tx.state != 1:
                 raise self._make_error(-31008, "Transaction already processed", "Tranzaksiya allaqachon bajarilgan")
             
-            # Check timeout (12h = 43200000 ms)
+            # Check timeout (12h)
             if (int(time.time() * 1000) - tx.create_time) > 43200000:
                 tx.state = -1
                 tx.reason = 4
@@ -95,11 +119,9 @@ class PaymeService:
             }
         
         # New Transaction
-        # Re-validate (CheckPerformTransaction logic)
         try:
             await self.check_perform_transaction(params)
         except Exception as e:
-            # Re-raise error if it's already a defined PaymeError, else wrap
             if isinstance(e, PaymeException): raise e
             raise self._make_error(-31008, "Validation failed", "Tekshiruv xatosi")
 
@@ -158,7 +180,7 @@ class PaymeService:
                     if not current_end or current_end.replace(tzinfo=None) < datetime.now():
                         current_end = datetime.now()
 
-                    # Thresholds (matching Click logic)
+                    # Thresholds
                     if amount_uzs > 150000:
                          user.subscription_type = "annual"
                          user.subscription_ends_at = current_end + relativedelta(years=1)
@@ -172,15 +194,11 @@ class PaymeService:
                     user.is_premium = True
                     await self.db.commit()
                     
-                    # Notify
                     try:
                         await send_subscription_success_message(user)
                     except Exception:
                         pass
             except Exception as e:
-                # If grant fails, we still completed payment technically?
-                # Or should we rollback? Payme expects success.
-                # Log error.
                 print(f"Failed to grant sub: {e}")
 
             return {
