@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useToastStore } from '@/store/toastsStore.ts';
 
 const $axios = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://95.111.250.65:8001',
+  baseURL: import.meta.env.VITE_API_URL || 'https://baraka-ai.com/midas-api',
 });
 
 const fetchToken = async (): Promise<{ success: boolean }> => {
@@ -20,7 +20,8 @@ $axios.interceptors.request.use(
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
+    }
+    else {
       const { get: getToken } = useCookies();
       if (getToken('token')) {
         config.headers.Authorization = `Bearer ${getToken('token')}`;

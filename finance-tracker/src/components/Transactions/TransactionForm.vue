@@ -1,44 +1,46 @@
 <template>
     <VDrawer v-model:visible="localVisible" @update:visible="handleVisibilityChange">
         <template #header>
-            <h2 class="transaction-form__title">{{ isEditMode ? t('transactions.editTransaction') : t('transactions.addTransaction') }}</h2>
+            <h2 class="transaction-form__title">{{ isEditMode ? t('transactions.editTransaction') :
+                t('transactions.addTransaction') }}</h2>
         </template>
 
         <VForm @submit-form="handleSubmit" class="transaction-form__form-wrapper">
             <div class="transaction-form__form">
                 <div class="transaction-form__form-section">
                     <VSelect v-model="formData.type" :options="typeOptions" option-label="label" option-value="value"
-                        :placeholder="t('transactions.selectType')" :label="t('transactions.typeLabel')" :rules="typeRules" size="small"
-                        class="font-14-r" />
+                        :placeholder="t('transactions.selectType')" :label="t('transactions.typeLabel')"
+                        :rules="typeRules" size="small" class="font-14-r" />
                 </div>
 
                 <div class="transaction-form__form-section">
                     <VInputNumber :model-value="(formData.amount ?? undefined) as number | undefined"
-                        @update:model-value="val => formData.amount = (val ?? null) as number | null"
-                        class="font-14-r" :min="0" :max-fraction-digits="2"
-                        :suffix="` ${formData.currency.toUpperCase()}`" placeholder="0" :label="t('transactions.amount')" :rules="amountRules" />
+                        @update:model-value="val => formData.amount = (val ?? null) as number | null" class="font-14-r"
+                        :min="0" :max-fraction-digits="2" :suffix="` ${formData.currency.toUpperCase()}`"
+                        placeholder="0" :label="t('transactions.amount')" :rules="amountRules" />
                 </div>
 
                 <div class="transaction-form__form-section">
-                    <VSelect v-model="formData.currency" :options="currencyOptions" option-label="label" option-value="value"
-                        :placeholder="t('transactions.selectCurrency')" :label="t('debts.currency')" :rules="currencyRules" size="small"
+                    <VSelect v-model="formData.currency" :options="currencyOptions" option-label="label"
+                        option-value="value" :placeholder="t('transactions.selectCurrency')"
+                        :label="t('debts.currency')" :rules="currencyRules" size="small" class="font-14-r" />
+                </div>
+
+                <div class="transaction-form__form-section">
+                    <VSelect v-model="formData.category_id" filter :empty-filter-message="t('common.noResults')"
+                        :options="filteredCategoriesOptions" option-label="name" option-value="id"
+                        :placeholder="t('transactions.selectCategory')" :label="t('transactions.category')" size="small"
                         class="font-14-r" />
                 </div>
 
                 <div class="transaction-form__form-section">
-                    <VSelect v-model="formData.category_id" :options="filteredCategoriesOptions" option-label="name"
-                        option-value="id" :placeholder="t('transactions.selectCategory')" :label="t('transactions.category')"
-                        size="small" class="font-14-r" />
+                    <VInputText v-model="formData.description" :placeholder="t('transactions.descriptionOptional')"
+                        :label="t('transactions.description')" size="small" class="font-14-r" />
                 </div>
 
                 <div class="transaction-form__form-section">
-                    <VInputText v-model="formData.description" :placeholder="t('transactions.descriptionOptional')" :label="t('transactions.description')"
-                        size="small" class="font-14-r" />
-                </div>
-
-                <div class="transaction-form__form-section">
-                    <VInputText v-model="formData.transaction_date" type="datetime-local" :label="t('transactions.date')"
-                        size="small" class="font-14-r" />
+                    <VInputText v-model="formData.transaction_date" type="datetime-local"
+                        :label="t('transactions.date')" size="small" class="font-14-r" />
                 </div>
             </div>
 
@@ -291,4 +293,3 @@ const handleSubmit = () => {
     }
 }
 </style>
-

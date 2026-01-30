@@ -5,7 +5,8 @@
             <Button :label="t('main.categoriesViewAll')" text size="small" @click="handleViewAll" />
         </div>
         <div ref="chartWrapperRef" class="main-chart__container-wrapper">
-            <VChart ref="chartRef" :option="chartOption" class="main-chart__container" @click="handleChartClick" />
+            <VChart ref="chartRef" :option="chartOption" class="main-chart__container" autoresize
+                @click="handleChartClick" />
             <div class="main-chart__center">
                 <div class="main-chart__center-content">
                     <p class="main-chart__center-label font-14-r">{{ selectedCategory ? centerLabel :
@@ -30,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -174,12 +175,15 @@ const formattedCenterValue = computed(() => {
     return formattedBalance.value;
 });
 
-// Инициализация обработчика клика на график
-const initChartClickHandler = () => {
+// Инициализация обработчика клика на график и перерисовка графика
+const initChartClickHandler = async () => {
+    await nextTick();
     setTimeout(() => {
         if (chartRef.value?.chart) {
             chartRef.value.chart.off('click', handleChartClick);
             chartRef.value.chart.on('click', handleChartClick);
+            // Принудительно перерисовываем график для правильного центрирования
+            chartRef.value.chart.resize();
         }
     }, 100);
 };
@@ -192,10 +196,20 @@ onMounted(async () => {
             loadCategories({ period: 'month', type: 'expense' }), // Используем store для кеширования
         ]);
 
-        // Инициализируем обработчик клика
+        // Ждем следующего тика для правильной инициализации DOM
+        await nextTick();
+
+        // Инициализируем обработчик клика и перерисовываем график
         if (categoryBreakdown.value) {
-            initChartClickHandler();
+            await initChartClickHandler();
         }
+
+        // Дополнительная перерисовка через небольшую задержку для гарантии правильного центрирования
+        setTimeout(() => {
+            if (chartRef.value?.chart) {
+                chartRef.value.chart.resize();
+            }
+        }, 300);
     } catch (error) {
         console.error('Failed to load chart data:', error);
     }
@@ -204,9 +218,9 @@ onMounted(async () => {
 // Следим за изменениями данных и обновляем обработчик клика
 watch(
     () => expensesData.value.length,
-    (newLength) => {
+    async (newLength) => {
         if (isLoaded.value && newLength > 0) {
-            initChartClickHandler();
+            await initChartClickHandler();
         }
     },
     { immediate: true }
@@ -215,9 +229,9 @@ watch(
 // Также следим за изменениями categoryBreakdown
 watch(
     () => categoryBreakdown.value,
-    () => {
+    async () => {
         if (categoryBreakdown.value && isLoaded.value) {
-            initChartClickHandler();
+            await initChartClickHandler();
         }
     }
 );
@@ -315,6 +329,8 @@ const chartOption = computed<EChartsOption>(() => ({
     &__container {
         width: 100%;
         height: 300px;
+        min-width: 0;
+        min-height: 300px;
     }
 
     &__center {

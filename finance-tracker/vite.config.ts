@@ -14,7 +14,8 @@ export default defineConfig(({ mode }) => {
         configureServer(server) {
           server.middlewares.use('/token', async (req, res) => {
             try {
-              const response = await fetch(`${env.VITE_API_URL}/api/account/token`, {
+              const apiUrl = env.VITE_API_URL || 'https://baraka-ai.com/midas-api';
+              const response = await fetch(`${apiUrl}/api/account/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -28,7 +29,8 @@ export default defineConfig(({ mode }) => {
               res.end(JSON.stringify({ success: true }));
             }
 
-            catch (e) {
+            catch (error) {
+              console.error('Token generation error:', error);
               res.statusCode = 500;
               res.end(JSON.stringify({ success: false }));
             }
