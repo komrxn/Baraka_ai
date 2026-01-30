@@ -129,7 +129,7 @@ const plans = computed(() => [
         id: 'monthly',
         title: t('subscription.plans.monthly.title'),
         subtitle: t('subscription.plans.monthly.subtitle'),
-        price: '19 990',
+        price: '34 990',
         currency: 'UZS',
         period: t('subscription.plans.monthly.period'),
         badge: null,
