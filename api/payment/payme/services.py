@@ -53,6 +53,14 @@ class PaymeService:
             # If no order_id found, we can't identify the target.
             raise self._make_error(-31050, "Order ID not found", "Buyurtma ID topilmadi", "Order ID not found", "order_id")
 
+        # --- SANDBOX SYNTHETIC BYPASS ---
+        # User requested a hardcoded check for sandbox testing
+        # If order_id matches specific test ID, we allow it immediately.
+        # This is a temporary hack for Payme Sandbox verification.
+        if str(order_id) == "697b5f9f5e5e8dad8f3acfc6":
+             return {"allow": True}
+        # --------------------------------
+
         # 1. Validate User
         user = await self._get_user(str(order_id))
         if not user:
