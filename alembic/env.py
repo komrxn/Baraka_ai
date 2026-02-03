@@ -50,11 +50,17 @@ def run_migrations_offline() -> None:
     settings = get_settings()
     url = settings.database_url
     
+    def include_object(object, name, type_, reflected, compare_to):
+        if type_ == "table" and name == 'admin_users':
+            return False
+        return True
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -86,9 +92,16 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
 
+    def include_object(object, name, type_, reflected, compare_to):
+        if type_ == "table" and name == 'admin_users':
+            return False
+        return True
+
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            include_object=include_object
         )
 
         with context.begin_transaction():
