@@ -17,6 +17,15 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from api.database import Base
+# Must import models to register them with Base
+from api.models.user import User
+from api.models.category import Category
+from api.models.transaction import Transaction
+from api.models.debt import Debt
+from api.models.limit import Limit
+from api.models.click_transaction import ClickTransaction
+from api.models.payme_transaction import PaymeTransaction
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
