@@ -131,12 +131,15 @@ const formatDate = (isoString) => {
                                 <div class="font-medium text-white">{{ user.name }}</div>
                                 <div class="text-sm text-gray-500">{{ user.phone_number }} (ID: {{ user.telegram_id }})</div>
                             </td>
-                            <td class="p-4">
                                 <span 
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                                    :class="user.is_premium ? 'bg-success/10 text-success border-success/20' : 'bg-gray-700/30 text-gray-400 border-gray-600/30'"
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize"
+                                    :class="{
+                                        'bg-success/10 text-success border-success/20': ['plus', 'pro', 'premium'].includes(user.subscription_type),
+                                        'bg-warning/10 text-warning border-warning/20': user.subscription_type === 'trial',
+                                        'bg-gray-700/30 text-gray-400 border-gray-600/30': !user.subscription_type || user.subscription_type === 'free'
+                                    }"
                                 >
-                                    {{ user.is_premium ? 'Premium' : 'Free' }}
+                                    {{ user.subscription_type || 'Free' }}
                                 </span>
                             </td>
                             <td class="p-4 text-sm text-gray-300 capitalize">{{ user.subscription_type || '-' }}</td>
@@ -232,6 +235,9 @@ const formatDate = (isoString) => {
                                     <div>
                                         <label class="block text-sm text-gray-400 mb-2">Select Plan</label>
                                         <select v-model="selectedPlan" class="input-field">
+                                            <option value="plus">Plus (30 Days)</option>
+                                            <option value="pro">Pro (30 Days)</option>
+                                            <option value="premium">Premium (30 Days)</option>
                                             <option value="monthly">Monthly (30 Days)</option>
                                             <option value="quarterly">Quarterly (90 Days)</option>
                                             <option value="annual">Annual (365 Days)</option>
