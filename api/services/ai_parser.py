@@ -129,22 +129,88 @@ class AITransactionParser:
     
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
+
+    async def check_limits(self, user, limit_type: str) -> bool:
+        """
+        Check if user has reached their limits.
+        limit_type: 'request' (3-day), 'voice' (daily), 'image' (daily)
+        """
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        
+        # 1. Reset Daily Counters
+        if not user.last_daily_reset or user.last_daily_reset.date() < now.date():
+            user.voice_usage_daily = 0
+            user.image_usage_daily = 0
+            user.last_daily_reset = now
+            
+        # 2. Reset/Check 3-Day Window (Recoil)
+        # "Recoil" logic: simple reset every 3 days from first request of window
+        if not user.last_3day_reset or (now - user.last_3day_reset.replace(tzinfo=None)) > timedelta(days=3):
+            user.request_count_3day = 0
+            user.last_3day_reset = now
+
+        # 3. Define Limits based on Tier
+        tier = user.subscription_tier
+        
+        # Limits: (3-day requests, daily voice, daily image)
+        LIMITS = {
+            "free":    (180, 5, 0),    # Free
+            "plus":    (250, 20, 20),  # Plus
+            "pro":     (400, 30, 50),  # Pro
+            "premium": (1000, 100, 150) # Premium ("Infinite" -> high number)
+        }
+        
+        limits = LIMITS.get(tier, LIMITS["free"])
+        req_limit, voice_limit, img_limit = limits
+
+        # 4. Check
+        if limit_type == 'request':
+            if user.request_count_3day >= req_limit:
+                 return False
+        elif limit_type == 'voice':
+            if user.voice_usage_daily >= voice_limit:
+                 return False
+        elif limit_type == 'image':
+            if user.image_usage_daily >= img_limit:
+                 return False
+                 
+        return True
+
+    async def update_usage(self, user, usage_type: str, db):
+        """Increment usage counters."""
+        if usage_type == 'voice':
+            user.voice_usage_daily += 1
+        elif usage_type == 'image':
+            user.image_usage_daily += 1
+        
+        # Always increment general request count (recoil) for any AI action? 
+        # Requirement said "Limits: 180 requests in 3 days". 
+        # Usually voice/image also count as requests.
+        user.request_count_3day += 1
+        await db.commit()
+
+    def get_model_for_tier(self, tier: str) -> str:
+        """Select AI model based on subscription tier."""
+        if tier == "free":
+            return "gpt-5-nano"
+        elif tier in ("plus", "pro"):
+            # User requested 5.1 for Pro in latest message?
+            # Re-read: "Premium - 5.1". "Pro - 5-mini" (original). 
+            # LATEST REQUEST: "хотя в pro gpt-5.1 поставь лучше."
+            # So: Pro = 5.1, Premium = 5.1
+            if tier == "pro":
+                return "gpt-5.1" 
+            return "gpt-5-mini"
+        elif tier == "premium":
+            return "gpt-5.1"
+        return "gpt-5-nano"
     
-    def parse_text(self, text: str) -> Dict[str, Any]:
+    async def parse_text(self, text: str, model_name: str = "gpt-5-nano") -> Dict[str, Any]:
         """
         Parse transaction from text message.
-        
-        Returns:
-            {
-                "type": "income" | "expense",
-                "amount": Decimal,
-                "currency": str,
-                "description": str,
-                "category_slug": str | None,
-                "confidence": float (0-1)
-            }
         """
-        logger.info(f"AI parsing text: {text[:100]}...")
+        logger.info(f"AI parsing text: {text[:100]}... (Model: {model_name})")
         
         system_prompt = (
             "Ты умный финансовый ассистент. Задача: извлечь информацию о транзакции из сообщения пользователя.\n"
@@ -180,8 +246,8 @@ class AITransactionParser:
         )
         
         try:
-            completion = self.client.chat.completions.create(
-                model="gpt-5-nano",
+            completion = await self.client.chat.completions.create(
+                model=model_name,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Текст: {text}"},

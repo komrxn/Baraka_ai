@@ -40,8 +40,8 @@ async def activate_trial(
         raise HTTPException(status_code=400, detail="Trial already used")
         
     # Grant 3 days
-    current_user.subscription_type = "trial"
-    current_user.is_premium = True
+    # Grant 3 days of Pro features
+    current_user.subscription_type = "pro" 
     current_user.is_trial_used = True
     current_user.subscription_ends_at = datetime.now() + timedelta(days=3)
     
@@ -66,13 +66,25 @@ async def generate_payment_link(
     """
     Generate Click.uz or Payme payment link.
     """
-    # 1. Determine amount
-    if request.plan_id == "monthly":
-        amount = 34990.00
-    elif request.plan_id == "quarterly":
-        amount = 56990.00
-    elif request.plan_id == "annual":
-        amount = 199900.00
+    # 1. Determine amount & plan
+    # Plus: 34,999 (1 mo) / 94,999 (3 mo)
+    # Pro: 49,999 (1 mo) / 119,999 (3 mo)
+    # Premium: 89,999 (1 mo) / 229,999 (3 mo)
+    
+    amount = 0.0
+    
+    if request.plan_id == "plus_1":
+        amount = 34999.00
+    elif request.plan_id == "plus_3":
+        amount = 94999.00
+    elif request.plan_id == "pro_1":
+        amount = 49999.00
+    elif request.plan_id == "pro_3":
+        amount = 119999.00
+    elif request.plan_id == "premium_1":
+        amount = 89999.00
+    elif request.plan_id == "premium_3":
+        amount = 229999.00
     else:
         raise HTTPException(status_code=400, detail="Invalid plan")
 

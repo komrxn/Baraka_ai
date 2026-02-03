@@ -27,12 +27,20 @@ class User(Base):
     language: Mapped[str] = mapped_column(String(2), default="uz", server_default="uz", nullable=False)
     
     # Subscription
-    is_premium: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
-    subscription_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True) # trial, monthly, annual
+    subscription_type: Mapped[str] = mapped_column(String(20), default="free", server_default="free", nullable=False) # free, plus, pro, premium (or trial -> pro with short duration)
     subscription_ends_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_trial_used: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
     
-    # Usage Counters (Freemium)
+    # Limits & Usage Tracking
+    last_daily_reset: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    voice_usage_daily: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
+    image_usage_daily: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
+    
+    # Recoil (3-day limit)
+    last_3day_reset: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    request_count_3day: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
+    
+    # Legacy counters (keep for history or migrate later)
     voice_usage_count: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     photo_usage_count: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
 
@@ -49,5 +57,23 @@ class User(Base):
     debts: Mapped[list["Debt"]] = relationship("Debt", back_populates="user", cascade="all, delete-orphan")
     limits: Mapped[list["Limit"]] = relationship("Limit", back_populates="user", cascade="all, delete-orphan")
     
+    @property
+    def subscription_tier(self) -> str:
+        """Helper to normalize subscription tier."""
+        if self.subscription_type in ("trial", "plus", "pro", "premium"):
+             return self.subscription_type
+        return "free"
+
+    @property
+    def is_premium_active(self) -> bool:
+        """Check if premium/paid subscription is active."""
+        if self.subscription_type == "free":
+            return False
+            
+        if self.subscription_ends_at and self.subscription_ends_at.replace(tzinfo=None) < datetime.now():
+            return False
+            
+        return True
+
     def __repr__(self) -> str:
-        return f"<User(id={self.id}, telegram_id={self.telegram_id}, name={self.name})>"
+        return f"<User(id={self.id}, telegram_id={self.telegram_id}, tier={self.subscription_type})>"

@@ -188,18 +188,40 @@ class PaymeService:
                     if not current_end or current_end.replace(tzinfo=None) < datetime.now():
                         current_end = datetime.now()
 
-                    # Thresholds
-                    if amount_uzs > 150000:
-                         user.subscription_type = "annual"
-                         user.subscription_ends_at = current_end + relativedelta(years=1)
-                    elif amount_uzs > 50000:
-                         user.subscription_type = "quarterly"
-                         user.subscription_ends_at = current_end + relativedelta(months=3)
+                    # Thresholds - Map Amount to Plan
+                    # Amounts are in UZS (already divided by 100)
+                    
+                    # Plus
+                    if abs(amount_uzs - 34999) < 100:
+                        user.subscription_type = "plus"
+                        user.subscription_ends_at = current_end + relativedelta(months=1)
+                    elif abs(amount_uzs - 94999) < 100:
+                        user.subscription_type = "plus"
+                        user.subscription_ends_at = current_end + relativedelta(months=3)
+                    
+                    # Pro
+                    elif abs(amount_uzs - 49999) < 100:
+                        user.subscription_type = "pro"
+                        user.subscription_ends_at = current_end + relativedelta(months=1)
+                    elif abs(amount_uzs - 119999) < 100:
+                        user.subscription_type = "pro"
+                        user.subscription_ends_at = current_end + relativedelta(months=3)
+                        
+                    # Premium
+                    elif abs(amount_uzs - 89999) < 100:
+                        user.subscription_type = "premium"
+                        user.subscription_ends_at = current_end + relativedelta(months=1)
+                    elif abs(amount_uzs - 229999) < 100:
+                        user.subscription_type = "premium"
+                        user.subscription_ends_at = current_end + relativedelta(months=3)
+                        
+                    # Legacy or fallback
                     else:
-                         user.subscription_type = "monthly"
+                         # Default to monthly basic if unknown amount (or log error?)
+                         user.subscription_type = "plus"
                          user.subscription_ends_at = current_end + relativedelta(months=1)
                     
-                    user.is_premium = True
+                    # user.is_premium = True # Deprecated/redundant, relying on subscription_type property
                     await self.db.commit()
                     
                     try:
