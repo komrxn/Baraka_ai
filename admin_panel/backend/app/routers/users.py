@@ -68,6 +68,10 @@ async def update_subscription(
         if action.duration_days:
             # Add to now
             user.subscription_ends_at = datetime.now() + timedelta(days=action.duration_days)
+        elif action.plan in ("plus", "pro", "premium"):
+             # Default to 30 days if simple tier name is passed, or handle variations if frontend sends 'plus_1', 'pro_3' etc.
+             # Assuming frontend sends just 'plus', 'pro', 'premium' for manual grant -> default 1 month
+             user.subscription_ends_at = datetime.now() + timedelta(days=30)
         elif action.plan == "monthly":
             user.subscription_ends_at = datetime.now() + timedelta(days=30)
         elif action.plan == "quarterly":
