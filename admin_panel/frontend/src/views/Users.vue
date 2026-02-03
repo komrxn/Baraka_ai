@@ -131,6 +131,7 @@ const formatDate = (isoString) => {
                                 <div class="font-medium text-white">{{ user.name }}</div>
                                 <div class="text-sm text-gray-500">{{ user.phone_number }} (ID: {{ user.telegram_id }})</div>
                             </td>
+                            <td class="p-4">
                                 <span 
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize"
                                     :class="{
