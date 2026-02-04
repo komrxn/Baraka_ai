@@ -86,6 +86,9 @@ export default {
       title: 'Pro versiyaga o\'ting',
       description: 'Kengaytirilgan tahlil, limitlar va cheksiz tranzaksiyalarga kirish oling',
     },
+    otherCategories: 'Barchasini ko\'rsatish',
+    showAllCategories: 'Barchasini ko\'rsatish',
+    allCategories: 'Barcha kategoriyalar',
   },
 
   // Sozlamalar

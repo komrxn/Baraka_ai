@@ -177,7 +177,7 @@ export const useAnalytics = () => {
         tooltip: {
             trigger: 'axis',
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderColor: 'rgba(255, 215, 0, 0.3)',
+            borderColor: 'rgba(37, 99, 235, 0.3)',
             borderWidth: 1,
             textStyle: {
                 color: 'var(--primary-500)',
@@ -200,7 +200,7 @@ export const useAnalytics = () => {
             data: lineChartData.value.map(item => item.time),
             axisLine: {
                 lineStyle: {
-                    color: 'rgba(255, 215, 0, 0.2)',
+                    color: 'rgba(37, 99, 235, 0.2)',
                 },
             },
             axisLabel: {
@@ -218,7 +218,7 @@ export const useAnalytics = () => {
             },
             splitLine: {
                 lineStyle: {
-                    color: 'rgba(255, 215, 0, 0.1)',
+                    color: 'rgba(37, 99, 235, 0.1)',
                 },
             },
             axisLabel: {
@@ -244,8 +244,8 @@ export const useAnalytics = () => {
                         x2: 0,
                         y2: 1,
                         colorStops: [
-                            { offset: 0, color: 'rgba(255, 215, 0, 0.3)' },
-                            { offset: 1, color: 'rgba(255, 215, 0, 0.05)' },
+                            { offset: 0, color: 'rgba(37, 99, 235, 0.3)' },
+                            { offset: 1, color: 'rgba(37, 99, 235, 0.05)' },
                         ],
                     },
                 },
@@ -317,7 +317,7 @@ export const useAnalytics = () => {
         tooltip: {
             trigger: 'axis',
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            borderColor: 'rgba(255, 215, 0, 0.3)',
+            borderColor: 'rgba(37, 99, 235, 0.3)',
             borderWidth: 1,
             textStyle: {
                 color: 'var(--primary-500)',
@@ -340,7 +340,7 @@ export const useAnalytics = () => {
             data: lineChartData.value.map(item => item.time),
             axisLine: {
                 lineStyle: {
-                    color: 'rgba(255, 215, 0, 0.2)',
+                    color: 'rgba(37, 99, 235, 0.2)',
                 },
             },
             axisLabel: {
@@ -358,7 +358,7 @@ export const useAnalytics = () => {
             },
             splitLine: {
                 lineStyle: {
-                    color: 'rgba(255, 215, 0, 0.1)',
+                    color: 'rgba(37, 99, 235, 0.1)',
                 },
             },
             axisLabel: {
@@ -384,8 +384,8 @@ export const useAnalytics = () => {
                         x2: 0,
                         y2: 1,
                         colorStops: [
-                            { offset: 0, color: 'rgba(255, 215, 0, 0.3)' },
-                            { offset: 1, color: 'rgba(255, 215, 0, 0.05)' },
+                            { offset: 0, color: 'rgba(37, 99, 235, 0.3)' },
+                            { offset: 1, color: 'rgba(37, 99, 235, 0.05)' },
                         ],
                     },
                 },
@@ -401,7 +401,7 @@ export const useAnalytics = () => {
                 smooth: true,
                 data: trendLineData.value,
                 itemStyle: {
-                    color: 'rgba(255, 215, 0, 0.6)',
+                    color: 'rgba(37, 99, 235, 0.6)',
                 },
                 lineStyle: {
                     width: 2,

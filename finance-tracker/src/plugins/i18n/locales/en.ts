@@ -86,6 +86,9 @@ export default {
       title: 'Upgrade to Pro',
       description: 'Get access to advanced analytics, limits and unlimited transactions',
     },
+    otherCategories: 'Show All',
+    showAllCategories: 'Show All',
+    allCategories: 'All Categories',
   },
 
   // Settings

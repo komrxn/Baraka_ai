@@ -1,6 +1,5 @@
 <template>
     <div class="debts-page">
-        <PremiumOverlay />
         <div class="debts-page__header">
             <Button :icon="arrowLeft" severity="secondary" @click="router.back()" class="debts-page__header-button" />
             <h1 class="">{{ t('debts.title') }}</h1>
@@ -65,7 +64,6 @@ const { t } = useI18n();
 import DebtForm from '@/components/Debts/DebtForm.vue';
 import DebtCard from '@/components/Debts/DebtCard.vue';
 import DebtFilterForm from '@/components/Debts/DebtFilterForm.vue';
-import PremiumOverlay from '@/components/PremiumOverlay.vue';
 import VIcon from '@/components/UI/VIcon.vue';
 import type { Debt, DebtFormData, DebtCreateData, DebtUpdateData } from '@/composables/Debts/types';
 import type { DebtFilters } from '@/components/Debts/DebtFilterForm.vue';

@@ -13,21 +13,25 @@
                         t('main.currentBalance') }}</p>
                     <h2 class="main-chart__center-value font-30-b ">{{ selectedCategory ? formattedCenterValue
                         : formattedBalance }}</h2>
-                    <Button v-if="selectedCategory" :label="t('main.viewTransactions')" size="small"
-                        severity="secondary" class="main-chart__center-button" @click="handleViewTransactions" />
+                    <Button v-if="selectedCategory" :label="t('main.viewTransactions')" size="small" severity="primary"
+                        class="main-chart__center-button" outlined @click="handleViewTransactions" />
                 </div>
             </div>
         </div>
         <div class="main-chart__categories">
-            <div v-for="category in expensesData" :key="category.name" class="main-chart__category"
+            <div v-for="category in displayedCategories" :key="category.name" class="main-chart__category"
                 :class="{ 'main-chart__category--active': selectedCategory === category.name }"
-                @click="selectCategory(category.name)">
+                @click="handleCategoryClick(category)">
                 <div class="main-chart__category-icon" :style="{ backgroundColor: category.color }"></div>
                 <p class="main-chart__category-name font-12-r">{{ category.name }}</p>
                 <span class="main-chart__category-percent font-10-r">{{ category.percentage }}%</span>
             </div>
         </div>
     </div>
+
+    <!-- Модальное окно с полным графиком -->
+    <MainChartFullModal :model-value="showFullChart" @update:model-value="showFullChart = $event" :categories="expensesData" :balance="balance"
+        :formatted-balance="formattedBalance" />
 </template>
 
 <script setup lang="ts">
@@ -44,6 +48,7 @@ import { formatAmountShort, formatDateToAPIDatetime, formatDateToAPI } from '@/u
 import { useBalanceStore } from '@/store/balanceStore';
 import { useCategoriesChartStore } from '@/store/categoriesChartStore';
 import { useTransactionsStore } from '@/store/transactionsStore';
+import MainChartFullModal from './MainChartFullModal.vue';
 
 const { t, te } = useI18n();
 const router = useRouter();
@@ -62,6 +67,9 @@ const { applyFilters } = transactionsStore;
 const chartRef = ref<InstanceType<typeof VChart> | null>(null);
 const chartWrapperRef = ref<HTMLElement | null>(null);
 const selectedCategory = ref<string | null>(null);
+const showFullChart = ref(false);
+
+const MAX_DISPLAYED_CATEGORIES = 6;
 
 // Сброс выбора при клике вне графика
 onClickOutside(chartWrapperRef, () => {
@@ -95,6 +103,45 @@ const expensesData = computed(() => {
     });
 });
 
+// Тип для категории
+export type CategoryItem = {
+    name: string;
+    value: number;
+    percentage: string;
+    color: string;
+    category_id: string | null;
+    isOthers?: boolean;
+    othersCategories?: CategoryItem[];
+};
+
+// Отображаемые категории (первые 8 + "Другое" если есть)
+const displayedCategories = computed<CategoryItem[]>(() => {
+    const allCategories = expensesData.value;
+    if (allCategories.length <= MAX_DISPLAYED_CATEGORIES) {
+        return allCategories;
+    }
+
+    const displayed: CategoryItem[] = allCategories.slice(0, MAX_DISPLAYED_CATEGORIES);
+    const others = allCategories.slice(MAX_DISPLAYED_CATEGORIES);
+
+    // Суммируем остальные категории
+    const othersTotal = others.reduce((sum, cat) => sum + cat.value, 0);
+    const othersPercentage = others.reduce((sum, cat) => sum + parseFloat(cat.percentage), 0).toFixed(1);
+
+    // Добавляем категорию "Показать все"
+    displayed.push({
+        name: t('main.showAllCategories'),
+        value: othersTotal,
+        percentage: othersPercentage,
+        color: 'rgb(149, 165, 166)',
+        category_id: null,
+        isOthers: true,
+        othersCategories: others,
+    });
+
+    return displayed;
+});
+
 // Форматированный баланс
 const formattedBalance = computed(() => {
     return formatAmountShort(balance.value);
@@ -106,6 +153,16 @@ const selectCategory = (categoryName: string) => {
         selectedCategory.value = null;
     } else {
         selectedCategory.value = categoryName;
+    }
+};
+
+// Обработка клика на категорию
+const handleCategoryClick = (category: CategoryItem) => {
+    if (category.isOthers) {
+        // Открываем модальное окно с полным графиком
+        showFullChart.value = true;
+    } else {
+        selectCategory(category.name);
     }
 };
 
@@ -152,14 +209,19 @@ const handleViewTransactions = async () => {
 
 const handleChartClick = (params: any) => {
     if (params.componentType === 'series' && params.name) {
-        selectCategory(params.name);
+        const category = displayedCategories.value.find(c => c.name === params.name);
+        if (category?.isOthers) {
+            showFullChart.value = true;
+        } else {
+            selectCategory(params.name);
+        }
     }
 };
 
 // Текст и значение для центра
 const centerLabel = computed(() => {
     if (selectedCategory.value) {
-        const category = expensesData.value.find(c => c.name === selectedCategory.value);
+        const category = displayedCategories.value.find(c => c.name === selectedCategory.value);
         return category?.name || t('main.currentBalance');
     }
     return t('main.currentBalance');
@@ -167,13 +229,14 @@ const centerLabel = computed(() => {
 
 const formattedCenterValue = computed(() => {
     if (selectedCategory.value) {
-        const category = expensesData.value.find(c => c.name === selectedCategory.value);
+        const category = displayedCategories.value.find(c => c.name === selectedCategory.value);
         if (category) {
             return formatAmountShort(category.value);
         }
     }
     return formattedBalance.value;
 });
+
 
 // Инициализация обработчика клика на график и перерисовка графика
 const initChartClickHandler = async () => {
@@ -236,6 +299,7 @@ watch(
     }
 );
 
+
 const chartOption = computed<EChartsOption>(() => ({
     tooltip: {
         show: false,
@@ -274,8 +338,8 @@ const chartOption = computed<EChartsOption>(() => ({
             labelLine: {
                 show: false,
             },
-            data: expensesData.value.length > 0
-                ? expensesData.value.map((item) => ({
+            data: displayedCategories.value.length > 0
+                ? displayedCategories.value.map((item) => ({
                     value: item.value,
                     name: item.name,
                     itemStyle: {

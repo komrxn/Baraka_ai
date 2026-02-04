@@ -86,6 +86,9 @@ export default {
       title: 'Перейдите на Pro',
       description: 'Получите доступ к расширенной аналитике, лимитам и безлимитным транзакциям',
     },
+    otherCategories: 'Показать все',
+    showAllCategories: 'Показать все',
+    allCategories: 'Все категории',
   },
 
   // Настройки

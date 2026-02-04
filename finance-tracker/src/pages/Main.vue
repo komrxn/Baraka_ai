@@ -28,7 +28,7 @@ const { user } = storeToRefs(userStore);
 const { loadUser } = userStore;
 
 const hasSubscription = computed(() => {
-    return user.value?.is_active || user.value?.is_premium;
+    return user.value?.is_premium ?? false;
 });
 
 onMounted(async () => {

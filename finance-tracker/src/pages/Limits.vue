@@ -1,6 +1,5 @@
 <template>
     <div class="limits-page">
-        <PremiumOverlay />
         <div class="limits-page__header">
             <Button :icon="arrowLeft" severity="secondary" @click="router.back()" class="limits-page__header-button" />
             <h1 class="">{{ t('limits.title') }}</h1>
@@ -45,7 +44,6 @@ import { Button, ProgressSpinner } from 'primevue';
 const { t } = useI18n();
 import LimitForm from '@/components/Limits/LimitForm.vue';
 import LimitCard from '@/components/Limits/LimitCard.vue';
-import PremiumOverlay from '@/components/PremiumOverlay.vue';
 import VIcon from '@/components/UI/VIcon.vue';
 import type { LimitFormData } from '@/composables/Limits/types';
 import { useLimitsStore } from '@/store/limitsStore';
