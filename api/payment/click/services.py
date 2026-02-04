@@ -140,29 +140,40 @@ class ClickService:
         user_result = await self.db.execute(select(User).where(User.id == transaction.user_id))
         user = user_result.scalar_one()
         
-        # Determine duration based on amount
+        # Grant Logic based on Amount
+        # Plus: 34,999 (1 mo) / 94,999 (3 mo)
+        # Pro: 49,999 (1 mo) / 119,999 (3 mo)
+        # Premium: 89,999 (1 mo) / 229,999 (3 mo)
+        
+        amount_val = float(transaction.amount)
+        from dateutil.relativedelta import relativedelta
+        
+        # Determine plan
+        if amount_val in [34999.0, 94999.0]:
+            user.subscription_type = "plus"
+        elif amount_val in [49999.0, 119999.0]:
+            user.subscription_type = "pro"
+        elif amount_val in [89999.0, 229999.0]:
+            user.subscription_type = "premium"
+        else:
+            # Fallback (maybe old link) -> Pro
+            user.subscription_type = "pro"
+
+        # Determine duration
         current_end = user.subscription_ends_at
         if not current_end or current_end.replace(tzinfo=None) < datetime.now():
-            current_end = datetime.now()
-
-        if transaction.amount > 150000:
-             # Annual (approx 199k)
-             user.subscription_type = "annual"
-             from dateutil.relativedelta import relativedelta
-             user.subscription_ends_at = current_end + relativedelta(years=1)
-        elif transaction.amount > 50000:
-             # Quarterly (56k)
-             user.subscription_type = "quarterly"
-             from dateutil.relativedelta import relativedelta
-             user.subscription_ends_at = current_end + relativedelta(months=3)
+            base_date = datetime.now()
         else:
-             user.subscription_type = "monthly"
-             from dateutil.relativedelta import relativedelta
-             user.subscription_ends_at = current_end + relativedelta(months=1)
+            base_date = current_end.replace(tzinfo=None) # Ensure naive for calc or aware matching
+            
+        if amount_val in [94999.0, 119999.0, 229999.0]:
+             # 3 Months
+             user.subscription_ends_at = base_date + relativedelta(months=3)
+        else:
+             # 1 Month
+             user.subscription_ends_at = base_date + relativedelta(months=1)
         
-        user.is_premium = True
-        
-        user.is_premium = True
+        # user.is_premium is computed, do not set it.
         
         await self.db.commit()
         
