@@ -74,8 +74,12 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         keyboard = [
             [InlineKeyboardButton(action_btn_text, callback_data="buy_subscription")],
-            # [InlineKeyboardButton("🌐 Change Language", callback_data="change_language")] # Not implemented yet
         ]
+        
+        # Add trial button if eligible
+        is_trial_used = sub_status.get("is_trial_used", False)
+        if not is_active and not is_trial_used:
+             keyboard.insert(0, [InlineKeyboardButton(t("subscription.trial_btn", lang), callback_data="activate_trial")])
         
         await update.message.reply_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
         

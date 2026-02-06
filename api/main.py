@@ -26,6 +26,13 @@ async def lifespan(app: FastAPI):
     await init_db()
     logging.info("✅ Database initialized")
     
+    # Start Scheduler
+    import asyncio
+    from .scheduler import start_scheduler
+    asyncio.create_task(start_scheduler())
+    logging.info("⏰ Scheduler started")
+
+    
     yield
     
     # Shutdown
