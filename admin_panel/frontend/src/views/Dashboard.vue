@@ -45,13 +45,11 @@ const stats = ref({
 const userGrowth = ref({ labels: [], data: [], daily_new: [] });
 const subscriptionData = ref({ plus: 0, pro: 0, premium: 0, trial: 0, free: 0 });
 const usageData = ref({
-    total_voice_requests: 0,
-    total_photo_requests: 0,
-    total_text_requests: 0,
-    voice_today: 0,
-    images_today: 0,
+    dates: [],
+    bg_tasks: [],
     text_today: 0,
-    active_users_7d: 0
+    new_users_today: 0,
+    subscribed_today: 0
 });
 
 // Fetch all data
@@ -193,42 +191,52 @@ const subscriptionChartOptions = {
 };
 
 const usageChartData = computed(() => ({
-    labels: ['Text Requests', 'Voice Requests', 'Photo Requests'],
+    labels: usageData.value.dates,
     datasets: [{
-        label: 'Total Usage',
-        data: [
-            usageData.value.total_text_requests,
-            usageData.value.total_voice_requests, 
-            usageData.value.total_photo_requests
-        ],
-        backgroundColor: [
-            'rgba(59, 130, 246, 0.8)', // Blue (Text)
-            'rgba(139, 92, 246, 0.8)', // Purple (Voice)
-            'rgba(236, 72, 153, 0.8)'  // Pink (Photo)
-        ],
-        borderRadius: 8,
-        borderSkipped: false
+        label: 'Text Request Load',
+        data: usageData.value.bg_tasks,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#fff',
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#3b82f6'
     }]
 }));
 
 const usageChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+        mode: 'index',
+        intersect: false
+    },
     plugins: {
         legend: { display: false },
         tooltip: {
             backgroundColor: 'rgba(17, 24, 39, 0.95)',
-            padding: 12
+            titleColor: '#fff',
+            bodyColor: '#9ca3af',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            callbacks: {
+                title: (items) => `📅 ${items[0].label}`
+            }
         }
     },
     scales: {
         x: {
-            grid: { display: false },
+            grid: { color: 'rgba(255,255,255,0.05)' },
             ticks: { color: '#6b7280' }
         },
         y: {
             grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { color: '#6b7280' }
+            ticks: { color: '#6b7280' },
+            beginAtZero: true
         }
     }
 };
@@ -252,20 +260,20 @@ const statCards = computed(() => [
         change: `${Math.round((stats.value.active_subscriptions / Math.max(stats.value.total_users, 1)) * 100)}% conversion`
     },
     { 
-        name: 'Active Users (7d)', 
-        value: usageData.value.active_users_7d.toLocaleString(), 
-        icon: Activity, 
+        name: 'New Users Today', 
+        value: usageData.value.new_users_today.toLocaleString(), 
+        icon: Users, 
         color: 'text-purple-400',
         bg: 'bg-purple-500/10',
-        change: 'Last 7 days'
+        change: 'Registered today'
     },
     { 
         name: 'Requests Today', 
-        value: (usageData.value.text_today + usageData.value.voice_today + usageData.value.images_today).toLocaleString(), 
+        value: usageData.value.text_today.toLocaleString(), 
         icon: MessageSquare, 
         color: 'text-amber-400',
         bg: 'bg-amber-500/10',
-        change: `${usageData.value.text_today} text, ${usageData.value.voice_today} voice`
+        change: 'Text messages'
     }
 ]);
 </script>
@@ -331,10 +339,10 @@ const statCards = computed(() => [
                 <div class="glass p-6 rounded-xl border border-white/5">
                     <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                         <Zap class="w-5 h-5 text-amber-400" />
-                        Bot Usage Statistics
+                        Bot Load (Text Requests)
                     </h3>
                     <div class="h-[250px]">
-                        <Bar :data="usageChartData" :options="usageChartOptions" />
+                        <Line :data="usageChartData" :options="usageChartOptions" />
                     </div>
                 </div>
 
@@ -350,27 +358,27 @@ const statCards = computed(() => [
                                 <div class="p-2 bg-blue-500/20 rounded-lg">
                                     <MessageSquare class="w-5 h-5 text-blue-400" />
                                 </div>
-                                <span class="text-gray-300">Text Messages Today</span>
+                                <span class="text-gray-300">Requests (text messages)</span>
                             </div>
                             <span class="text-2xl font-bold text-white">{{ usageData.text_today }}</span>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-purple-500/20 rounded-lg">
-                                    <Mic class="w-5 h-5 text-purple-400" />
+                                <div class="p-2 bg-green-500/20 rounded-lg">
+                                    <CreditCard class="w-5 h-5 text-green-400" />
                                 </div>
-                                <span class="text-gray-300">Voice Messages Today</span>
+                                <span class="text-gray-300">Subscribed today</span>
                             </div>
-                            <span class="text-2xl font-bold text-white">{{ usageData.voice_today }}</span>
+                            <span class="text-2xl font-bold text-white">{{ usageData.subscribed_today }}</span>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-white/5 rounded-lg">
                             <div class="flex items-center gap-3">
-                                <div class="p-2 bg-pink-500/20 rounded-lg">
-                                    <Camera class="w-5 h-5 text-pink-400" />
+                                <div class="p-2 bg-purple-500/20 rounded-lg">
+                                    <Users class="w-5 h-5 text-purple-400" />
                                 </div>
-                                <span class="text-gray-300">Photo Analyses Today</span>
+                                <span class="text-gray-300">New users today</span>
                             </div>
-                            <span class="text-2xl font-bold text-white">{{ usageData.images_today }}</span>
+                            <span class="text-2xl font-bold text-white">{{ usageData.new_users_today }}</span>
                         </div>
                     </div>
                 </div>
