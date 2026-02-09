@@ -1,0 +1,15 @@
+{
+    "version": "1.5.0",
+    "created_at": "2026-02-09T17:50:00",
+    "texts": {
+        "ru": "🎉 *Обновление Baraka AI v1.5*\n\n💱 *Новые функции валют!*\n\n📊 *Курс валют ЦБ РУз*\n• Актуальные курсы 70+ валют\n• USD, EUR, RUB, GBP, CNY, KZT и другие\n• Ежедневные изменения курсов\n\n🔄 *Мультивалютные транзакции*\n• Отправляйте суммы в любой валюте\n• Автоматическая конвертация в сумы\n• «Потратил 50 долларов» → авто-сохранение\n\n💎 Эти функции доступны для подписчиков Plus, Pro и Premium!\n\n_Чтобы попробовать — нажмите 💱 Курс валют в меню!_ ✨",
+        "uz": "🎉 *Baraka AI v1.5 yangilanishi*\n\n💱 *Yangi valyuta funksiyalari!*\n\n📊 *O'zMB valyuta kurslari*\n• 70+ valyutaning joriy kurslari\n• USD, EUR, RUB, GBP, CNY, KZT va boshqalar\n• Kunlik kurs o'zgarishlari\n\n🔄 *Ko'p valyutali tranzaksiyalar*\n• Istalgan valyutada summa yuboring\n• Avtomatik so'mga konvertatsiya\n• «50 dollar sarfladim» → avto-saqlash\n\n💎 Bu funksiyalar Plus, Pro va Premium obunachilari uchun mavjud!\n\n_Sinash uchun — menyuda 💱 Valyuta kursi tugmasini bosing!_ ✨",
+        "en": "🎉 *Baraka AI v1.5 Update*\n\n💱 *New Currency Features!*\n\n📊 *CBU Exchange Rates*\n• Real-time rates for 70+ currencies\n• USD, EUR, RUB, GBP, CNY, KZT and more\n• Daily rate changes\n\n🔄 *Multi-Currency Transactions*\n• Send amounts in any currency\n• Auto-conversion to UZS\n• \"Spent 50 dollars\" → auto-save\n\n💎 These features are available for Plus, Pro, and Premium subscribers!\n\n_To try it — tap 💱 Exchange Rates in the menu!_ ✨"
+    },
+    "features": [
+        "currency_rates",
+        "multi_currency_transactions",
+        "cbu_api"
+    ],
+    "sent": false
+}

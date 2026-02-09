@@ -22,6 +22,8 @@ from bot.transaction_actions import transaction_action_handler, transaction_edit
 from bot.debt_actions import debt_action_handler
 from bot.handlers.subscriptions import subscription_handlers
 from bot.handlers.currency import currency_handlers, currency_rates_handler
+from bot.user_storage import storage
+from bot.broadcast import broadcast_announcement
 
 # Configure logging
 logging.basicConfig(
@@ -33,6 +35,13 @@ logger = logging.getLogger(__name__)
 
 from telegram.request import HTTPXRequest
 
+
+async def post_init(application):
+    """Run after application is initialized - broadcast pending announcements."""
+    logger.info("🔔 Checking for pending announcements...")
+    await broadcast_announcement(application.bot, storage)
+
+
 def main():
     """Start the bot."""
     # Increase timeouts for better stability in slow networks
@@ -42,7 +51,7 @@ def main():
         write_timeout=30.0,
         pool_timeout=30.0
     )
-    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).request(request).build()
+    application = Application.builder().token(config.TELEGRAM_BOT_TOKEN).request(request).post_init(post_init).build()
     
     # Auth conversation handlers (priority)
     application.add_handler(register_conv)
@@ -84,3 +93,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

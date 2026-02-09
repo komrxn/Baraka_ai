@@ -113,6 +113,11 @@ class UserStorage:
         """Logout user."""
         self.clear_user_token(telegram_id)
         self.clear_pending_transaction(telegram_id)
+    
+    def get_all_users(self) -> Dict[str, Any]:
+        """Get all registered users for broadcast."""
+        return self.users.copy()
+
 
 
 # Global storage instance

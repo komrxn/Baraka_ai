@@ -23,7 +23,7 @@
 ### 💎 Subscription & Monetization
 - 💳 **Freemium Model** — Free tier with usage limits (20 voice, 10 photo messages)
 - 🎁 **3-Day Free Trial** — Test premium features risk-free
-- 💰 **Click.uz Integration** — Automated subscription payments for Uzbekistan
+- 💰 **Click.uz & Payme Integration** — Automated subscription payments for Uzbekistan
 - 👑 **Premium Features** — Unlimited usage, advanced analytics, budget limits, debt tracking
 
 ### 🤖 AI-Powered Intelligence
@@ -31,6 +31,13 @@
 - 🗣️ **Voice Messages** — Speak transactions in Uzbek, Russian, or English
 - 📸 **Receipt OCR** — Automatically extract amounts and items from receipts/checks
 - 🏷️ **Auto-Categorization** — AI suggests categories with confidence scores
+- 💱 **Multi-Currency Support** — Record transactions in USD, EUR, RUB + auto-convert to UZS (Pro/Premium)
+
+### 💱 Currency Features (NEW!)
+- 📊 **Live Exchange Rates** — Real-time rates from Central Bank of Uzbekistan
+- 🔄 **Auto-Conversion** — Foreign currency transactions auto-convert to UZS
+- 🌍 **70+ Currencies** — USD, EUR, RUB, GBP, CNY, KZT, AED, TRY and more
+- 📈 **Daily Changes** — Track currency rate movements
 
 ### 📊 Financial Management
 - 💰 **Transactions** — Track income and expenses with full CRUD
@@ -49,7 +56,8 @@
 - 🚀 **Async Architecture** — High-performance async PostgreSQL with SQLAlchemy
 - 🐳 **Docker-Ready** — One-command deployment with Docker Compose
 - 📡 **RESTful API** — 40+ endpoints with OpenAPI documentation
-- 🔄 **Payment Webhooks** — Real-time Click.uz payment processing
+- 🔄 **Payment Webhooks** — Real-time Click.uz/Payme payment processing
+
 
 ---
 
