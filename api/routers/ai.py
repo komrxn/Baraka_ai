@@ -77,13 +77,36 @@ async def parse_transaction(
     
     # Auto-create transaction if requested and confidence is high
     auto_created = False
+    conversion_error = False
+    converted_from = None
+    
     if auto_create and parsed_data["confidence"] >= 0.7:
+        final_amount = parsed_data["amount"]
+        final_currency = parsed_data["currency"]
+        
+        # Multi-currency conversion for Pro/Premium users
+        if parsed_data["currency"].lower() != "uzs" and current_user.subscription_tier in ("pro", "premium"):
+            from ..services.currency import convert_to_uzs
+            
+            converted_amount = await convert_to_uzs(
+                float(parsed_data["amount"]), 
+                parsed_data["currency"].upper()
+            )
+            
+            if converted_amount is not None:
+                converted_from = f"{parsed_data['amount']} {parsed_data['currency'].upper()}"
+                final_amount = converted_amount
+                final_currency = "uzs"
+            else:
+                # Conversion failed - still save but mark error
+                conversion_error = True
+        
         new_transaction = Transaction(
             user_id=current_user.id,
             category_id=category_id,
             type=parsed_data["type"],
-            amount=parsed_data["amount"],
-            currency=parsed_data["currency"],
+            amount=final_amount,
+            currency=final_currency,
             description=parsed_data["description"],
             ai_parsed_data=parsed_data,
             ai_confidence=parsed_data["confidence"],

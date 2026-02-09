@@ -66,10 +66,15 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         from .commands import help_command
         await help_command(update, context)
         return
+    elif text in ("💱 Курс валют", "💱 Valyuta kursi", "💱 Exchange Rates"):
+        from .currency import currency_rates_handler
+        await currency_rates_handler(update, context)
+        return
     elif text == "Baraka AI PLUS 🌟":
         from .commands import profile
         await profile(update, context)
         return
+
     
     # Check if editing transaction
     is_editing = await handle_edit_transaction_message(update, context, text_override=text)

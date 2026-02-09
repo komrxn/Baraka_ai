@@ -21,6 +21,7 @@ from bot.auth_handlers import register_conv, login_conv
 from bot.transaction_actions import transaction_action_handler, transaction_edit_field_handler
 from bot.debt_actions import debt_action_handler
 from bot.handlers.subscriptions import subscription_handlers
+from bot.handlers.currency import currency_handlers, currency_rates_handler
 
 # Configure logging
 logging.basicConfig(
@@ -66,8 +67,13 @@ def main():
     for handler in subscription_handlers:
         application.add_handler(handler)
     
+    # Currency handlers
+    for handler in currency_handlers:
+        application.add_handler(handler)
+    
     # Message handlers
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+
     application.add_handler(MessageHandler(filters.VOICE, handle_voice))
     application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     

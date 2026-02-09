@@ -1,0 +1,8 @@
+{
+    "title": "🏦 *O'zbekiston MB valyuta kurslari*",
+    "select_title": "💱 *Valyutani tanlang*",
+    "select_currency": "🔍 Valyutani tanlash",
+    "premium_only": "💎 *Valyuta kurslari* faqat obunachilar uchun mavjud.\n\nAktual valyuta kurslari va boshqa premium imkoniyatlarga kirish uchun obuna bo'ling!",
+    "error": "❌ Valyuta kurslarini yuklashda xatolik. Keyinroq urinib ko'ring.",
+    "conversion_error": "⚠️ Valyuta kursini olishda xatolik. Iltimos, summani so'mda yuboring."
+}
