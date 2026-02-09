@@ -87,3 +87,25 @@ def get_main_keyboard(lang: str = 'uz', subscription_type: str = 'free'):
     
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
+
+async def get_keyboard_for_user(user_id: int, lang: str = 'uz'):
+    """Get main keyboard with subscription-aware features.
+    
+    Fetches user's subscription status and returns appropriate keyboard.
+    """
+    from ..config import config
+    
+    subscription_type = 'free'
+    token = storage.get_user_token(user_id)
+    
+    if token:
+        try:
+            api = BarakaAPIClient(config.API_BASE_URL)
+            api.set_token(token)
+            sub_status = await api.get_subscription_status(user_id)
+            subscription_type = sub_status.get("subscription_type", "free")
+        except Exception as e:
+            logger.debug(f"Could not fetch subscription for keyboard: {e}")
+    
+    return get_main_keyboard(lang, subscription_type)
+

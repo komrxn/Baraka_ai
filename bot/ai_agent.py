@@ -395,6 +395,48 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 currency = args.get("currency", "uzs").lower()
                 category_slug = args.get("category_slug") or args.get("category")
                 
+                # Multi-currency conversion for Pro/Premium users
+                original_amount = amount
+                original_currency = currency
+                converted = False
+                
+                if currency != "uzs":
+                    # Check subscription tier
+                    from .user_storage import storage
+                    try:
+                        sub_status = await self.api_client.get_subscription_status(user_id)
+                        sub_tier = sub_status.get("subscription_type", "free")
+                        
+                        if sub_tier in ("pro", "premium"):
+                            # Import conversion function
+                            import httpx
+                            try:
+                                CBU_API_URL = "https://cbu.uz/ru/arkhiv-kursov-valyut/json/"
+                                async with httpx.AsyncClient(timeout=10.0) as client:
+                                    response = await client.get(CBU_API_URL)
+                                    response.raise_for_status()
+                                    rates_data = response.json()
+                                    
+                                    # Find the rate
+                                    rate_info = None
+                                    for r in rates_data:
+                                        if r.get("Ccy", "").upper() == currency.upper():
+                                            rate_info = r
+                                            break
+                                    
+                                    if rate_info:
+                                        rate = float(rate_info.get("Rate", 0))
+                                        nominal = int(rate_info.get("Nominal", 1))
+                                        # Convert: amount * (rate / nominal)
+                                        amount = amount * (rate / nominal)
+                                        currency = "uzs"
+                                        converted = True
+                                        logger.info(f"Converted {original_amount} {original_currency.upper()} → {amount:.0f} UZS")
+                            except Exception as e:
+                                logger.error(f"Currency conversion failed: {e}")
+                    except Exception as e:
+                        logger.error(f"Could not check subscription for currency conversion: {e}")
+                
                 # Prepare transaction data
                 tx_data = {
                     "type": transaction_type,
@@ -464,11 +506,15 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                     "transaction_id": result["id"], 
                     "amount": amount, 
                     "currency": currency,
+                    "original_amount": original_amount if converted else None,
+                    "original_currency": original_currency.upper() if converted else None,
+                    "converted": converted,
                     "type": transaction_type,
                     "description": description,
                     "category": resolved_category_slug or category_slug or "other_expense",  # ← slug for i18n!
                     "warning": limit_warning  # Pass warning to AI to display
                 }
+
 
             elif function_name == "set_limit":
                 category_slug = args.get("category_slug")

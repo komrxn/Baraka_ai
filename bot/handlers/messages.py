@@ -8,8 +8,9 @@ from ..api_client import BarakaAPIClient
 from ..config import config
 from ..user_storage import storage
 from ..transaction_actions import show_transaction_with_actions, handle_edit_transaction_message
-from .common import with_auth_check, get_main_keyboard, send_typing_action
+from .common import with_auth_check, get_main_keyboard, send_typing_action, get_keyboard_for_user
 from ..i18n import t, translate_category
+
 
 from ..debt_actions import show_debt_with_actions, handle_edit_debt_message
 from ..utils.subscription import check_subscription
@@ -97,16 +98,17 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     
     # Show AI response (only if no transactions/debts created or settled)
     if not created_transactions and not created_debts and not settled_debts and response_text:
+        keyboard = await get_keyboard_for_user(user_id, lang)
         try:
             await update.message.reply_text(
                 response_text,
                 parse_mode='Markdown',
-                reply_markup=get_main_keyboard(lang)
+                reply_markup=keyboard
             )
         except Exception:
             await update.message.reply_text(
                 response_text,
-                reply_markup=get_main_keyboard(lang)
+                reply_markup=keyboard
             )
             
     # Show each created transaction with Edit/Delete buttons
