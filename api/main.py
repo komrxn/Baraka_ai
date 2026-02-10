@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import init_db
-from .routers import auth, transactions, ai, analytics, categories, debts, limits, subscriptions
+from .routers import auth, transactions, ai, analytics, categories, debts, limits, subscriptions, currency
 from .payment.router import router as payment_router
 
 # Configure logging
@@ -25,6 +25,13 @@ async def lifespan(app: FastAPI):
     logging.info("🚀 Starting AI Accountant API...")
     await init_db()
     logging.info("✅ Database initialized")
+    
+    # Start Scheduler
+    import asyncio
+    from .scheduler import start_scheduler
+    asyncio.create_task(start_scheduler())
+    logging.info("⏰ Scheduler started")
+
     
     yield
     
@@ -60,6 +67,8 @@ app.include_router(debts.router)
 app.include_router(limits.router)
 app.include_router(payment_router)
 app.include_router(subscriptions.router)
+app.include_router(currency.router)
+
 
 
 from fastapi import Request

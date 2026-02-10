@@ -60,7 +60,31 @@ const openGrantModal = (user) => {
     customDays.value = null;
 };
 
-// ... handleRevoke, handleDelete same ...
+const handleRevoke = async (user) => {
+    if (!confirm(`Revoke subscription for ${user.name}?`)) return;
+    
+    try {
+        await api.put(`/users/${user.id}/subscription`, {
+            action: 'revoke'
+        });
+        fetchData();
+    } catch (e) {
+        console.error(e);
+        alert('Error revoking subscription');
+    }
+};
+
+const handleDelete = async (user) => {
+    if (!confirm(`Delete user "${user.name}" permanently? This cannot be undone!`)) return;
+    
+    try {
+        await api.delete(`/users/${user.id}`);
+        fetchData();
+    } catch (e) {
+        console.error(e);
+        alert('Error deleting user');
+    }
+};
 
 const submitSubscription = async () => {
     try {

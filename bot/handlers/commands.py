@@ -59,14 +59,23 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Fallback
             status_text = t("subscription.profile.free", lang)
         
+        # Escape special markdown characters in user name
+        def escape_markdown(text: str) -> str:
+            """Escape markdown special chars."""
+            special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+            for char in special_chars:
+                text = text.replace(char, f'\\{char}')
+            return text
+        
+        safe_name = escape_markdown(user.full_name or user.first_name or "User")
+        
         text = (
             f"{t('subscription.profile.title', lang)}\n\n"
             f"{t('subscription.profile.id', lang)}: `{user_id}`\n"
-            f"{t('subscription.profile.name', lang)}: {user.full_name}\n"
+            f"{t('subscription.profile.name', lang)}: {safe_name}\n"
             f"{t('subscription.profile.language', lang)}: {lang.upper()}\n\n"
-            f"{t('subscription.profile.subscription', lang)}\n"
-            f"{t('subscription.profile.status', lang)}: {status_icon} {status_text}\n"
-            f"{t('subscription.profile.expires', lang)}: {expires_at}\n"
+            f"💎 *{t('subscription.profile.status', lang)}:* {status_icon} {status_text}\n"
+            f"📅 {t('subscription.profile.expires', lang)}: {expires_at}\n"
         )
         
         # Determine button text
@@ -74,8 +83,12 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         keyboard = [
             [InlineKeyboardButton(action_btn_text, callback_data="buy_subscription")],
-            # [InlineKeyboardButton("🌐 Change Language", callback_data="change_language")] # Not implemented yet
         ]
+        
+        # Add trial button if eligible
+        is_trial_used = sub_status.get("is_trial_used", False)
+        if not is_active and not is_trial_used:
+             keyboard.insert(0, [InlineKeyboardButton(t("subscription.trial_btn", lang), callback_data="activate_trial")])
         
         await update.message.reply_text(text, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup(keyboard))
         

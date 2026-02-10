@@ -62,13 +62,22 @@ async def with_auth_check(update: Update, user_id: int, api_call):
         raise
 
 
-def get_main_keyboard(lang: str = 'uz'):
+def get_main_keyboard(lang: str = 'uz', subscription_type: str = 'free'):
     """Get main menu keyboard with localized buttons."""
+    # Currency button text
+    currency_texts = {
+        'ru': "💱 Курс валют",
+        'uz': "💱 Valyuta kursi",
+        'en': "💱 Exchange Rates"
+    }
+    currency_btn_text = currency_texts.get(lang, currency_texts['uz'])
+    
     keyboard = [
         [
             KeyboardButton(t('common.buttons.balance', lang)),
             KeyboardButton(t('common.buttons.statistics', lang))
         ],
+        [KeyboardButton(currency_btn_text)],  # Always show currency button
         [
             KeyboardButton("Baraka AI PLUS 🌟"),
             KeyboardButton(t('common.buttons.instructions', lang))
@@ -76,3 +85,27 @@ def get_main_keyboard(lang: str = 'uz'):
     ]
     
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+
+
+async def get_keyboard_for_user(user_id: int, lang: str = 'uz'):
+    """Get main keyboard with subscription-aware features.
+    
+    Fetches user's subscription status and returns appropriate keyboard.
+    """
+    from ..config import config
+    
+    subscription_type = 'free'
+    token = storage.get_user_token(user_id)
+    
+    if token:
+        try:
+            api = BarakaAPIClient(config.API_BASE_URL)
+            api.set_token(token)
+            sub_status = await api.get_subscription_status(user_id)
+            subscription_type = sub_status.get("subscription_type", "free")
+        except Exception as e:
+            logger.debug(f"Could not fetch subscription for keyboard: {e}")
+    
+    return get_main_keyboard(lang, subscription_type)
+

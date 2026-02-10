@@ -1,0 +1,9 @@
+{
+    "title": "🏦 *CBU Exchange Rates*",
+    "select_title": "💱 *Select Currency*",
+    "select_currency": "🔍 Select Currency",
+    "premium_only": "💎 *Exchange Rates* is a premium feature!\n\nAvailable on:\n✨ Plus\n⚡️ Pro\n👑 Premium\n\nWould you like to subscribe?",
+    "multi_currency_upsell": "💎 *Multi-currency transactions* is a premium feature!\n\nYou wanted to record: {amount} {currency}\n\nAuto-conversion is available on:\n✨ Plus\n⚡️ Pro\n👑 Premium\n\nWould you like to subscribe?",
+    "error": "❌ Failed to load exchange rates. Please try again later.",
+    "conversion_error": "⚠️ Error fetching currency rate. Please send the amount in UZS."
+}

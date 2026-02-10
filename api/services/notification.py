@@ -64,3 +64,48 @@ async def send_subscription_success_message(user: User):
             resp.raise_for_status()
         except Exception as e:
             logger.error(f"Failed to send subscription success message: {e}")
+
+async def send_subscription_expired_message(user: User):
+    """
+    Send subscription expired notification.
+    """
+    if not user.telegram_id:
+        return
+
+    lang = user.language or 'uz'
+    
+    if lang == 'ru':
+        message = (
+            "⏳ **Срок действия пробного периода истек**\n\n"
+            "Ваш тариф изменен на **Free**.\n"
+            "Чтобы вернуть безлимитные возможности и доступ к Premium AI, обновите подписку.\n\n"
+            "👉 Нажмите кнопку **Baraka AI PLUS** в меню для выбора тарифа."
+        )
+    elif lang == 'en':
+        message = (
+            "⏳ **Trial period expired**\n\n"
+            "Your plan has been changed to **Free**.\n"
+            "To restore unlimited features and Premium AI access, please upgrade your subscription.\n\n"
+            "👉 Press **Baraka AI PLUS** in the menu to select a plan."
+        )
+    else: # Default Uzbek
+        message = (
+            "⏳ **Sinov davri tugadi**\n\n"
+            "Sizning tarifingiz **Free** ga o'zgartirildi.\n"
+            "Cheksiz imkoniyatlar va Premium AI dan foydalanish uchun obunani yangilang.\n\n"
+            "👉 Tarifni tanlash uchun menyuda **Baraka AI PLUS** tugmasini bosing."
+        )
+
+    url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": user.telegram_id,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(url, json=payload, timeout=10.0)
+            resp.raise_for_status()
+        except Exception as e:
+            logger.error(f"Failed to send subscription expired message: {e}")

@@ -431,3 +431,14 @@ class BarakaAPIClient:
             )
             response.raise_for_status()
             return response.json()
+
+    @handle_auth_errors
+    async def get_currency_rates(self) -> Dict[str, Any]:
+        """Get currency exchange rates from CBU."""
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(
+                f"{self.base_url}/currency/rates",
+                headers=self.headers
+            )
+            response.raise_for_status()
+            return response.json()

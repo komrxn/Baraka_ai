@@ -36,7 +36,7 @@ class AIAgent:
                         "type": "object",
                         "properties": {
                             "amount": {"type": "number", "description": "Transaction amount"},
-                            "currency": {"type": "string", "enum": ["uzs", "usd"], "description": "Currency code"},
+                            "currency": {"type": "string", "enum": ["uzs", "usd", "eur", "rub", "gbp", "cny", "kzt", "aed", "try"], "description": "Currency code (uzs, usd, eur, rub, etc.)"},
                             "category_slug": {"type": "string", "description": "Category slug (must be from available list)"},
                             "description": {"type": "string", "description": "Description of the transaction"},
                             "date": {"type": "string", "description": "Date in YYYY-MM-DD format (optional)"},
@@ -240,7 +240,16 @@ RULES:
    - Aggressively guess intent from voice text.
    - "Food 50000" -> Category: groceries/cafes.
 
-5. **Language:**
+6. **CURRENCY RECOGNITION (CRITICAL):**
+   - "dollar" / "долларов" / "dollarga" / "$" -> currency: "usd"
+   - "рубль" / "рублей" / "rubl" / "₽" -> currency: "rub"
+   - "евро" / "euro" / "€" -> currency: "eur"
+   - "тенге" / "tenge" -> currency: "kzt"
+   - "сум" / "so'm" / "sum" -> currency: "uzs"
+   - Default to "uzs" ONLY if no currency mentioned.
+   - IMPORTANT: Listen for currency keywords in ANY language (russian, uzbek, english).
+
+7. **Language:**
    - Reply in the USER'S language (detected from input or context).
 
 EXAMPLES:
@@ -298,6 +307,7 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 created_transactions = [] # Initialize list to collect created transactions
                 created_debts = [] # Initialize list to collect created debts
                 settled_debts = [] # Initialize list to collect settled debts
+                premium_upsells = [] # Track premium feature upsells
                 
                 for tool_call in tool_calls:
                     try:
@@ -320,6 +330,10 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                                 created_debts.append(tool_result)
                             elif "settled_debt_id" in tool_result:
                                 settled_debts.append(tool_result)
+                        elif tool_result.get("premium_required"):
+                            # Track premium upsell triggers
+                            premium_upsells.append(tool_result)
+
                             
                     except Exception as e:
                         logger.exception(f"Error executing tool {tool_call.function.name}: {e}")
@@ -369,7 +383,8 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 "response": final_text or fallback_done,
                 "created_transactions": created_transactions,
                 "created_debts": created_debts,
-                "settled_debts": settled_debts
+                "settled_debts": settled_debts,
+                "premium_upsells": premium_upsells if 'premium_upsells' in dir() else []
             }
             
         except Exception as e:
@@ -394,6 +409,60 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 description = args.get("description", "")
                 currency = args.get("currency", "uzs").lower()
                 category_slug = args.get("category_slug") or args.get("category")
+                
+                # Multi-currency conversion for Pro/Premium users
+                original_amount = amount
+                original_currency = currency
+                converted = False
+                
+                if currency != "uzs":
+                    # Check subscription tier
+                    from .user_storage import storage
+                    try:
+                        sub_status = await self.api_client.get_subscription_status(user_id)
+                        sub_tier = sub_status.get("subscription_type", "free")
+                        
+                        # free_trial counts as premium, plus/pro/premium can convert
+                        if sub_tier in ("plus", "pro", "premium", "free_trial"):
+                            # Import conversion function
+                            import httpx
+                            try:
+                                CBU_API_URL = "https://cbu.uz/ru/arkhiv-kursov-valyut/json/"
+                                async with httpx.AsyncClient(timeout=10.0) as client:
+                                    response = await client.get(CBU_API_URL)
+                                    response.raise_for_status()
+                                    rates_data = response.json()
+                                    
+                                    # Find the rate
+                                    rate_info = None
+                                    for r in rates_data:
+                                        if r.get("Ccy", "").upper() == currency.upper():
+                                            rate_info = r
+                                            break
+                                    
+                                    if rate_info:
+                                        rate = float(rate_info.get("Rate", 0))
+                                        nominal = int(rate_info.get("Nominal", 1))
+                                        # Convert: amount * (rate / nominal)
+                                        amount = amount * (rate / nominal)
+                                        currency = "uzs"
+                                        converted = True
+                                        logger.info(f"Converted {original_amount} {original_currency.upper()} → {amount:.0f} UZS")
+                            except Exception as e:
+                                logger.error(f"Currency conversion failed: {e}")
+                        else:
+                            # Free user trying multi-currency - return premium_required flag
+                            logger.info(f"Free user {user_id} tried to use {currency.upper()}, showing upsell")
+                            return {
+                                "success": False,
+                                "premium_required": True,
+                                "feature": "multi_currency",
+                                "original_amount": original_amount,
+                                "original_currency": original_currency.upper()
+                            }
+                    except Exception as e:
+                        logger.error(f"Could not check subscription for currency conversion: {e}")
+
                 
                 # Prepare transaction data
                 tx_data = {
@@ -464,11 +533,15 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                     "transaction_id": result["id"], 
                     "amount": amount, 
                     "currency": currency,
+                    "original_amount": original_amount if converted else None,
+                    "original_currency": original_currency.upper() if converted else None,
+                    "converted": converted,
                     "type": transaction_type,
                     "description": description,
                     "category": resolved_category_slug or category_slug or "other_expense",  # ← slug for i18n!
                     "warning": limit_warning  # Pass warning to AI to display
                 }
+
 
             elif function_name == "set_limit":
                 category_slug = args.get("category_slug")

@@ -65,8 +65,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
         phone_number=normalized_phone,  # Store without +
         name=user_data.name,
         language=user_data.language,  # Use language from request
-        is_premium=False,
-        subscription_type=None,
+        subscription_type="free", # Default to free
         is_trial_used=False,
     )
     
@@ -240,3 +239,36 @@ async def telegram_auth(
         access_token=access_token,
         user=UserResponse.model_validate(user)
     )
+
+
+@router.post("/usage")
+async def increment_usage(
+    type: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Increment usage counters for authenticated user."""
+    from datetime import datetime
+    
+    # Update daily counters if new day
+    now = datetime.now()
+    if not current_user.last_daily_reset or current_user.last_daily_reset.date() < now.date():
+        current_user.voice_usage_daily = 0
+        current_user.image_usage_daily = 0
+        current_user.text_usage_daily = 0
+        current_user.last_daily_reset = now
+
+    if type == "voice":
+        current_user.voice_usage_daily += 1
+        current_user.voice_usage_count += 1
+    elif type == "image":
+        current_user.image_usage_daily += 1
+        current_user.photo_usage_count += 1
+    elif type == "text":
+        current_user.text_usage_daily += 1
+        current_user.text_usage_count += 1
+
+    current_user.updated_at = now
+    await db.commit()
+    
+    return {"status": "updated", "type": type}

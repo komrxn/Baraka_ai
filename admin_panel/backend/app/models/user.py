@@ -25,10 +25,11 @@ class User(Base):
     subscription_ends_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     is_trial_used: Mapped[bool] = mapped_column(default=False, server_default="false", nullable=False)
     
-    # Limits & Usage
+    # Limits & Usage Tracking
     last_daily_reset: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     voice_usage_daily: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     image_usage_daily: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
+    text_usage_daily: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     
     # Recoil (3-day limit)
     last_3day_reset: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -37,6 +38,7 @@ class User(Base):
     # Legacy counters (keep for history or migrate later)
     voice_usage_count: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
     photo_usage_count: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
+    text_usage_count: Mapped[int] = mapped_column(default=0, server_default="0", nullable=False)
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 

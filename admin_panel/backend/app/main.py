@@ -6,7 +6,7 @@ from .core.config import get_settings
 from .database import engine, get_db, AsyncSessionLocal
 from .models.admin import AdminUser
 from .core.security import get_password_hash
-from .routers import auth, users
+from .routers import auth, users, analytics
 
 settings = get_settings()
 
@@ -60,6 +60,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
 @app.get("/api/health")
 async def health():

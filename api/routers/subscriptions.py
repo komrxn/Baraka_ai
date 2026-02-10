@@ -40,8 +40,8 @@ async def activate_trial(
         raise HTTPException(status_code=400, detail="Trial already used")
         
     # Grant 3 days
-    # Grant 3 days of Pro features
-    current_user.subscription_type = "pro" 
+    # Grant 3 days of Premium features
+    current_user.subscription_type = "premium" 
     current_user.is_trial_used = True
     current_user.subscription_ends_at = datetime.now() + timedelta(days=3)
     

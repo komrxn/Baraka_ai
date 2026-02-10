@@ -8,8 +8,9 @@ from ..api_client import BarakaAPIClient
 from ..config import config
 from ..user_storage import storage
 from ..transaction_actions import show_transaction_with_actions, handle_edit_transaction_message
-from .common import with_auth_check, get_main_keyboard, send_typing_action
+from .common import with_auth_check, get_main_keyboard, send_typing_action, get_keyboard_for_user
 from ..i18n import t, translate_category
+
 
 from ..debt_actions import show_debt_with_actions, handle_edit_debt_message
 from ..utils.subscription import check_subscription
@@ -66,10 +67,15 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         from .commands import help_command
         await help_command(update, context)
         return
+    elif text in ("💱 Курс валют", "💱 Valyuta kursi", "💱 Exchange Rates"):
+        from .currency import currency_rates_handler
+        await currency_rates_handler(update, context)
+        return
     elif text == "Baraka AI PLUS 🌟":
         from .commands import profile
         await profile(update, context)
         return
+
     
     # Check if editing transaction
     is_editing = await handle_edit_transaction_message(update, context, text_override=text)
@@ -81,6 +87,12 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     api = BarakaAPIClient(config.API_BASE_URL)
     api.set_token(token)
     
+    # Increment text usage
+    try:
+        await api.increment_usage("text")
+    except Exception as e:
+        logger.error(f"Failed to increment usage: {e}")
+    
     # Process with AI
     agent = AIAgent(api)
     result = await agent.process_message(user_id, text)
@@ -89,19 +101,43 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     created_transactions = result.get("created_transactions", [])
     created_debts = result.get("created_debts", [])
     settled_debts = result.get("settled_debts", [])
+    premium_upsells = result.get("premium_upsells", [])
+    
+    # Handle premium feature upsells first
+    if premium_upsells:
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        
+        for upsell in premium_upsells:
+            feature = upsell.get("feature", "")
+            original_amount = upsell.get("original_amount")
+            original_currency = upsell.get("original_currency")
+            
+            if feature == "multi_currency":
+                # Use localization with placeholders
+                upsell_text = t("currency.multi_currency_upsell", lang, amount=original_amount, currency=original_currency)
+                
+                keyboard = [[InlineKeyboardButton(t("subscription.buy_subscription_btn", lang), callback_data="buy_subscription")]]
+                await update.message.reply_text(
+                    upsell_text,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode="Markdown"
+                )
+        return  # Don't show other responses if upsell was shown
+
     
     # Show AI response (only if no transactions/debts created or settled)
     if not created_transactions and not created_debts and not settled_debts and response_text:
+        keyboard = await get_keyboard_for_user(user_id, lang)
         try:
             await update.message.reply_text(
                 response_text,
                 parse_mode='Markdown',
-                reply_markup=get_main_keyboard(lang)
+                reply_markup=keyboard
             )
         except Exception:
             await update.message.reply_text(
                 response_text,
-                reply_markup=get_main_keyboard(lang)
+                reply_markup=keyboard
             )
             
     # Show each created transaction with Edit/Delete buttons
@@ -130,6 +166,7 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
                 text,
                 reply_markup=get_main_keyboard(lang)
             )
+
 
 
 async def show_statistics(update: Update, api: BarakaAPIClient, lang: str):
