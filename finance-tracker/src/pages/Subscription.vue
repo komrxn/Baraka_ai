@@ -3,7 +3,7 @@
         <div class="subscription-page__header">
             <Button :icon="arrowLeft" severity="secondary" @click="router.back()"
                 class="subscription-page__header-button" />
-            <h1 class="gold-text">{{ t('subscription.title') }}</h1>
+            <h1>{{ t('subscription.title') }}</h1>
             <div class="subscription-page__header-empty" />
         </div>
 
@@ -19,21 +19,22 @@
                 </div>
 
                 <div class="subscription-page__plans">
-                    <div 
-                        v-for="plan in availablePlans" 
-                        :key="plan.id" 
-                        class="subscription-page__plan"
+                    <div v-for="plan in availablePlans" :key="plan.id" class="subscription-page__plan"
                         :class="{ 'subscription-page__plan--selected': selectedPlan === plan.id }"
-                        @click="selectPlan(plan.id)"
-                    >
+                        @click="selectPlan(plan.id)">
                         <div v-if="plan.badge" class="subscription-page__plan-badge">
                             {{ plan.badge }}
                         </div>
                         <div class="subscription-page__plan-content">
                             <h3 class="subscription-page__plan-title">{{ plan.title }}</h3>
                             <p class="subscription-page__plan-subtitle">{{ plan.subtitle }}</p>
+                            <div class="subscription-page__plan-price">
+                                <span class="subscription-page__plan-price-value">{{ plan.price }}</span>
+                                <span class="subscription-page__plan-price-currency">UZS</span>
+                            </div>
                             <div class="subscription-page__plan-features">
-                                <div v-for="feature in plan.features" :key="feature" class="subscription-page__plan-feature">
+                                <div v-for="feature in plan.features" :key="feature"
+                                    class="subscription-page__plan-feature">
                                     <VIcon :icon="successIcon" class="subscription-page__plan-check" />
                                     <span>{{ feature }}</span>
                                 </div>
@@ -43,12 +44,8 @@
                 </div>
 
                 <div v-if="selectedPlan" class="subscription-page__button-container">
-                    <Button 
-                        :label="t('subscription.continue')" 
-                        fluid
-                        class="subscription-page__button" 
-                        @click="goToPeriodStep"
-                    />
+                    <Button :label="t('subscription.continue')" fluid class="subscription-page__button"
+                        @click="goToPeriodStep" />
                 </div>
             </div>
 
@@ -56,13 +53,9 @@
             <div v-if="step === 'period'" class="subscription-page__step">
                 <h2 class="subscription-page__step-title">{{ t('subscription.selectPeriod') }}</h2>
                 <div class="subscription-page__periods">
-                    <div 
-                        v-for="period in periods" 
-                        :key="period.id"
-                        class="subscription-page__period"
+                    <div v-for="period in periods" :key="period.id" class="subscription-page__period"
                         :class="{ 'subscription-page__period--selected': selectedPeriod === period.id }"
-                        @click="selectPeriod(period.id)"
-                    >
+                        @click="selectPeriod(period.id)">
                         <div class="subscription-page__period-content">
                             <h3 class="subscription-page__period-title">{{ period.title }}</h3>
                             <p v-if="period.savings" class="subscription-page__period-savings">{{ period.savings }}</p>
@@ -75,21 +68,10 @@
                 </div>
 
                 <div class="subscription-page__button-container">
-                    <Button 
-                        :label="t('common.back')" 
-                        severity="primary"
-                        outlined
-                        fluid
-                        class="subscription-page__button-secondary"
-                        @click="goToPlanStep"
-                    />
-                    <Button 
-                        :label="t('subscription.continue')" 
-                        fluid
-                        class="subscription-page__button" 
-                        :disabled="!selectedPeriod"
-                        @click="goToPaymentStep"
-                    />
+                    <Button :label="t('common.back')" severity="primary" outlined fluid
+                        class="subscription-page__button-secondary" @click="goToPlanStep" />
+                    <Button :label="t('subscription.continue')" fluid class="subscription-page__button"
+                        :disabled="!selectedPeriod" @click="goToPaymentStep" />
                 </div>
             </div>
 
@@ -97,19 +79,15 @@
             <div v-if="step === 'payment'" class="subscription-page__step">
                 <h2 class="subscription-page__step-title">{{ t('subscription.selectPaymentMethod') }}</h2>
                 <div class="subscription-page__payment-methods">
-                    <div 
-                        class="subscription-page__payment-method subscription-page__payment-method--disabled"
-                    >
+                    <div class="subscription-page__payment-method subscription-page__payment-method--disabled">
                         <div class="subscription-page__payment-method-content">
                             <h3 class="subscription-page__payment-method-title">Payme</h3>
                             <span class="subscription-page__payment-method-badge">Soon</span>
                         </div>
                     </div>
-                    <div 
-                        class="subscription-page__payment-method"
+                    <div class="subscription-page__payment-method"
                         :class="{ 'subscription-page__payment-method--selected': selectedPaymentMethod === 'click' }"
-                        @click="selectPaymentMethod('click')"
-                    >
+                        @click="selectPaymentMethod('click')">
                         <div class="subscription-page__payment-method-content">
                             <h3 class="subscription-page__payment-method-title">Click</h3>
                         </div>
@@ -132,36 +110,18 @@
                 </div>
 
                 <div class="subscription-page__button-container">
-                    <Button 
-                        :label="t('common.back')" 
-                        severity="primary"
-                        outlined
-                        fluid
-                        class="subscription-page__button-secondary"
-                        @click="goToPeriodStep"
-                    />
-                    <Button 
-                        :label="t('subscription.pay', { price: selectedPrice })" 
-                        fluid
-                        class="subscription-page__button" 
-                        :loading="loading"
-                        :disabled="!selectedPaymentMethod"
-                        @click="handlePay"
-                    />
+                    <Button :label="t('common.back')" severity="primary" outlined fluid
+                        class="subscription-page__button-secondary" @click="goToPeriodStep" />
+                    <Button :label="t('subscription.pay', { price: selectedPrice })" fluid
+                        class="subscription-page__button" :loading="loading" :disabled="!selectedPaymentMethod"
+                        @click="handlePay" />
                 </div>
             </div>
 
             <!-- Пробный период -->
             <div v-if="step === 'plan' && !isTrialUsed && !hasActiveSubscription" class="subscription-page__trial">
-                <Button 
-                    :label="t('subscription.startTrial')" 
-                    severity="secondary"
-                    outlined
-                    fluid
-                    class="subscription-page__trial-button"
-                    :loading="loading"
-                    @click="handleActivateTrial"
-                />
+                <Button :label="t('subscription.startTrial')" severity="secondary" outlined fluid
+                    class="subscription-page__trial-button" :loading="loading" @click="handleActivateTrial" />
             </div>
         </div>
     </div>
@@ -196,9 +156,10 @@ const availablePlans = computed(() => [
         title: t('subscription.plans.plus.title'),
         subtitle: t('subscription.plans.plus.subtitle'),
         badge: null,
+        price: '34,999/94,999',
         features: [
-            t('subscription.plans.plus.features.ai'),
-            t('subscription.plans.plus.features.messages'),
+            t('subscription.plans.plus.features.model'),
+            t('subscription.plans.plus.features.requests'),
             t('subscription.plans.plus.features.voice'),
             t('subscription.plans.plus.features.photos'),
             t('subscription.plans.plus.features.noAds'),
@@ -208,36 +169,33 @@ const availablePlans = computed(() => [
         id: 'pro',
         title: t('subscription.plans.pro.title'),
         subtitle: t('subscription.plans.pro.subtitle'),
-        badge: null,
+        badge: t('subscription.plans.pro.badge'),
+        price: '49,999/119,999',
         features: [
-            t('subscription.plans.pro.features.ai'),
-            t('subscription.plans.pro.features.messages'),
+            t('subscription.plans.pro.features.model'),
+            t('subscription.plans.pro.features.requests'),
             t('subscription.plans.pro.features.voice'),
             t('subscription.plans.pro.features.photos'),
-            t('subscription.plans.pro.features.multiCurrency'),
-            t('subscription.plans.pro.features.noAds'),
         ],
     },
     {
         id: 'premium',
         title: t('subscription.plans.premium.title'),
         subtitle: t('subscription.plans.premium.subtitle'),
-        badge: t('subscription.plans.premium.badge'),
+        badge: null,
+        price: '89,999/229,999',
         features: [
-            t('subscription.plans.premium.features.ai'),
-            t('subscription.plans.premium.features.messages'),
+            t('subscription.plans.premium.features.model'),
+            t('subscription.plans.premium.features.requests'),
             t('subscription.plans.premium.features.voice'),
             t('subscription.plans.premium.features.photos'),
-            t('subscription.plans.premium.features.multiCurrency'),
-            t('subscription.plans.premium.features.priority'),
-            t('subscription.plans.premium.features.noAds'),
         ],
     },
 ]);
 
 const periods = computed(() => {
     if (!selectedPlan.value) return [];
-    
+
     const prices = {
         plus: { month: 34999, quarter: 94999 },
         pro: { month: 49999, quarter: 119999 },
@@ -419,8 +377,8 @@ onMounted(() => {
         width: 8rem;
         height: 8rem;
         border-radius: 2rem;
-        background: var(--gold-card-bg);
-        border: 1px solid var(--gold-border);
+        background: rgba(37, 99, 235, 0.1);
+        border: 1px solid rgba(37, 99, 235, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -433,7 +391,7 @@ onMounted(() => {
             position: absolute;
             inset: 0;
             border-radius: 2rem;
-            background: var(--gold-card-radial);
+            background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
             pointer-events: none;
         }
     }
@@ -478,9 +436,9 @@ onMounted(() => {
         }
 
         &--selected {
-            background: var(--gold-card-bg);
-            border-color: var(--gold-border);
-            box-shadow: var(--gold-shadow);
+            background: rgba(37, 99, 235, 0.1);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
             position: relative;
             overflow: hidden;
 
@@ -489,7 +447,7 @@ onMounted(() => {
                 position: absolute;
                 inset: 0;
                 border-radius: 1.6rem;
-                background: var(--gold-card-radial);
+                background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
                 pointer-events: none;
             }
         }
@@ -527,6 +485,23 @@ onMounted(() => {
         margin: 0;
     }
 
+    &__plan-price {
+        display: flex;
+        align-items: baseline;
+        gap: 0.4rem;
+        margin: 1.2rem 0;
+    }
+
+    &__plan-price-value {
+        font: var(--font-20-b);
+        color: var(--primary-500);
+    }
+
+    &__plan-price-currency {
+        font: var(--font-14-r);
+        color: var(--text-color-secondary);
+    }
+
     &__plan-features {
         display: flex;
         flex-direction: column;
@@ -545,7 +520,7 @@ onMounted(() => {
         width: 1.6rem;
         height: 1.6rem;
         flex-shrink: 0;
-        color: var(--gold-text-color, rgba(220, 180, 0, 1));
+        color: var(--primary-500);
     }
 
     &__periods {
@@ -569,9 +544,9 @@ onMounted(() => {
         }
 
         &--selected {
-            background: var(--gold-card-bg);
-            border-color: var(--gold-border);
-            box-shadow: var(--gold-shadow);
+            background: rgba(37, 99, 235, 0.1);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
             position: relative;
             overflow: hidden;
 
@@ -580,7 +555,7 @@ onMounted(() => {
                 position: absolute;
                 inset: 0;
                 border-radius: 1.6rem;
-                background: var(--gold-card-radial);
+                background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
                 pointer-events: none;
             }
         }
@@ -602,7 +577,7 @@ onMounted(() => {
 
     &__period-savings {
         font: var(--font-14-r);
-        color: var(--gold-text-color, rgba(220, 180, 0, 1));
+        color: var(--primary-500);
         margin: 0;
     }
 
@@ -615,7 +590,7 @@ onMounted(() => {
 
     &__period-amount {
         font: var(--font-24-b);
-        color: var(--gold-text-color, rgba(220, 180, 0, 1));
+        color: var(--primary-500);
     }
 
     &__period-currency {
@@ -644,9 +619,9 @@ onMounted(() => {
         }
 
         &--selected {
-            background: var(--gold-card-bg);
-            border-color: var(--gold-border);
-            box-shadow: var(--gold-shadow);
+            background: rgba(37, 99, 235, 0.1);
+            border-color: rgba(37, 99, 235, 0.5);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
             position: relative;
             overflow: hidden;
 
@@ -655,7 +630,7 @@ onMounted(() => {
                 position: absolute;
                 inset: 0;
                 border-radius: 1.6rem;
-                background: var(--gold-card-radial);
+                background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
                 pointer-events: none;
             }
         }
@@ -674,11 +649,11 @@ onMounted(() => {
 
     &__payment-method-badge {
         font: var(--font-12-b);
-        color: var(--gold-text-color, rgba(220, 180, 0, 1));
-        background: rgba(220, 180, 0, 0.1);
+        color: var(--primary-500);
+        background: rgba(37, 99, 235, 0.1);
         padding: 0.4rem 0.8rem;
         border-radius: 0.8rem;
-        border: 1px solid rgba(220, 180, 0, 0.2);
+        border: 1px solid rgba(37, 99, 235, 0.2);
     }
 
 
@@ -722,7 +697,7 @@ onMounted(() => {
 
     &__summary-value {
         font-weight: 600;
-        color: var(--gold-text-color, rgba(220, 180, 0, 1));
+        color: var(--primary-500);
     }
 
     &__button-container {
@@ -743,16 +718,17 @@ onMounted(() => {
     &__button {
         padding: 1.6rem;
         font: var(--font-16-b);
-        background: linear-gradient(135deg, rgba(220, 180, 0, 0.9) 0%, rgba(200, 160, 0, 0.9) 100%) !important;
-        border: 1px solid var(--gold-border) !important;
-        color: var(--text-color) !important;
+        background: var(--primary-500) !important;
+        border: 1px solid var(--primary-500) !important;
+        color: var(--white) !important;
         border-radius: 1.6rem;
         transition: all 0.3s ease;
 
         &:hover:not(:disabled) {
-            background: linear-gradient(135deg, rgba(220, 180, 0, 1) 0%, rgba(200, 160, 0, 1) 100%) !important;
+            background: var(--primary-600) !important;
+            border-color: var(--primary-600) !important;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 180, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         &:disabled {
