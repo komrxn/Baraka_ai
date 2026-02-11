@@ -75,6 +75,14 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         from .commands import profile
         await profile(update, context)
         return
+    elif text == t('common.buttons.support', lang):
+        support_msg = {
+            'uz': "🛠 **Texnik yordam**\n\nSavollaringiz bo'lsa, adminga yozing: @bezavtra",
+            'ru': "🛠 **Тех. поддержка**\n\nЕсли у вас есть вопросы, напишите админу: @bezavtra",
+            'en': "🛠 **Tech Support**\n\nIf you have questions, contact admin: @bezavtra"
+        }
+        await update.message.reply_text(support_msg.get(lang, support_msg['uz']), parse_mode='Markdown')
+        return
 
     
     # Check if editing transaction

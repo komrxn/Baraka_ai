@@ -3,7 +3,8 @@
         "balance": "💰 Balans",
         "statistics": "📊 Statistika",
         "help": "❓ Yordam",
-        "instructions": "❓ Ko'rsatmalar"
+        "instructions": "❓ Ko'rsatmalar",
+        "support": "🛠 Texnik yordam"
     },
     "actions": {
         "confirm": "✅ Tasdiqlash",

@@ -26,6 +26,10 @@
     "payme_coming_soon": "🚧 Payme tez orada ishga tushadi. Iltimos, Click orqali toʻlang.",
     "subscription_activated": "🎉 *{tier} obunasi faollashtirildi!*\n\n✨ *Endi sizga mavjud:*\n• 💱 O'zMB valyuta kurslari real vaqtda\n• 🔄 Ko'p valyutali tranzaksiyalar\n• 📊 Kengaytirilgan tahlil\n• 🧠 Yaxshilangan AI-yordamchi\n\nBaraka AI ni tanlaganingiz uchun rahmat! 💎",
     "back_btn": "« Ortga",
+    "success_trial": "🎉 **Tabriklaymiz! Sinov davri (Trial) faollashtirildi!** 🚀\n\nEndi sizga 3 kun davomida **Baraka AI Pro** imkoniyatlari mavjud:\n\n💬 **Ko'proq muloqot** — kuniga 150 xabar.\n📸 **Rasm tahlili** — kuniga 50 ta rasm.\n🎤 **Ovozli so'rovlar** — kuniga 30 ta.\n💱 **Multi-valyuta** — so'mga konvertatsiya.\n\nBarcha imkoniyatlarni hoziroq sinab ko'ring!",
+    "success_plus": "🎉 **Tabriklaymiz! Plus obunasi faollashtirildi!** 🚀\n\nSizning **shaxsiy yordamchingiz** ishlashga tayyor:\n\n🧠 **Tezkor AI** — har qanday savolga javob uchun.\n💬 **Kuniga 80 xabar** — kundalik vazifalar uchun yetarli.\n📸 **20 rasm** — chek va hujjatlarni tahlil qilish.\n🚫 **Reklamasiz** — faqat foyda.\n\nBiz bilan ekanligingiz uchun rahmat!",
+    "success_pro": "🎉 **Tabriklaymiz! Pro obunasi faollashtirildi!** 🚀\n\nSiz **professionallar tanlovini** qildingiz:\n\n🧠 **Aqlli AI** — murakkab hisob-kitoblar va tahlillar uchun.\n💬 **150 xabar** — chegarasiz muloqot.\n🔄 **Multi-valyuta** — valyutalarni avtomatik konvertatsiya qilish.\n📸 **50 rasm** — barcha cheklaringiz uchun.\n\nFoydalanish maroqli bo'lsin!",
+    "success_premium": "🎉 **Tabriklaymiz! Premium obunasi faollashtirildi!** 🚀\n\n**Chegarasiz dunyoga** xush kelibsiz:\n\n🌟 **Eng kuchli AI** — maksimal aniqlik va kontekst.\n⚡ **Ustuvorlik** — so'rovlaringiz birinchi bo'lib qayta ishlanadi.\n💬 **300 xabar** — muloqot erkinligi.\n🎤 **100 ovozli xabar** — ovoz bilan boshqaring.\n📸 **150 rasm** — hammasini tahlil qiling.\n\nSiz — bizning VIP mijozimizsiz. Ishonchingiz uchun rahmat!",
     "profile": {
         "title": "👤 *Sizning profilingiz*",
         "id": "🆔 ID",

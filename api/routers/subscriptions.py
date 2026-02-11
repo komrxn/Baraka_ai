@@ -50,7 +50,7 @@ async def activate_trial(
     # Send success notification
     from ..services.notification import send_subscription_success_message
     try:
-        await send_subscription_success_message(current_user)
+        await send_subscription_success_message(current_user, message_key="subscription.success_trial")
     except Exception as e:
         # Don't fail request if notification fails
         pass

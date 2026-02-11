@@ -26,6 +26,10 @@
     "payme_coming_soon": "🚧 Payme is coming soon. Please use Click.",
     "subscription_activated": "🎉 *{tier} Subscription Activated!*\n\n✨ *Now available to you:*\n• 💱 Live CBU exchange rates\n• 🔄 Multi-currency transactions\n• 📊 Advanced analytics\n• 🧠 Enhanced AI assistant\n\nThank you for choosing Baraka AI! 💎",
     "back_btn": "« Back",
+    "success_trial": "🎉 **Congratulations! Trial Activated!** 🚀\n\nEnjoy **Baraka AI Pro** features for 3 days:\n\n💬 **More Chat** — 150 messages/day.\n📸 **Photo Analysis** — 50 scans/day.\n🎤 **Voice Requests** — 30/day.\n💱 **Multi-currency** — convert to UZS.\n\nTry all features now!",
+    "success_plus": "🎉 **Congratulations! Plus Activated!** 🚀\n\nYour **Personal Assistant** is ready:\n\n🧠 **Fast AI** — answers for any question.\n💬 **80 messages/day** — enough for daily tasks.\n📸 **20 photos** — receipt and document analysis.\n🚫 **Ad-free** — pure value.\n\nThank you for being with us!",
+    "success_pro": "🎉 **Congratulations! Pro Activated!** 🚀\n\nYou made the **Professional Choice**:\n\n🧠 **Smart AI** — for complex calculations and analytics.\n💬 **150 messages** — chat without limits.\n🔄 **Multi-currency** — automatic currency conversion.\n📸 **50 photos** — for all your receipts.\n\nEnjoy the experience!",
+    "success_premium": "🎉 **Congratulations! Premium Activated!** 🚀\n\nWelcome to a **Limitless World**:\n\n🌟 **Most Powerful AI** — max accuracy and context.\n⚡ **Priority** — your requests processed first.\n💬 **300 messages** — freedom of communication.\n🎤 **100 voice** — control with your voice.\n📸 **150 photos** — analyze everything.\n\nYou are our VIP client. Thank you for your trust!",
     "profile": {
         "title": "👤 *Your Profile*",
         "id": "🆔 ID",

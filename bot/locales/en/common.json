@@ -3,7 +3,8 @@
         "balance": "💰 Balance",
         "statistics": "📊 Statistics",
         "help": "❓ Help",
-        "instructions": "❓ Instructions"
+        "instructions": "❓ Instructions",
+        "support": "🛠 Tech Support"
     },
     "actions": {
         "confirm": "✅ Confirm",
