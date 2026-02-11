@@ -19,6 +19,18 @@
                 </div>
 
                 <div class="subscription-page__plans">
+                    <!-- Пробный период как карточка тарифа внутри блока планов -->
+                    <div class="subscription-page__plan subscription-page__plan--trial"
+                        v-if="!isTrialUsed && !hasActiveSubscription"
+                        :class="{ 'subscription-page__plan--selected': selectedPlan === 'trial' }"
+                        @click="selectPlan('trial')">
+                        <div class="subscription-page__plan-content">
+                            <h3 class="subscription-page__plan-title">{{ t('subscription.startTrial') }}</h3>
+                            <p class="subscription-page__plan-subtitle">
+                                {{ t('subscription.introSubtitle') }}
+                            </p>
+                        </div>
+                    </div>
                     <div v-for="plan in availablePlans" :key="plan.id" class="subscription-page__plan"
                         :class="{ 'subscription-page__plan--selected': selectedPlan === plan.id }"
                         @click="selectPlan(plan.id)">
@@ -44,8 +56,10 @@
                 </div>
 
                 <div v-if="selectedPlan" class="subscription-page__button-container">
-                    <Button :label="t('subscription.continue')" fluid class="subscription-page__button"
-                        @click="goToPeriodStep" />
+                    <Button
+                        :label="selectedPlan === 'trial' ? t('subscription.startTrial') : t('subscription.continue')"
+                        fluid class="subscription-page__button" :loading="selectedPlan === 'trial' && loading"
+                        @click="handlePlanPrimaryAction" />
                 </div>
             </div>
 
@@ -118,11 +132,6 @@
                 </div>
             </div>
 
-            <!-- Пробный период -->
-            <div v-if="step === 'plan' && !isTrialUsed && !hasActiveSubscription" class="subscription-page__trial">
-                <Button :label="t('subscription.startTrial')" severity="secondary" outlined fluid
-                    class="subscription-page__trial-button" :loading="loading" @click="handleActivateTrial" />
-            </div>
         </div>
     </div>
 </template>
@@ -254,6 +263,14 @@ const selectPaymentMethod = (method: 'payme' | 'click') => {
 const goToPeriodStep = () => {
     if (selectedPlan.value) {
         step.value = 'period';
+    }
+};
+
+const handlePlanPrimaryAction = () => {
+    if (selectedPlan.value === 'trial') {
+        handleActivateTrial();
+    } else {
+        goToPeriodStep();
     }
 };
 
@@ -748,9 +765,10 @@ onMounted(() => {
     }
 
     &__trial-button {
-        padding: 1.6rem;
+        margin-top: 1.6rem;
+        padding: 1.4rem 1.6rem;
         font: var(--font-16-b);
-        border-radius: 1.6rem;
+        border-radius: 1.2rem;
     }
 }
 </style>
