@@ -52,6 +52,9 @@ async def activate_trial(
     try:
         await send_subscription_success_message(current_user, message_key="subscription.success_trial")
     except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send trial notification: {e}", exc_info=True)
         # Don't fail request if notification fails
         pass
 

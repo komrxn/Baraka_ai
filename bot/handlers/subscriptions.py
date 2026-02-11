@@ -20,11 +20,30 @@ async def activate_trial_callback(update: Update, context: ContextTypes.DEFAULT_
     try:
         data = await api.activate_trial()
         
-        expires = data.get("expires_at", "soon")
-        text = (
-            f"{t('subscription.trial_activated_title', lang)}\n\n"
-            f"{t('subscription.trial_activated_body', lang, date=expires)}"
-        )
+        expires_iso = data.get("expires_at")
+        if expires_iso:
+            from datetime import datetime
+            # Parse ISO format (handling potential Z or offset)
+            try:
+                dt = datetime.fromisoformat(expires_iso.replace("Z", "+00:00"))
+                expires = dt.strftime("%d.%m.%Y %H:%M")
+            except ValueError:
+                 expires = expires_iso
+        else:
+             expires = "3 days"
+        
+        # Use the unified success message, but we need to edit the message, not send new.
+        # But success_trial key is long.
+        # Let's use the new key but replace 'soon' logic if we keep old keys.
+        # Check if we should just use the new text?
+        # The user said: "message changed to... U vas teper Premium dostup do soon".
+        # That text corresponds to 'trial_activated_body'.
+        # I should probably update 'trial_activated_body' in json OR just use 'success_trial'.
+        # Let's use 'success_trial' for consistency.
+        
+        text = t('subscription.success_trial', lang)
+        # Verify if success_trial has placeholders? No.
+        
         await query.edit_message_text(text, parse_mode="Markdown")
         
     except Exception as e:
