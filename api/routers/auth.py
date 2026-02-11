@@ -17,11 +17,24 @@ def normalize_phone(phone: str) -> str:
     # Remove all non-digits (removes +, spaces, dashes, etc)
     digits = ''.join(filter(str.isdigit, phone))
     
-    # If already starts with 998, return as is
+    # Check for short format (9 digits) -> Add 998
+    if len(digits) == 9:
+        return f"998{digits}"
+        
+    # Check for Russian-style 8 prefix (10 digits total, starts with 8)
+    if len(digits) == 10 and digits.startswith("8"):
+        return f"998{digits[1:]}"
+        
+    # Check for full format (12 digits, starts with 998)
+    if len(digits) == 12 and digits.startswith("998"):
+        return digits
+    
+    # If already starts with 998 (and length is not 12, e.g. 13?), return as is
+    # This preserves existing logic for edge cases but prioritizes exact matches above
     if digits.startswith('998'):
         return digits
     
-    # Add 998 prefix for local numbers
+    # Add 998 prefix for local numbers if not caught by len 9
     return f"998{digits}"
 
 
