@@ -23,6 +23,7 @@
     "payment_instructions": "Click the button below to pay.\nYour subscription will be activated automatically after payment.",
     "pay_btn_format": "🚀 Pay via {provider}",
     "select_payment_method": "Select payment method:",
+    "payme_coming_soon": "🚧 Payme is coming soon. Please use Click.",
     "subscription_activated": "🎉 *{tier} Subscription Activated!*\n\n✨ *Now available to you:*\n• 💱 Live CBU exchange rates\n• 🔄 Multi-currency transactions\n• 📊 Advanced analytics\n• 🧠 Enhanced AI assistant\n\nThank you for choosing Baraka AI! 💎",
     "back_btn": "« Back",
     "profile": {

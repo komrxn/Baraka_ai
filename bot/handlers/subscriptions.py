@@ -181,6 +181,14 @@ async def handle_provider_choice(update: Update, context: ContextTypes.DEFAULT_T
         parts = data.split("_")
         # provider is last element
         provider = parts[-1]
+        
+        # Check for Payme coming soon
+        if provider == "payme":
+            user_id = query.from_user.id
+            lang = storage.get_user_language(user_id) or 'uz'
+            await query.answer(t("subscription.payme_coming_soon", lang), show_alert=True)
+            return
+
         # plan_id is everything in between 'choice' and 'provider'
         # e.g. plus_1
         plan_id = "_".join(parts[1:-1])

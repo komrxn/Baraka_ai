@@ -23,6 +23,7 @@
     "payment_instructions": "To'lov qilish uchun quyidagi tugmani bosing.\nObuna to'lovdan so'ng avtomatik faollashadi.",
     "pay_btn_format": "🚀 {provider} orqali to'lash",
     "select_payment_method": "To'lov tizimini tanlang:",
+    "payme_coming_soon": "🚧 Payme tez orada ishga tushadi. Iltimos, Click orqali toʻlang.",
     "subscription_activated": "🎉 *{tier} obunasi faollashtirildi!*\n\n✨ *Endi sizga mavjud:*\n• 💱 O'zMB valyuta kurslari real vaqtda\n• 🔄 Ko'p valyutali tranzaksiyalar\n• 📊 Kengaytirilgan tahlil\n• 🧠 Yaxshilangan AI-yordamchi\n\nBaraka AI ni tanlaganingiz uchun rahmat! 💎",
     "back_btn": "« Ortga",
     "profile": {
