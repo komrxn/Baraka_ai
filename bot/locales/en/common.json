@@ -10,7 +10,8 @@
         "confirm": "✅ Confirm",
         "cancel": "❌ Cancel",
         "edit": "✏️ Edit",
-        "delete": "🗑 Delete"
+        "delete": "🗑 Delete",
+        "back": "⬅️ Back"
     },
     "common": {
         "error": "❌ An error occurred",

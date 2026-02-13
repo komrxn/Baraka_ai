@@ -10,7 +10,8 @@
         "confirm": "✅ Tasdiqlash",
         "cancel": "❌ Bekor qilish",
         "edit": "✏️ Tahrirlash",
-        "delete": "🗑 O'chirish"
+        "delete": "🗑 O'chirish",
+        "back": "⬅️ Orqaga"
     },
     "common": {
         "error": "❌ Xatolik yuz berdi",

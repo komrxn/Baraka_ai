@@ -163,6 +163,9 @@ async def handle_transaction_action(update: Update, context: ContextTypes.DEFAUL
             ],
             [
                 InlineKeyboardButton(t('transactions.actions.edit_description', lang), callback_data=f"edit_field_{tx_id}_description")
+            ],
+            [
+                InlineKeyboardButton(t('common.actions.back', lang), callback_data=f"cancel_edit_{tx_id}")
             ]
         ]
         await query.edit_message_text(
@@ -317,7 +320,7 @@ async def handle_edit_field_callback(update: Update, context: ContextTypes.DEFAU
         logger.info(f"Prompt key: {prompt_key}, translated: {prompt}")
         
         # Add a "Back" button to cancel editing
-        back_text = "🔙 " + t('common.actions.back', lang) # "Back" or "Назад"
+        back_text = t('common.actions.back', lang) # "Back" or "Назад"
         keyboard = [[InlineKeyboardButton(back_text, callback_data=f"cancel_edit_{tx_id}")]]
         
         await query.edit_message_text(
