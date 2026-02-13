@@ -58,6 +58,7 @@ class User(Base):
     categories: Mapped[list["Category"]] = relationship("Category", back_populates="user", cascade="all, delete-orphan")
     debts: Mapped[list["Debt"]] = relationship("Debt", back_populates="user", cascade="all, delete-orphan")
     limits: Mapped[list["Limit"]] = relationship("Limit", back_populates="user", cascade="all, delete-orphan")
+    click_transactions: Mapped[list["ClickTransaction"]] = relationship("ClickTransaction", back_populates="user", cascade="all, delete-orphan")
     
     @property
     def subscription_tier(self) -> str:

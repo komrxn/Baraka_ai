@@ -6,6 +6,7 @@ from .core.config import get_settings
 from .database import engine, get_db, AsyncSessionLocal
 from .models.admin import AdminUser
 from .core.security import get_password_hash
+from . import models # Register all models
 from .routers import auth, users, analytics
 
 settings = get_settings()

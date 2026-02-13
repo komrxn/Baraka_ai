@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 from sqlalchemy import String, DateTime, BigInteger, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from ..database import Base
@@ -46,6 +46,8 @@ class User(Base):
         onupdate=func.now(), 
         nullable=False
     )
+    
+    click_transactions: Mapped[list["ClickTransaction"]] = relationship("ClickTransaction", back_populates="user", cascade="all, delete-orphan")
     
     @property
     def subscription_tier(self) -> str:
