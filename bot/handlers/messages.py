@@ -30,6 +30,37 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(t('auth.common.auth_required', lang))
         return
     
+    # CHECK FOR MENU BUTTONS FIRST (Interrupt editing)
+    # If user presses a menu button, we should cancel any active editing session
+    # and process the menu command.
+    
+    button_balance = t('common.buttons.balance', lang)
+    button_stats = t('common.buttons.statistics', lang)
+    button_help = t('common.buttons.instructions', lang)
+    button_support = t('common.buttons.support', lang)
+    button_currency = ["💱 Курс валют", "💱 Valyuta kursi", "💱 Exchange Rates"]
+    button_profile = "Baraka AI PLUS 🌟"
+    
+    is_menu_command = (
+        text in [button_balance, button_stats, button_help, button_support, button_profile] or
+        text in button_currency
+    )
+
+    if is_menu_command:
+        # Clear editing states if present
+        if context.user_data.get('editing_tx'):
+             context.user_data.pop('editing_tx', None)
+             context.user_data.pop('editing_transaction_id', None)
+             context.user_data.pop('editing_field', None)
+        
+        if context.user_data.get('editing_debt_id'):
+             context.user_data.pop('editing_debt_id', None)
+             
+        # Process the menu command
+        await process_text_message(update, context, text, user_id)
+        return
+
+    # Then check editing states
     if context.user_data.get('editing_tx'):
         from ..confirmation_handlers import handle_edit_message
         await handle_edit_message(update, context)
@@ -133,8 +164,8 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return  # Don't show other responses if upsell was shown
 
     
-    # Show AI response (Always show text to ensure Keyboard is refreshed/sent)
-    if response_text:
+    # Show AI response (only if no transactions/debts created or settled)
+    if not created_transactions and not created_debts and not settled_debts and response_text:
         keyboard = await get_keyboard_for_user(user_id, lang)
         try:
             await update.message.reply_text(
