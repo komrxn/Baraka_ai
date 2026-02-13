@@ -133,8 +133,8 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         return  # Don't show other responses if upsell was shown
 
     
-    # Show AI response (only if no transactions/debts created or settled)
-    if not created_transactions and not created_debts and not settled_debts and response_text:
+    # Show AI response (Always show text to ensure Keyboard is refreshed/sent)
+    if response_text:
         keyboard = await get_keyboard_for_user(user_id, lang)
         try:
             await update.message.reply_text(
