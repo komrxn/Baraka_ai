@@ -114,6 +114,7 @@ async def handle_debt_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
             amount = float(result.get('amount', 0))
             currency = result.get('currency', 'UZS').upper()
             debt_type = result.get('type', 'owe_me')
+            description = result.get('description', '')
             
             await query.edit_message_text(
                 f"{t('debts.actions.settled_success', lang)}\n\n"
@@ -121,12 +122,30 @@ async def handle_debt_action(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 f"{t('debts.amount', lang)}: {amount:,.0f} {currency}"
             )
             
-            # Ask: "Add to main account?"
+            # Ask: "Add to main account?" — single reverse transaction
             amount_str = f"{amount:,.0f}".replace(",", " ")
-            prompt = t('debts.add_to_account.prompt_both', lang,
-                      amount=amount_str, currency=currency)
             
-            cb_data_yes = f"debt_to_tx_yes_{debt_type}_{amount}_{currency}_settled"
+            # Settling owe_me → money returned → income prompt
+            # Settling i_owe → money paid back → expense prompt
+            if debt_type == "owe_me":
+                prompt = t('debts.add_to_account.prompt_income', lang,
+                          amount=amount_str, currency=currency)
+            else:
+                prompt = t('debts.add_to_account.prompt_expense', lang,
+                          amount=amount_str, currency=currency)
+            
+            # Store metadata for callback handler
+            cb_key = f"settle_{debt_id}"
+            context.user_data[f"debt_to_tx_{cb_key}"] = {
+                "type": debt_type,
+                "amount": amount,
+                "currency": currency,
+                "person": person,
+                "description": description,
+                "is_settle": True,
+            }
+            
+            cb_data_yes = f"debt_to_tx_yes_{cb_key}"
             cb_data_no = f"debt_to_tx_no_{debt_id}"
             
             keyboard = [[
@@ -218,7 +237,16 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
         return True
 
 async def handle_debt_to_transaction_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle 'Add to main account?' yes/no after debt creation."""
+    """Handle 'Add to main account?' yes/no after debt creation.
+    
+    Expects debt metadata in context.user_data[f'debt_to_tx_{cb_key}'] with keys:
+    - type: 'owe_me' or 'i_owe'
+    - amount: float
+    - currency: str
+    - person: str (person name for description)
+    - description: str (optional debt description)
+    - is_settle: bool (True if settling existing debt)
+    """
     from .transaction_actions import get_transaction_message_data
     
     query = update.callback_query
@@ -227,48 +255,46 @@ async def handle_debt_to_transaction_callback(update: Update, context: ContextTy
     user_id = query.from_user.id
     lang = storage.get_user_language(user_id) or 'uz'
     
-    data = query.data  # e.g. "debt_to_tx_yes_owe_me_200000.0_UZS_open" or "debt_to_tx_no_{debt_id}"
+    data = query.data
     
     if data.startswith("debt_to_tx_no_"):
-        # User declined — just edit the message
+        # User declined
         await query.edit_message_text(t('debts.add_to_account.not_added', lang))
         return
     
     if data.startswith("debt_to_tx_yes_"):
-        # Parse: debt_to_tx_yes_{type}_{amount}_{currency}_{status}
-        parts = data.replace("debt_to_tx_yes_", "").split("_")
+        cb_key = data.replace("debt_to_tx_yes_", "")
+        
+        # Get debt metadata from context.user_data
+        meta_key = f"debt_to_tx_{cb_key}"
+        debt_meta = context.user_data.get(meta_key, {})
+        
+        if not debt_meta:
+            logger.error(f"No debt metadata found for key: {meta_key}")
+            await query.edit_message_text(t('common.common.error', lang))
+            return
+        
+        debt_type = debt_meta.get("type", "owe_me")
+        amount = float(debt_meta.get("amount", 0))
+        currency = debt_meta.get("currency", "uzs").lower()
+        person = debt_meta.get("person", "")
+        description = debt_meta.get("description", "")
+        is_settle = debt_meta.get("is_settle", False)
         
         try:
-            # Handle compound type names
-            if parts[0] == "owe" and parts[1] == "me":
-                debt_type = "owe_me"
-                amount = float(parts[2])
-                currency = parts[3].lower()
-                status = parts[4] if len(parts) > 4 else "open"
-            elif parts[0] == "i" and parts[1] == "owe":
-                debt_type = "i_owe"
-                amount = float(parts[2])
-                currency = parts[3].lower()
-                status = parts[4] if len(parts) > 4 else "open"
-            else:
-                logger.error(f"Cannot parse debt_to_tx callback: {data}")
-                await query.edit_message_text(t('common.common.error', lang))
-                return
-            
             token = storage.get_user_token(user_id)
             api = BarakaAPIClient(config.API_BASE_URL)
             api.set_token(token)
             
-            # Resolve "debt" category
+            # Resolve "debts_payment" category
             categories = await api.get_categories()
             debt_category_id = None
-            debt_category_slug = "debt"
+            debt_category_slug = "debts_payment"
             for cat in categories:
-                if cat.get("slug") == "debt":
+                if cat.get("slug") == "debts_payment":
                     debt_category_id = cat.get("id")
                     break
             
-            # Fallback to other_expense if no debt category
             if not debt_category_id:
                 debt_category_slug = "other_expense"
                 for cat in categories:
@@ -276,60 +302,50 @@ async def handle_debt_to_transaction_callback(update: Update, context: ContextTy
                         debt_category_id = cat.get("id")
                         break
             
+            # Build description from debt info
+            tx_description = f"{person}: {description}" if description else person
+            
+            # Determine transaction type:
+            # New debt: owe_me (lent money) → expense, i_owe (borrowed) → income
+            # Settled: owe_me (money returned to me) → income, i_owe (I returned money) → expense
+            if is_settle:
+                tx_type = "income" if debt_type == "owe_me" else "expense"
+            else:
+                tx_type = "expense" if debt_type == "owe_me" else "income"
+            
             # Remove the prompt message
             await query.edit_message_text(t('debts.add_to_account.added', lang))
             
-            created_txs = []
+            # Create single transaction
+            tx = {
+                "type": tx_type,
+                "amount": amount,
+                "description": tx_description,
+                "currency": currency,
+            }
+            if debt_category_id:
+                tx["category_id"] = debt_category_id
             
-            if status == "settled":
-                # Flow 2: create two transactions (+income, -expense)
-                for tx_type in ["income", "expense"]:
-                    tx = {
-                        "type": tx_type,
-                        "amount": amount,
-                        "description": t('debts.add_to_account.added', lang),
-                        "currency": currency,
-                    }
-                    if debt_category_id:
-                        tx["category_id"] = debt_category_id
-                    result = await api.create_transaction(tx)
-                    created_txs.append({
-                        "transaction_id": result.get("id"),
-                        "type": tx_type,
-                        "amount": amount,
-                        "currency": currency,
-                        "category": debt_category_slug,
-                        "description": t('debts.add_to_account.added', lang),
-                    })
-            else:
-                # Flow 1: single transaction
-                tx_type = "expense" if debt_type == "owe_me" else "income"
-                tx = {
-                    "type": tx_type,
-                    "amount": amount,
-                    "description": t('debts.add_to_account.added', lang),
-                    "currency": currency,
-                }
-                if debt_category_id:
-                    tx["category_id"] = debt_category_id
-                result = await api.create_transaction(tx)
-                created_txs.append({
-                    "transaction_id": result.get("id"),
-                    "type": tx_type,
-                    "amount": amount,
-                    "currency": currency,
-                    "category": debt_category_slug,
-                    "description": t('debts.add_to_account.added', lang),
-                })
+            result = await api.create_transaction(tx)
             
-            # Show standard transaction cards with Edit/Delete buttons
-            for tx_data in created_txs:
-                text, reply_markup = await get_transaction_message_data(user_id, tx_data)
-                await query.message.reply_text(
-                    text,
-                    reply_markup=reply_markup,
-                    parse_mode='Markdown'
-                )
+            # Show standard transaction card
+            tx_data = {
+                "transaction_id": result.get("id"),
+                "type": tx_type,
+                "amount": amount,
+                "currency": currency,
+                "category": debt_category_slug,
+                "description": tx_description,
+            }
+            text, reply_markup = await get_transaction_message_data(user_id, tx_data)
+            await query.message.reply_text(
+                text,
+                reply_markup=reply_markup,
+                parse_mode='Markdown'
+            )
+            
+            # Clean up user_data
+            context.user_data.pop(meta_key, None)
             
         except Exception as e:
             logger.exception(f"Error creating debt-to-transaction: {e}")
@@ -346,3 +362,4 @@ debt_to_tx_handler = CallbackQueryHandler(
     handle_debt_to_transaction_callback,
     pattern="^debt_to_tx_"
 )
+

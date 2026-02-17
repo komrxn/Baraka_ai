@@ -208,27 +208,30 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
             debt_type = debt.get('type', 'owe_me')
             amount = float(debt.get('amount', 0))
             currency_code = debt.get('currency', 'uzs').upper()
+            person = debt.get('person') or debt.get('person_name', '')
+            description = debt.get('description', '')
             amount_str = f"{amount:,.0f}".replace(",", " ")
             
-            # Determine which prompt to show based on debt type and status
-            # For settled debts (flow 2: "вернул долг"), show prompt_both
-            status = debt.get('status', 'open')
-            
-            if status == 'settled':
-                # Flow 2: debt was created and immediately settled
-                prompt = t('debts.add_to_account.prompt_both', lang, 
-                          amount=amount_str, currency=currency_code)
-            elif debt_type == 'owe_me':
-                # Flow 1: "дал в долг" → money left wallet → expense
+            # New debt: owe_me → expense, i_owe → income
+            if debt_type == 'owe_me':
                 prompt = t('debts.add_to_account.prompt_expense', lang,
                           amount=amount_str, currency=currency_code)
-            else:  # i_owe
-                # "взял в долг" → money came in → income
+            else:
                 prompt = t('debts.add_to_account.prompt_income', lang,
                           amount=amount_str, currency=currency_code)
             
-            # Encode debt info in callback: type|amount|currency|status
-            cb_data_yes = f"debt_to_tx_yes_{debt_type}_{amount}_{currency_code}_{status}"
+            # Store metadata for callback handler
+            cb_key = f"new_{debt_id}"
+            context.user_data[f"debt_to_tx_{cb_key}"] = {
+                "type": debt_type,
+                "amount": amount,
+                "currency": currency_code,
+                "person": person,
+                "description": description,
+                "is_settle": False,
+            }
+            
+            cb_data_yes = f"debt_to_tx_yes_{cb_key}"
             cb_data_no = f"debt_to_tx_no_{debt_id}"
             
             keyboard = [[
@@ -246,14 +249,25 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     if settled_debts:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
+        # Collect IDs of debts created in this same turn (post-factum)
+        created_debt_ids = set()
+        if created_debts:
+            for d in created_debts:
+                did = d.get('debt_id') or d.get('id')
+                if did:
+                    created_debt_ids.add(str(did))
+        
         for debt in settled_debts:
              # debt: {settled_debt_id, person, amount, type, currency}
+            debt_id = debt.get('settled_debt_id')
             amount_val = float(debt.get('amount', 0))
             amount_str = f"{amount_val:,.0f}".replace(",", " ")
             currency = debt.get('currency', 'UZS').upper()
+            debt_type = debt.get('type', 'owe_me')
+            person = debt.get('person', '')
 
             text = f"{t('debts.debt_settled', lang)}\n\n"
-            text += f"{t('debts.person', lang)}: {debt.get('person')}\n"
+            text += f"{t('debts.person', lang)}: {person}\n"
             text += f"{t('debts.amount', lang)}: {amount_str} {currency}\n"
 
             await update.message.reply_text(
@@ -261,13 +275,32 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
                 reply_markup=get_main_keyboard(lang)
             )
             
-            # Flow 2: Ask if they want to add both transactions to account
-            debt_type = debt.get('type', 'owe_me')
-            prompt = t('debts.add_to_account.prompt_both', lang,
-                      amount=amount_str, currency=currency)
+            # Skip prompt if this debt was also created in same turn
+            # (already prompted via created_debts section above)
+            if str(debt_id) in created_debt_ids:
+                continue
             
-            cb_data_yes = f"debt_to_tx_yes_{debt_type}_{amount_val}_{currency}_settled"
-            cb_data_no = f"debt_to_tx_no_{debt.get('settled_debt_id')}"
+            # Ask: "Add transaction?" — single reverse transaction
+            if debt_type == "owe_me":
+                prompt = t('debts.add_to_account.prompt_income', lang,
+                          amount=amount_str, currency=currency)
+            else:
+                prompt = t('debts.add_to_account.prompt_expense', lang,
+                          amount=amount_str, currency=currency)
+            
+            # Store metadata for callback handler
+            cb_key = f"settle_{debt_id}"
+            context.user_data[f"debt_to_tx_{cb_key}"] = {
+                "type": debt_type,
+                "amount": amount_val,
+                "currency": currency,
+                "person": person,
+                "description": "",
+                "is_settle": True,
+            }
+            
+            cb_data_yes = f"debt_to_tx_yes_{cb_key}"
+            cb_data_no = f"debt_to_tx_no_{debt_id}"
             
             keyboard = [[
                 InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
