@@ -113,7 +113,7 @@ class AIAgent:
                 "type": "function",
                 "function": {
                     "name": "settle_debt",
-                    "description": "Mark a debt as paid/settled",
+                    "description": "Mark a debt as paid/settled. If the debt does not exist yet, first call create_debt to record it, then call settle_debt to mark it as settled.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -230,6 +230,15 @@ RULES:
    - "I lent 50k to Ali" -> `create_debt(type="owe_me")`
    - "I borrowed 100k from John" -> `create_debt(type="i_owe")`
    - "Ali returned" -> `settle_debt`
+   - **POST-FACTUM (IMPORTANT):** If user says they returned/received money but no debt exists:
+     - First call `create_debt` to record the original debt
+     - Then call `settle_debt` to mark it as settled immediately
+     - Example: "Вернул долг папе 120к" (no existing debt for papa) -> 
+       Step 1: `create_debt(type="i_owe", person_name="Папа", amount=120000)`
+       Step 2: `settle_debt(person_name="Папа")`
+     - Do NOT ask clarifying questions. If the user says they returned/paid, assume the debt amount equals what they returned.
+     - For "returned"/"вернул"/"qaytardim" -> the user was the borrower (i_owe)
+     - For "returned to me"/"вернул мне"/"qaytardi" -> the user was the lender (owe_me)
 
 4. **Limits:**
    - "Set limit for Food 300k" -> `set_limit(category_slug="groceries", amount=300000)`
@@ -300,18 +309,21 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
             
             tool_calls = assistant_message.tool_calls
             
-            # If AI wants to call tools
-            if tool_calls:
-                # Execute all tool calls
+            # Multi-round tool execution loop (max 3 rounds to prevent infinite loops)
+            created_transactions = []
+            created_debts = []
+            settled_debts = []
+            premium_upsells = []
+            max_rounds = 3
+            round_num = 0
+            
+            while tool_calls and round_num < max_rounds:
+                round_num += 1
                 tool_results = []
-                created_transactions = [] # Initialize list to collect created transactions
-                created_debts = [] # Initialize list to collect created debts
-                settled_debts = [] # Initialize list to collect settled debts
-                premium_upsells = [] # Track premium feature upsells
                 
                 for tool_call in tool_calls:
                     try:
-                        logger.info(f"AI calling tool: {tool_call.function.name} with args: {tool_call.function.arguments}")
+                        logger.info(f"AI calling tool (round {round_num}): {tool_call.function.name} with args: {tool_call.function.arguments}")
                         tool_result = await self._execute_tool(user_id, tool_call)
                         
                         # Format output for context
@@ -331,7 +343,6 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                             elif "settled_debt_id" in tool_result:
                                 settled_debts.append(tool_result)
                         elif tool_result.get("premium_required"):
-                            # Track premium upsell triggers
                             premium_upsells.append(tool_result)
 
                             
@@ -345,7 +356,7 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                 # Add assistant message with tool calls to history
                 messages.append({
                     "role": "assistant",
-                    "content": assistant_message.content or "", # Content can be null if only tool calls
+                    "content": assistant_message.content or "",
                     "tool_calls": assistant_message.tool_calls
                 })
                 
@@ -357,18 +368,22 @@ Action: get_balance() -> calculate diff -> create_transaction(category="other_ex
                         "content": tool_result["output"]
                     })
                 
-                # Get final response from AI
-                final_response = await self.client.chat.completions.create(
+                # Get next response from AI (may include more tool calls)
+                next_response = await self.client.chat.completions.create(
                     model=self.model,
-                    messages=messages
+                    messages=messages,
+                    tools=self.tools,
+                    tool_choice="auto"
                 )
                 
-                final_text = final_response.choices[0].message.content
-            else:
-                # No tools called, just conversation
-                final_text = assistant_message.content
-                created_debts = []
-                settled_debts = []
+                assistant_message = next_response.choices[0].message
+                tool_calls = assistant_message.tool_calls
+            
+            final_text = assistant_message.content
+            
+            if not tool_calls and round_num == 0:
+                # No tools called at all, just conversation
+                pass  # Lists are already initialized empty
             
             # Save assistant response to context
             dialog_context.add_message(user_id, "assistant", final_text or "")
