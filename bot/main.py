@@ -19,7 +19,7 @@ from bot.handlers.commands import start, help_command, help_callback, language_s
 from bot.handlers.balance import get_balance
 from bot.auth_handlers import register_conv, login_conv
 from bot.transaction_actions import transaction_action_handler, transaction_edit_field_handler, transaction_cancel_edit_handler
-from bot.debt_actions import debt_action_handler
+from bot.debt_actions import debt_action_handler, debt_to_tx_handler
 from bot.handlers.subscriptions import subscription_handlers
 from bot.handlers.currency import currency_handlers, currency_rates_handler
 from bot.user_storage import storage
@@ -72,6 +72,7 @@ def main():
     application.add_handler(transaction_edit_field_handler)
     application.add_handler(transaction_cancel_edit_handler)
     application.add_handler(debt_action_handler)
+    application.add_handler(debt_to_tx_handler)
     
     # Subscription handlers
     for handler in subscription_handlers:

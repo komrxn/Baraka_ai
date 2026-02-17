@@ -198,8 +198,121 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
         )
         return True
 
+async def handle_debt_to_transaction_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle 'Add to main account?' yes/no after debt creation."""
+    query = update.callback_query
+    await query.answer()
+    
+    user_id = query.from_user.id
+    lang = storage.get_user_language(user_id) or 'uz'
+    
+    data = query.data  # e.g. "debt_to_tx_yes_owe_me_200000.0_UZS_open" or "debt_to_tx_no_{debt_id}"
+    
+    if data.startswith("debt_to_tx_no_"):
+        # User declined — just edit the message
+        await query.edit_message_text(t('debts.add_to_account.not_added', lang))
+        return
+    
+    if data.startswith("debt_to_tx_yes_"):
+        # Parse: debt_to_tx_yes_{type}_{amount}_{currency}_{status}
+        parts = data.replace("debt_to_tx_yes_", "").split("_")
+        # type can be "owe_me" or "i_owe" (2 parts)
+        # Then: amount, currency, status
+        
+        try:
+            # Handle compound type names
+            if parts[0] == "owe" and parts[1] == "me":
+                debt_type = "owe_me"
+                amount = float(parts[2])
+                currency = parts[3].lower()
+                status = parts[4] if len(parts) > 4 else "open"
+            elif parts[0] == "i" and parts[1] == "owe":
+                debt_type = "i_owe"
+                amount = float(parts[2])
+                currency = parts[3].lower()
+                status = parts[4] if len(parts) > 4 else "open"
+            else:
+                logger.error(f"Cannot parse debt_to_tx callback: {data}")
+                await query.edit_message_text(t('common.common.error', lang))
+                return
+            
+            token = storage.get_user_token(user_id)
+            api = BarakaAPIClient(config.API_BASE_URL)
+            api.set_token(token)
+            
+            # Resolve "debt" category
+            categories = await api.get_categories()
+            debt_category_id = None
+            for cat in categories:
+                if cat.get("slug") == "debt":
+                    debt_category_id = cat.get("id")
+                    break
+            
+            # Fallback to other_expense if no debt category
+            if not debt_category_id:
+                for cat in categories:
+                    if cat.get("slug") == "other_expense":
+                        debt_category_id = cat.get("id")
+                        break
+            
+            if status == "settled":
+                # Flow 2: create two transactions (+income, -expense)
+                tx_income = {
+                    "type": "income",
+                    "amount": amount, 
+                    "description": t('debts.add_to_account.added', lang),
+                    "currency": currency,
+                }
+                tx_expense = {
+                    "type": "expense",
+                    "amount": amount,
+                    "description": t('debts.add_to_account.added', lang),
+                    "currency": currency,
+                }
+                if debt_category_id:
+                    tx_income["category_id"] = debt_category_id
+                    tx_expense["category_id"] = debt_category_id
+                
+                await api.create_transaction(tx_income)
+                await api.create_transaction(tx_expense)
+            else:
+                # Flow 1: single transaction
+                if debt_type == "owe_me":
+                    # "дал в долг" → money left → expense
+                    tx_data = {
+                        "type": "expense",
+                        "amount": amount,
+                        "description": t('debts.add_to_account.added', lang),
+                        "currency": currency,
+                    }
+                else:  # i_owe
+                    # "взял в долг" → money came → income
+                    tx_data = {
+                        "type": "income",
+                        "amount": amount,
+                        "description": t('debts.add_to_account.added', lang),
+                        "currency": currency,
+                    }
+                
+                if debt_category_id:
+                    tx_data["category_id"] = debt_category_id
+                
+                await api.create_transaction(tx_data)
+            
+            await query.edit_message_text(t('debts.add_to_account.added', lang))
+            
+        except Exception as e:
+            logger.exception(f"Error creating debt-to-transaction: {e}")
+            await query.edit_message_text(f"{t('common.common.error', lang)}: {str(e)}")
+
+
 # Export handler
 debt_action_handler = CallbackQueryHandler(
     handle_debt_action,
     pattern="^(settle|edit|delete)_debt_"
+)
+
+debt_to_tx_handler = CallbackQueryHandler(
+    handle_debt_to_transaction_callback,
+    pattern="^debt_to_tx_"
 )

@@ -13,5 +13,14 @@
         "settled_success": "✅ Qarz to'langan deb belgilandi!",
         "deleted": "🗑 Qarz o'chirildi",
         "edit_prompt": "✍️ Qarz ma'lumotlarini yangilang"
+    },
+    "add_to_account": {
+        "prompt_expense": "📝 Asosiy hisobga chiqim tranzaksiyasini qo'shish kerakmi?\n\n💸 **{amount} {currency}**",
+        "prompt_income": "📝 Asosiy hisobga kirim tranzaksiyasini qo'shish kerakmi?\n\n💰 **{amount} {currency}**",
+        "prompt_both": "📝 Asosiy hisobga ikkita tranzaksiya qo'shish kerakmi?\n\n💰 +{amount} {currency} (olish)\n💸 -{amount} {currency} (qaytarish)",
+        "yes": "✅ Ha, yozish",
+        "no": "❌ Yo'q",
+        "added": "✅ Tranzaksiya asosiy hisobga qo'shildi",
+        "not_added": "👌 Yaxshi, faqat qarz yozildi"
     }
 }

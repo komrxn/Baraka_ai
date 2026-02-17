@@ -13,5 +13,14 @@
         "settled_success": "✅ Debt marked as settled!",
         "deleted": "🗑 Debt deleted",
         "edit_prompt": "✍️ Enter new debt details"
+    },
+    "add_to_account": {
+        "prompt_expense": "📝 Add an expense transaction to your main account?\n\n💸 **{amount} {currency}**",
+        "prompt_income": "📝 Add an income transaction to your main account?\n\n💰 **{amount} {currency}**",
+        "prompt_both": "📝 Add two transactions to your main account?\n\n💰 +{amount} {currency} (received)\n💸 -{amount} {currency} (returned)",
+        "yes": "✅ Yes, add",
+        "no": "❌ No",
+        "added": "✅ Transaction added to main account",
+        "not_added": "👌 OK, only the debt was recorded"
     }
 }

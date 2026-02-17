@@ -198,16 +198,59 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
     # Show created debts with actions
     if created_debts:
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        
         for debt in created_debts:
             await show_debt_with_actions(update, user_id, debt)
+            
+            # Send follow-up: "Add to main account?"
+            debt_id = debt.get('debt_id') or debt.get('id')
+            debt_type = debt.get('type', 'owe_me')
+            amount = float(debt.get('amount', 0))
+            currency_code = debt.get('currency', 'uzs').upper()
+            amount_str = f"{amount:,.0f}".replace(",", " ")
+            
+            # Determine which prompt to show based on debt type and status
+            # For settled debts (flow 2: "вернул долг"), show prompt_both
+            status = debt.get('status', 'open')
+            
+            if status == 'settled':
+                # Flow 2: debt was created and immediately settled
+                prompt = t('debts.add_to_account.prompt_both', lang, 
+                          amount=amount_str, currency=currency_code)
+            elif debt_type == 'owe_me':
+                # Flow 1: "дал в долг" → money left wallet → expense
+                prompt = t('debts.add_to_account.prompt_expense', lang,
+                          amount=amount_str, currency=currency_code)
+            else:  # i_owe
+                # "взял в долг" → money came in → income
+                prompt = t('debts.add_to_account.prompt_income', lang,
+                          amount=amount_str, currency=currency_code)
+            
+            # Encode debt info in callback: type|amount|currency|status
+            cb_data_yes = f"debt_to_tx_yes_{debt_type}_{amount}_{currency_code}_{status}"
+            cb_data_no = f"debt_to_tx_no_{debt_id}"
+            
+            keyboard = [[
+                InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
+                InlineKeyboardButton(t('debts.add_to_account.no', lang), callback_data=cb_data_no)
+            ]]
+            
+            await update.message.reply_text(
+                prompt,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode='Markdown'
+            )
 
     # Show settled debts
     if settled_debts:
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        
         for debt in settled_debts:
              # debt: {settled_debt_id, person, amount, type, currency}
             amount_val = float(debt.get('amount', 0))
             amount_str = f"{amount_val:,.0f}".replace(",", " ")
-            currency = debt.get('currency', 'UZS')
+            currency = debt.get('currency', 'UZS').upper()
 
             text = f"{t('debts.debt_settled', lang)}\n\n"
             text += f"{t('debts.person', lang)}: {debt.get('person')}\n"
@@ -216,6 +259,25 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
             await update.message.reply_text(
                 text,
                 reply_markup=get_main_keyboard(lang)
+            )
+            
+            # Flow 2: Ask if they want to add both transactions to account
+            debt_type = debt.get('type', 'owe_me')
+            prompt = t('debts.add_to_account.prompt_both', lang,
+                      amount=amount_str, currency=currency)
+            
+            cb_data_yes = f"debt_to_tx_yes_{debt_type}_{amount_val}_{currency}_settled"
+            cb_data_no = f"debt_to_tx_no_{debt.get('settled_debt_id')}"
+            
+            keyboard = [[
+                InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
+                InlineKeyboardButton(t('debts.add_to_account.no', lang), callback_data=cb_data_no)
+            ]]
+            
+            await update.message.reply_text(
+                prompt,
+                reply_markup=InlineKeyboardMarkup(keyboard),
+                parse_mode='Markdown'
             )
 
 
