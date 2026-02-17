@@ -280,6 +280,7 @@ async def handle_debt_to_transaction_callback(update: Update, context: ContextTy
         person = debt_meta.get("person", "")
         description = debt_meta.get("description", "")
         is_settle = debt_meta.get("is_settle", False)
+        is_postfactum = debt_meta.get("is_postfactum", False)
         
         try:
             token = storage.get_user_token(user_id)
@@ -305,44 +306,78 @@ async def handle_debt_to_transaction_callback(update: Update, context: ContextTy
             # Build description from debt info
             tx_description = f"{person}: {description}" if description else person
             
-            # Determine transaction type:
-            # New debt: owe_me (lent money) → expense, i_owe (borrowed) → income
-            # Settled: owe_me (money returned to me) → income, i_owe (I returned money) → expense
-            if is_settle:
-                tx_type = "income" if debt_type == "owe_me" else "expense"
-            else:
-                tx_type = "expense" if debt_type == "owe_me" else "income"
-            
             # Remove the prompt message
             await query.edit_message_text(t('debts.add_to_account.added', lang))
             
-            # Create single transaction
-            tx = {
-                "type": tx_type,
-                "amount": amount,
-                "description": tx_description,
-                "currency": currency,
-            }
-            if debt_category_id:
-                tx["category_id"] = debt_category_id
-            
-            result = await api.create_transaction(tx)
-            
-            # Show standard transaction card
-            tx_data = {
-                "transaction_id": result.get("id"),
-                "type": tx_type,
-                "amount": amount,
-                "currency": currency,
-                "category": debt_category_slug,
-                "description": tx_description,
-            }
-            text, reply_markup = await get_transaction_message_data(user_id, tx_data)
-            await query.message.reply_text(
-                text,
-                reply_markup=reply_markup,
-                parse_mode='Markdown'
-            )
+            if is_postfactum:
+                # POST-FACTUM: create 2 transactions
+                # i_owe post-factum: income (borrowed) + expense (returned)
+                # owe_me post-factum: expense (lent) + income (got back)
+                if debt_type == "i_owe":
+                    tx_types = ["income", "expense"]
+                else:
+                    tx_types = ["expense", "income"]
+                
+                for tx_type in tx_types:
+                    tx = {
+                        "type": tx_type,
+                        "amount": amount,
+                        "description": tx_description,
+                        "currency": currency,
+                    }
+                    if debt_category_id:
+                        tx["category_id"] = debt_category_id
+                    
+                    result = await api.create_transaction(tx)
+                    
+                    tx_data = {
+                        "transaction_id": result.get("id"),
+                        "type": tx_type,
+                        "amount": amount,
+                        "currency": currency,
+                        "category": debt_category_slug,
+                        "description": tx_description,
+                    }
+                    text, reply_markup = await get_transaction_message_data(user_id, tx_data)
+                    await query.message.reply_text(
+                        text,
+                        reply_markup=reply_markup,
+                        parse_mode='Markdown'
+                    )
+            else:
+                # Single transaction (new debt or settle existing)
+                # New debt: owe_me → expense, i_owe → income
+                # Settled: owe_me → income, i_owe → expense
+                if is_settle:
+                    tx_type = "income" if debt_type == "owe_me" else "expense"
+                else:
+                    tx_type = "expense" if debt_type == "owe_me" else "income"
+                
+                tx = {
+                    "type": tx_type,
+                    "amount": amount,
+                    "description": tx_description,
+                    "currency": currency,
+                }
+                if debt_category_id:
+                    tx["category_id"] = debt_category_id
+                
+                result = await api.create_transaction(tx)
+                
+                tx_data = {
+                    "transaction_id": result.get("id"),
+                    "type": tx_type,
+                    "amount": amount,
+                    "currency": currency,
+                    "category": debt_category_slug,
+                    "description": tx_description,
+                }
+                text, reply_markup = await get_transaction_message_data(user_id, tx_data)
+                await query.message.reply_text(
+                    text,
+                    reply_markup=reply_markup,
+                    parse_mode='Markdown'
+                )
             
             # Clean up user_data
             context.user_data.pop(meta_key, None)

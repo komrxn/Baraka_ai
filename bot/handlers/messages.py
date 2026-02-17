@@ -200,10 +200,15 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
     if created_debts:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
+        # Collect settled debt IDs to detect post-factum
+        settled_debt_ids = set()
+        if settled_debts:
+            for sd in settled_debts:
+                sid = sd.get('settled_debt_id')
+                if sid:
+                    settled_debt_ids.add(str(sid))
+        
         for debt in created_debts:
-            await show_debt_with_actions(update, user_id, debt)
-            
-            # Send follow-up: "Add to main account?"
             debt_id = debt.get('debt_id') or debt.get('id')
             debt_type = debt.get('type', 'owe_me')
             amount = float(debt.get('amount', 0))
@@ -212,44 +217,95 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
             description = debt.get('description', '')
             amount_str = f"{amount:,.0f}".replace(",", " ")
             
-            # New debt: owe_me → expense, i_owe → income
-            if debt_type == 'owe_me':
-                prompt = t('debts.add_to_account.prompt_expense', lang,
+            is_postfactum = str(debt_id) in settled_debt_ids
+            
+            if is_postfactum:
+                # POST-FACTUM: debt created + settled in same turn
+                # Show info card WITHOUT action buttons (already settled)
+                if debt_type == 'i_owe':
+                    type_text = t('debts.i_owe', lang)
+                else:
+                    type_text = t('debts.owe_me', lang)
+                
+                text = (
+                    f"**{t('debts.debt_settled', lang)}**\n\n"
+                    f"**{type_text}**\n"
+                    f"**{t('debts.person', lang)}:** {person}\n"
+                    f"**{t('debts.amount', lang)}:** {amount_str} {currency_code}\n"
+                )
+                if description:
+                    text += f"**{t('debts.description', lang)}:** {description}\n"
+                
+                await update.message.reply_text(text, parse_mode='Markdown')
+                
+                # Ask: "Add 2 transactions?" (income when borrowed + expense when returned)
+                prompt = t('debts.add_to_account.prompt_both', lang,
                           amount=amount_str, currency=currency_code)
+                
+                cb_key = f"postfactum_{debt_id}"
+                context.user_data[f"debt_to_tx_{cb_key}"] = {
+                    "type": debt_type,
+                    "amount": amount,
+                    "currency": currency_code,
+                    "person": person,
+                    "description": description,
+                    "is_postfactum": True,
+                }
+                
+                cb_data_yes = f"debt_to_tx_yes_{cb_key}"
+                cb_data_no = f"debt_to_tx_no_{debt_id}"
+                
+                keyboard = [[
+                    InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
+                    InlineKeyboardButton(t('debts.add_to_account.no', lang), callback_data=cb_data_no)
+                ]]
+                
+                await update.message.reply_text(
+                    prompt,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode='Markdown'
+                )
             else:
-                prompt = t('debts.add_to_account.prompt_income', lang,
-                          amount=amount_str, currency=currency_code)
-            
-            # Store metadata for callback handler
-            cb_key = f"new_{debt_id}"
-            context.user_data[f"debt_to_tx_{cb_key}"] = {
-                "type": debt_type,
-                "amount": amount,
-                "currency": currency_code,
-                "person": person,
-                "description": description,
-                "is_settle": False,
-            }
-            
-            cb_data_yes = f"debt_to_tx_yes_{cb_key}"
-            cb_data_no = f"debt_to_tx_no_{debt_id}"
-            
-            keyboard = [[
-                InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
-                InlineKeyboardButton(t('debts.add_to_account.no', lang), callback_data=cb_data_no)
-            ]]
-            
-            await update.message.reply_text(
-                prompt,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode='Markdown'
-            )
+                # NORMAL: new debt only (not settled yet)
+                await show_debt_with_actions(update, user_id, debt)
+                
+                # Ask: "Add single transaction?"
+                if debt_type == 'owe_me':
+                    prompt = t('debts.add_to_account.prompt_expense', lang,
+                              amount=amount_str, currency=currency_code)
+                else:
+                    prompt = t('debts.add_to_account.prompt_income', lang,
+                              amount=amount_str, currency=currency_code)
+                
+                cb_key = f"new_{debt_id}"
+                context.user_data[f"debt_to_tx_{cb_key}"] = {
+                    "type": debt_type,
+                    "amount": amount,
+                    "currency": currency_code,
+                    "person": person,
+                    "description": description,
+                    "is_settle": False,
+                }
+                
+                cb_data_yes = f"debt_to_tx_yes_{cb_key}"
+                cb_data_no = f"debt_to_tx_no_{debt_id}"
+                
+                keyboard = [[
+                    InlineKeyboardButton(t('debts.add_to_account.yes', lang), callback_data=cb_data_yes),
+                    InlineKeyboardButton(t('debts.add_to_account.no', lang), callback_data=cb_data_no)
+                ]]
+                
+                await update.message.reply_text(
+                    prompt,
+                    reply_markup=InlineKeyboardMarkup(keyboard),
+                    parse_mode='Markdown'
+                )
 
-    # Show settled debts
+    # Show settled debts (only those NOT already handled as post-factum above)
     if settled_debts:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
         
-        # Collect IDs of debts created in this same turn (post-factum)
+        # Collect IDs of debts created in this same turn (post-factum — already handled above)
         created_debt_ids = set()
         if created_debts:
             for d in created_debts:
@@ -260,6 +316,11 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         for debt in settled_debts:
              # debt: {settled_debt_id, person, amount, type, currency}
             debt_id = debt.get('settled_debt_id')
+            
+            # Skip post-factum debts (already handled in created_debts section)
+            if str(debt_id) in created_debt_ids:
+                continue
+            
             amount_val = float(debt.get('amount', 0))
             amount_str = f"{amount_val:,.0f}".replace(",", " ")
             currency = debt.get('currency', 'UZS').upper()
@@ -274,11 +335,6 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
                 text,
                 reply_markup=get_main_keyboard(lang)
             )
-            
-            # Skip prompt if this debt was also created in same turn
-            # (already prompted via created_debts section above)
-            if str(debt_id) in created_debt_ids:
-                continue
             
             # Ask: "Add transaction?" — single reverse transaction
             if debt_type == "owe_me":
