@@ -39,9 +39,7 @@ async def execute_tool(
 
         elif function_name == "delete_transactions":
             transaction_ids = args.get("transaction_ids", [])
-            if not transaction_ids:
-                return {"success": False, "error": "No transaction IDs provided"}
-            
+            # ... existing code ...
             try:
                 await api_client.bulk_delete_transactions(transaction_ids)
                 return {
@@ -49,6 +47,22 @@ async def execute_tool(
                     "message": f"Successfully deleted {len(transaction_ids)} transactions.",
                     "deleted_count": len(transaction_ids)
                 }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        elif function_name == "get_transactions":
+            limit = args.get("limit", 5)
+            try:
+                transactions = await api_client.get_transactions(limit=limit)
+                # Format for AI
+                if not transactions:
+                    return "No recent transactions found."
+                
+                lines = []
+                for tx in transactions:
+                    # Provide ID, date, amount, category, description
+                    lines.append(f"ID: {tx['id']} | {tx['transaction_date']} | {tx['amount']} {tx['currency']} | {tx['category']['name'] if tx.get('category') else 'No Cat'} | {tx.get('description', '')}")
+                return "\n".join(lines)
             except Exception as e:
                 return {"success": False, "error": str(e)}
 

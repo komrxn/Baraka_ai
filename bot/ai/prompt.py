@@ -66,6 +66,7 @@ RULES:
      
    - If the user asks for analysis/statistics:
      - First, GET relevant data (balance, category breakdown, etc.)
+       - Use `period="day"` for "today".
      - Then analyze it and provide answer in the requested language.
    - **POST-FACTUM (IMPORTANT):** If user says they returned/received money but no debt exists:
      - First call `create_debt` to record the original debt

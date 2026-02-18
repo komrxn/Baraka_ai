@@ -126,6 +126,20 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         }
         await update.message.reply_text(support_msg.get(lang, support_msg['uz']), parse_mode='Markdown')
         return
+    elif text == "🗑 O'chirish / Удалить":
+        # Force AI to list transactions for deletion
+        # We replace the user's text with a clear instruction for the AI
+        override_text = "List my last 5 transactions and ask me which one to delete."
+        
+        token = storage.get_user_token(user_id)
+        api = BarakaAPIClient(config.API_BASE_URL)
+        api.set_token(token)
+        agent = AIAgent(api)
+        
+        # We send the override text to AI, but the user sees their own button click
+        result = await agent.process_message(user_id, override_text)
+        await update.message.reply_text(result.get("response", ""), parse_mode='Markdown')
+        return
 
     
     # Check if editing transaction

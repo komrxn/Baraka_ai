@@ -173,5 +173,22 @@ TOOLS = [
                 "required": ["transaction_ids"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_transactions",
+            "description": "Get a list of recent transactions. Use this to find IDs for deletion or to show history.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of transactions to retrieve (default: 5, max: 20)"
+                    }
+                },
+                "required": []
+            }
+        }
     }
 ]
