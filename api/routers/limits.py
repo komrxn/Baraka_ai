@@ -26,17 +26,19 @@ async def calculate_spent(
     period_end: date
 ) -> Decimal:
     """Calculate spent amount for a category in a period."""
-    result = await db.execute(
-        select(func.coalesce(func.sum(Transaction.amount), 0)).where(
-            and_(
-                Transaction.user_id == user_id,
-                Transaction.category_id == category_id,
-                Transaction.type == "expense",
-                Transaction.transaction_date >= period_start,
-                Transaction.transaction_date <= period_end
-            )
+    query = select(func.coalesce(func.sum(Transaction.amount), 0)).where(
+        and_(
+            Transaction.user_id == user_id,
+            Transaction.type == "expense",
+            Transaction.transaction_date >= period_start,
+            Transaction.transaction_date <= period_end
         )
     )
+    
+    if category_id:
+        query = query.where(Transaction.category_id == category_id)
+        
+    result = await db.execute(query)
     return Decimal(str(result.scalar() or 0))
 
 
@@ -69,31 +71,35 @@ async def create_limit(
     db: AsyncSession = Depends(get_db)
 ):
     """Create a new budget limit."""
-    # Check if limit already exists for this category and period
-    existing = await db.execute(
-        select(Limit).where(
-            and_(
-                Limit.user_id == current_user.id,
-                Limit.category_id == limit_data.category_id,
-                Limit.period_start == limit_data.period_start
-            )
+    # Check if limit already exists for this category/global and period
+    query = select(Limit).where(
+        and_(
+            Limit.user_id == current_user.id,
+            Limit.period_start == limit_data.period_start,
+            # Handling nullable category_id comparison
+            Limit.category_id == limit_data.category_id if limit_data.category_id else Limit.category_id.is_(None)
         )
     )
+    
+    existing = await db.execute(query)
     
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=400,
-            detail="Limit already exists for this category and period"
+            detail="Limit already exists for this category (or global) and period"
         )
     
-    # Get category name
-    category_result = await db.execute(
-        select(Category).where(Category.id == limit_data.category_id)
-    )
-    category = category_result.scalar_one_or_none()
-    
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+    # Get category name if specific category
+    category_name = "All Expenses"
+    if limit_data.category_id:
+        category_result = await db.execute(
+            select(Category).where(Category.id == limit_data.category_id)
+        )
+        category = category_result.scalar_one_or_none()
+        
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+        category_name = category.name
     
     limit = Limit(
         user_id=current_user.id,
@@ -110,7 +116,7 @@ async def create_limit(
         limit.period_start, limit.period_end
     )
     
-    return enrich_limit_with_spending(limit, spent, category.name)
+    return enrich_limit_with_spending(limit, spent, category_name)
 
 
 @router.get("", response_model=list[LimitResponse])

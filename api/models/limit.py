@@ -20,10 +20,10 @@ class Limit(Base):
         nullable=False,
         index=True
     )
-    category_id: Mapped[UUID] = mapped_column(
+    category_id: Mapped[Optional[UUID]] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("categories.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
         index=True
     )
     

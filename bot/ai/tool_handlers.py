@@ -231,10 +231,11 @@ async def _handle_set_limit(
     category_slug = args.get("category_slug")
     amount = float(args.get("amount", 0))
     period = args.get("period", "month")
+    days = args.get("days")
 
-    logger.info(f"Setting limit: {category_slug} {amount}")
+    logger.info(f"Setting limit: {category_slug} {amount} (days={days})")
     try:
-        result = await api_client.set_limit(category_slug, amount, period)
+        result = await api_client.set_limit(category_slug, amount, period=period, days=days)
         logger.info(f"Set limit success: {result}")
         return {
             "success": True,
@@ -242,6 +243,8 @@ async def _handle_set_limit(
             "category": category_slug,
             "amount": amount,
             "remaining": result["remaining"],
+            "days": days,
+            "end_date": result["period_end"]
         }
     except Exception as e:
         logger.error(f"Set limit failed: {e}")

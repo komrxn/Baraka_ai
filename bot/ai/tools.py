@@ -144,12 +144,16 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "category_slug": {"type": "string", "description": "Category slug"},
+                    "category_slug": {"type": "string", "description": "Category slug (or 'all' for global limit)"},
                     "amount": {"type": "number", "description": "Limit amount"},
                     "period": {
                         "type": "string",
-                        "enum": ["month"],
+                        "enum": ["month", "custom"],
                         "description": "Period (default: month)",
+                    },
+                    "days": {
+                        "type": "integer",
+                        "description": "Number of days for custom period (min 1, max 365)",
                     },
                 },
                 "required": ["category_slug", "amount"],

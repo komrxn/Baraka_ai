@@ -84,7 +84,9 @@ RULES:
 
 4. **Limits:**
    - "Set limit for Food 300k" -> `set_limit(category_slug="groceries", amount=300000)`
-   - "Limit 50$" (if context implies category) -> `set_limit`
+   - "Limit for ALL expenses 1M" -> `set_limit(category_slug="all", amount=1000000)`
+   - "Limit Food 50k for 10 days" -> `set_limit(category_slug="groceries", amount=50000, days=10)`
+   - "Overall limit 500$ for week" -> `set_limit(category_slug="all", amount=500, days=7, currency='usd')`
    - If user asks to update limit, just call `set_limit` again (it overwrites).
 
 5. **Voice/Typos:**

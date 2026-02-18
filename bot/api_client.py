@@ -343,43 +343,51 @@ class BarakaAPIClient:
         return response.json()
 
     @handle_auth_errors
-    async def set_limit(self, category_slug: str, amount: float, period: str = "month") -> Dict[str, Any]:
+    async def set_limit(self, category_slug: str, amount: float, period: str = "month", days: int = None) -> Dict[str, Any]:
         """Set limit for a category (Create or Update)."""
         import datetime
         from dateutil.relativedelta import relativedelta
         
         # 1. Resolve category
-        categories = await self.get_categories()
         category_id = None
-        target_slug = category_slug.lower().strip()
         
-        for cat in categories:
-            if cat.get("slug") == target_slug:
-                category_id = cat.get("id")
-                break
-        
-        if not category_id:
-            for cat in categories:
-                if cat.get("name", "").lower() == target_slug:
-                    category_id = cat.get("id")
-                    break
-        
-        if not category_id:
-            for cat in categories:
-                if cat.get("slug") == "other_expense":
-                    category_id = cat.get("id")
-                    break
-                    
-        if not category_id:
-            logger.error(f"Category '{category_slug}' not found. Available slugs: {[c.get('slug') for c in categories[:5]]}...")
-            raise ValueError(f"Category '{category_slug}' not found.")
+        if category_slug.lower() == "all":
+            category_id = None
+            logger.info("Resolved category 'all' to Global Limit (None)")
+        else:
+            categories = await self.get_categories()
+            target_slug = category_slug.lower().strip()
             
-        logger.info(f"Resolved category '{category_slug}' to ID {category_id}")
+            for cat in categories:
+                if cat.get("slug") == target_slug:
+                    category_id = cat.get("id")
+                    break
+            
+            if not category_id:
+                for cat in categories:
+                    if cat.get("name", "").lower() == target_slug:
+                        category_id = cat.get("id")
+                        break
+                        
+            if not category_id:
+                raise ValueError(f"Category '{category_slug}' not found.")
+                
+            logger.info(f"Resolved category '{category_slug}' to ID {category_id}")
 
         # 2. Determine period dates
         today = datetime.date.today()
-        start_date = datetime.date(today.year, today.month, 1)
-        end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
+        
+        if days and days > 0:
+            start_date = today
+            # Max 365 days
+            days = min(days, 365)
+            # End date is inclusive? Check logic. Usually [start, end].
+            # If 1 day: start=today, end=today.
+            end_date = start_date + datetime.timedelta(days=days-1) # 1 day duration = same day end
+        else:
+            # Default to month logic
+            start_date = datetime.date(today.year, today.month, 1)
+            end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
         
         # 3. Check existing limit
         response = await self._client.get(
@@ -390,6 +398,7 @@ class BarakaAPIClient:
         response.raise_for_status()
         limits = response.json()
             
+        # Match by category_id (handling None for global)
         existing_limit = next((l for l in limits if l["category_id"] == category_id), None)
         
         if existing_limit:
@@ -399,14 +408,15 @@ class BarakaAPIClient:
                 headers=self.headers
             )
         else:
+            payload = {
+                "category_id": category_id,
+                "amount": amount,
+                "period_start": start_date.isoformat(),
+                "period_end": end_date.isoformat()
+            }
             response = await self._client.post(
                 f"{self.base_url}/limits",
-                json={
-                    "category_id": category_id,
-                    "amount": amount,
-                    "period_start": start_date.isoformat(),
-                    "period_end": end_date.isoformat()
-                },
+                json=payload,
                 headers=self.headers
             )
         response.raise_for_status()
