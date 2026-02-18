@@ -4,7 +4,8 @@
         "statistics": "📊 Statistics",
         "help": "❓ Help",
         "instructions": "❓ Instructions",
-        "support": "🛠 Tech Support"
+        "support": "🛠 Tech Support",
+        "delete": "🗑 Delete Transactions"
     },
     "actions": {
         "confirm": "✅ Confirm",

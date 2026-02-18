@@ -4,7 +4,8 @@
         "statistics": "📊 Statistika",
         "help": "❓ Yordam",
         "instructions": "❓ Ko'rsatmalar",
-        "support": "🛠 Texnik yordam"
+        "support": "🛠 Texnik yordam",
+        "delete": "🗑 Tranzaksiyalarni o'chirish"
     },
     "actions": {
         "confirm": "✅ Tasdiqlash",
