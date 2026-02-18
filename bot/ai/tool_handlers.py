@@ -79,22 +79,26 @@ async def execute_tool(
         elif function_name == "get_exchange_rates":
             target_ccy = args.get("currency_code", "").upper()
             try:
-                rates = await api_client.get_currency_rates()
+                response_data = await api_client.get_currency_rates()
+                # response_data is {"date": "...", "rates": [...]}
+                
+                rates = response_data.get("rates", [])
+                
                 # Filter if needed
                 filtered_rates = rates
                 if target_ccy:
-                    filtered_rates = [r for r in rates if r.get("Ccy") == target_ccy]
+                    filtered_rates = [r for r in rates if r.get("code") == target_ccy]
                 
                 if not filtered_rates:
                     # If specific currency not found, return major ones + error note
-                    majors = [r for r in rates if r.get("Ccy") in ["USD", "EUR", "RUB"]]
-                    major_str = ", ".join([f"{r['Ccy']}: {r['Rate']}" for r in majors])
-                    return f"Currency '{target_ccy}' not found in CBU. Major rates: {major_str}"
+                    majors = [r for r in rates if r.get("code") in ["USD", "EUR", "RUB", "CNY"]]
+                    major_str = ", ".join([f"{r['code']}: {r['rate']}" for r in majors])
+                    return f"Currency '{target_ccy}' not found in CBU database. Major rates: {major_str}"
 
                 lines = []
                 for r in filtered_rates:
                     # Format: USD: 12450.00 UZS (19.02.2024)
-                    lines.append(f"{r['Ccy']}: {r['Rate']} UZS (Date: {r['Date']})")
+                    lines.append(f"{r['code']}: {r['rate']} UZS (Diff: {r['diff']})")
                 
                 return "\n".join(lines)
             except Exception as e:
