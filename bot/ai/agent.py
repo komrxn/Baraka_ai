@@ -116,15 +116,16 @@ class AIAgent:
                         })
 
                         # Classify results
-                        if isinstance(result, dict) and result.get("success"):
-                            if "transaction_id" in result:
-                                created_transactions.append(result)
-                            elif "debt_id" in result:
-                                created_debts.append(result)
-                            elif "settled_debt_id" in result:
-                                settled_debts.append(result)
-                        elif result.get("premium_required"):
-                            premium_upsells.append(result)
+                        if isinstance(result, dict):
+                            if result.get("success"):
+                                if "transaction_id" in result:
+                                    created_transactions.append(result)
+                                elif "debt_id" in result:
+                                    created_debts.append(result)
+                                elif "settled_debt_id" in result:
+                                    settled_debts.append(result)
+                            elif result.get("premium_required"):
+                                premium_upsells.append(result)
 
                     except Exception as e:
                         logger.exception(f"Error executing tool {tc.function.name}: {e}")
