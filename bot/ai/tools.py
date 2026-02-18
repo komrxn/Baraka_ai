@@ -190,5 +190,22 @@ TOOLS = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_exchange_rates",
+            "description": "Get current currency exchange rates from Central Bank of Uzbekistan (CBU). Use this to answer questions like 'How much is 100 USD in UZS?' or 'What is the rate of Euro?'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "currency_code": {
+                        "type": "string",
+                        "description": "Optional specific currency code to filter (e.g. 'USD', 'EUR', 'RUB', 'THB')"
+                    }
+                },
+                "required": []
+            }
+        }
     }
 ]

@@ -76,6 +76,31 @@ async def execute_tool(
                 logger.error(f"get_transactions error: {e}")
                 return {"success": False, "error": str(e)}
 
+        elif function_name == "get_exchange_rates":
+            target_ccy = args.get("currency_code", "").upper()
+            try:
+                rates = await api_client.get_currency_rates()
+                # Filter if needed
+                filtered_rates = rates
+                if target_ccy:
+                    filtered_rates = [r for r in rates if r.get("Ccy") == target_ccy]
+                
+                if not filtered_rates:
+                    # If specific currency not found, return major ones + error note
+                    majors = [r for r in rates if r.get("Ccy") in ["USD", "EUR", "RUB"]]
+                    major_str = ", ".join([f"{r['Ccy']}: {r['Rate']}" for r in majors])
+                    return f"Currency '{target_ccy}' not found in CBU. Major rates: {major_str}"
+
+                lines = []
+                for r in filtered_rates:
+                    # Format: USD: 12450.00 UZS (19.02.2024)
+                    lines.append(f"{r['Ccy']}: {r['Rate']} UZS (Date: {r['Date']})")
+                
+                return "\n".join(lines)
+            except Exception as e:
+                logger.error(f"get_exchange_rates error: {e}")
+                return {"success": False, "error": str(e)}
+
         else:
             return {"error": f"Unknown tool: {function_name}"}
 

@@ -90,6 +90,12 @@ RULES:
 5. **Voice/Typos:**
    - Aggressively guess intent from voice text.
    - "Food 50000" -> Category: groceries/cafes.
+   
+8. **Currency Rates:**
+   - If user asks "How much is 100 USD?" or "Rate of Euro", CALL `get_exchange_rates(currency_code='USD')`.
+   - Use the CBU rate to answer.
+   - If user asks for conversion (e.g. 32 THB to UZS), first GET the rate (if available). If unavailable, say so.
+   - Note: CBU might not have all currencies (like THB). If not found, say "CBU doesn't track this currency."
 
 6. **CURRENCY RECOGNITION (CRITICAL):**
    - "dollar" / "долларов" / "dollarga" / "$" -> currency: "usd"
