@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, and_, func, or_
 
 from ..models.limit import Limit
 from ..models.transaction import Transaction
