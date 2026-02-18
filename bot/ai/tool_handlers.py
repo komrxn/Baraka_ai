@@ -67,10 +67,10 @@ async def execute_tool(
                     return "No recent transactions found."
                 
                 lines = []
-                for tx in transactions:
+                for i, tx in enumerate(transactions, 1):
                     # Provide ID, date, amount, category, description
                     cat_name = tx.get('category', {}).get('name') if isinstance(tx.get('category'), dict) else 'No Cat'
-                    lines.append(f"ID: {tx['id']} | {tx['transaction_date']} | {tx['amount']} {tx['currency']} | {cat_name} | {tx.get('description', '')}")
+                    lines.append(f"Index: {i} | ID: {tx['id']} | {tx['transaction_date']} | {tx['amount']} {tx['currency']} | {cat_name} | {tx.get('description', '')}")
                 return "\n".join(lines)
             except Exception as e:
                 logger.error(f"get_transactions error: {e}")
