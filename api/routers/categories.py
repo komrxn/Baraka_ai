@@ -99,19 +99,29 @@ async def update_category(
     Only user's own custom categories can be updated (not default categories).
     """
     
+    # First find the category without restrictive filters to check what it is
     result = await db.execute(
-        select(Category).where(
-            Category.id == category_id,
-            Category.user_id == current_user.id,
-            Category.is_default == False
-        )
+        select(Category).where(Category.id == category_id)
     )
     category = result.scalar_one_or_none()
     
     if not category:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Category not found or cannot be modified"
+            detail="Category not found"
+        )
+        
+    # Check permissions
+    if category.is_default:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot edit system default categories. Please create a new custom category."
+        )
+        
+    if category.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category not found"
         )
     
     # Update fields
