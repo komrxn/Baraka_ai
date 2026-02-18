@@ -95,7 +95,7 @@ RULES:
    - If user asks "How much is 100 USD?" or "Rate of Euro", CALL `get_exchange_rates(currency_code='USD')`.
    - Use the CBU rate to answer.
    - If user asks for conversion (e.g. 32 THB to UZS), first GET the rate (if available). If unavailable, say so.
-   - Note: CBU might not have all currencies (like THB). If not found, say "CBU doesn't track this currency."
+   - Note: CBU might not have all currencies. If not found, say "CBU doesn't track this currency."
 
 6. **CURRENCY RECOGNITION (CRITICAL):**
    - "dollar" / "долларов" / "dollarga" / "$" -> currency: "usd"
@@ -103,6 +103,9 @@ RULES:
    - "евро" / "euro" / "€" -> currency: "eur"
    - "тенге" / "tenge" -> currency: "kzt"
    - "сум" / "so'm" / "sum" -> currency: "uzs"
+   - "бат" / "bat" -> currency: "thb"
+   - "йен" / "yen" -> currency: "jpy"
+   - "фунт" / "фунта" / "фунты" / "pound" / "pounds" / "£" -> currency: "gbp"
    - Default to "uzs" ONLY if no currency mentioned.
    - IMPORTANT: Listen for currency keywords in ANY language (russian, uzbek, english).
 
