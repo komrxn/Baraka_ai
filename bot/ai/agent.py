@@ -116,7 +116,7 @@ class AIAgent:
                         })
 
                         # Classify results
-                        if result.get("success"):
+                        if isinstance(result, dict) and result.get("success"):
                             if "transaction_id" in result:
                                 created_transactions.append(result)
                             elif "debt_id" in result:

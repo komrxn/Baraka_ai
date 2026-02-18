@@ -83,7 +83,7 @@ def get_main_keyboard(lang: str = 'uz', subscription_type: str = 'free'):
             KeyboardButton(t('common.buttons.instructions', lang))
         ],
         [KeyboardButton(t('common.buttons.support', lang))],
-        [KeyboardButton(t('buttons.delete', lang))]
+        [KeyboardButton(t('common.buttons.delete', lang))]
     ]
     
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)

@@ -126,7 +126,7 @@ async def process_text_message(update: Update, context: ContextTypes.DEFAULT_TYP
         }
         await update.message.reply_text(support_msg.get(lang, support_msg['uz']), parse_mode='Markdown')
         return
-    elif text == t('buttons.delete', lang):
+    elif text == t('common.buttons.delete', lang):
         # Force AI to list transactions for deletion
         # We replace the user's text with a clear instruction for the AI
         override_text = "List my last 5 transactions and ask me which one to delete."
