@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '008'
-down_revision = '007'  # Assuming 007 is the last one based on file list (add_text_usage_007.py)
+revision = 'make_category_id_nullable_008'
+down_revision = 'add_text_usage_007'
 branch_labels = None
 depends_on = None
 
