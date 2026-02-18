@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class LimitBase(BaseModel):
     """Base limit schema."""
-    category_id: UUID
+    category_id: Optional[UUID] = None
     amount: Decimal = Field(..., gt=0, description="Limit amount")
     period_start: date = Field(..., description="Start of the period")
     period_end: date = Field(..., description="End of the period")
