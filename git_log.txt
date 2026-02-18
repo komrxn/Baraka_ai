@@ -1,0 +1,114 @@
+2026-02-13 - feat(bot): localize back button and add to selection menu
+2026-02-13 - feat(bot): add Back button to manual transaction editing flow
+2026-02-13 - fix(bot): restore transaction card when editing is interrupted by menu
+2026-02-13 - fix(bot): revert text confirmation, allow menu buttons to interrupt editing
+2026-02-13 - fix(ai): localize confirmation prompt in system instructions
+2026-02-13 - fix(bot): always send text response with keyboard to ensure menu visibility
+2026-02-13 - fix(db): add cascade delete to ClickTransaction relationship in API and Admin Backend
+2026-02-11 - fix(api): copy bot locales to api image and escape keys in notification fallback
+2026-02-11 - fix(api): use robust local translation loading in notification service to avoid import errors
+2026-02-11 - fix(sub): fix trial notification message date and webapp activation notification
+2026-02-11 - fix(bot): enable manual phone number entry in registration and login
+2026-02-11 - fix(bot): correct indentation error in common keyboard handler
+2026-02-11 - feat(bot): add tier-specific success messages and tech support button
+2026-02-11 - fix(auth): improve phone number normalization for manual registration
+2026-02-11 - Merge branch 'main' of https://github.com/komrxn/Baraka_ai
+2026-02-11 - feat(subscription): add trial plan option and update button logic for plan selection
+2026-02-11 - feat(bot): disable payme implementation and show coming soon alert
+2026-02-11 - feat(chart): enhance MainChart and MainChartFullModal components with new category display logic and styling improvements
+2026-02-10 - fix(subscription): update Main.vue to display subscription banner conditionally based on subscription status
+2026-02-10 - refactor(subscription): streamline Subscription.vue layout and enhance plan details display
+2026-02-10 - fix(frontend): disable payme selection and update payment link generation logic
+2026-02-10 - refactor(subscription): simplify payment link generation by removing unused parameters and update UI logic for payment handling
+2026-02-10 - Merge branch 'main' of https://github.com/komrxn/Midas_ai
+2026-02-10 - feat(subscription): enhance payment link generation and update subscription UI with new plans
+2026-02-10 - fix(admin): add missing transaction model for analytics
+2026-02-10 - feat(dashboard): update charts and metrics
+2026-02-10 - feat(analytics): add text usage tracking to dashboard
+2026-02-10 - feat(admin): add interactive analytics dashboard with Chart.js
+2026-02-10 - fix(admin): add missing handleDelete and handleRevoke functions in Users.vue
+2026-02-10 - fix(profile): escape markdown in user names to prevent parsing errors
+2026-02-09 - fix(currency): expand currency support to 9 currencies with better recognition
+2026-02-09 - feat(i18n): update subscription locales with currency features
+2026-02-09 - feat(broadcast): add update notification system with currency v1.5 announcement
+2026-02-09 - refactor(i18n): move hardcoded upsell texts to localization files
+2026-02-09 - feat(premium): show currency button to all users, add premium upsell
+2026-02-09 - fix(currency): add conversion logic to AI agent and subscription-aware keyboard
+2026-02-09 - feat(currency): add currency rates display and multi-currency transactions
+2026-02-06 - chore(i18n): update subscription tier descriptions with detailed limits
+2026-02-06 - feat(i18n): localize trial button and expiration notifications
+2026-02-06 - feat(api+bot): restore premium trial and add expiration scheduler
+2026-02-06 - fix(api): fix registration 500 error (remove is_premium from init)
+2026-02-05 - feat(chart): implement full chart modal and enhance category display logic
+2026-02-04 - fix(api): fix click payment 500 error (readonly property)
+2026-02-04 - fix(api+bot): fix subscription status sync and profile display
+2026-02-04 - feat(admin-frontend): split subscription tier/duration and cleanup table
+2026-02-04 - fix(admin-frontend): restore missing opening td tag
+2026-02-03 - feat(admin-frontend): update subscription UI for new tiers
+2026-02-03 - fix(bot): allow free tier access in subscription check
+2026-02-03 - feat: enhance bot subscription text and admin panel tier logic
+2026-02-03 - feat: localize bot subscription flow and fix admin panel compatibility
+2026-02-03 - fix: ignore admin_users table in alembic migrations
+2026-02-03 - fix: import models in alembic env.py to support autogenerate
+2026-02-03 - feat: overhaul subscription system (tiers, limits, prices)
+2026-02-03 - fix(payme): handle multiple pending transactions gracefully
+2026-02-03 - fix(payme): forbid multiple pending transactions for same order
+2026-02-03 - fix(payme): sandbox bypass now supports invalid amount test
+2026-02-03 - fix(payme): support custom 'Baraka_ai' account field
+2026-02-03 - fix(payme): return JSON-RPC error 200 OK on auth failure
+2026-02-02 - fix(payme): add synthetic bypass for sandbox test order_id
+2026-01-30 - fix(subscription): update monthly subscription price from '19 990' to '34 990'
+2026-01-30 - fix(finance-tracker): update API URLs and enhance error handling in token generation
+2026-01-30 - chore(payme): add request logging for debugging
+2026-01-30 - fix(payme): revert to strict order_id validation
+2026-01-30 - fix(payme): add user resolution by name in account dict
+2026-01-30 - fix(payme): robust user resolution from account dict (phone/order_id)
+2026-01-29 - fix(payme): revert error message to localized dict map
+2026-01-29 - fix(payme): strict json-rpc 2.0 compliance (string message, data field)
+2026-01-29 - fix(payme): strict json-rpc response validation to omit null data
+2026-01-29 - fix(payme): remove response_model to prevent invalid JSON-RPC format
+2026-01-29 - fix(payme): resolve NameError in services
+2026-01-29 - fix(payme): fix indentation error in router
+2026-01-29 - fix(payme): enforce strict JSON-RPC 2.0 response format
+2026-01-29 - fix(payme): proper exception handling for PaymeError
+2026-01-29 - fix: pass PAYME env vars in docker-compose, add test mode support
+2026-01-29 - feat: payme integration, fix billing logic details
+2026-01-28 - feat(bot): use AI for all edit fields and support voice input
+2026-01-28 - fix(bot): handle category_id in edit transaction action
+2026-01-28 - fix(bot): register transaction_edit_field_handler in main.py
+2026-01-28 - fix(bot): add error handling and logging to edit field callback
+2026-01-28 - feat(bot): improve edit flow and add stats percentages
+2026-01-27 - fix(bot): localize payment provider buttons and instructions
+2026-01-27 - fix(api): correct router import in main.py
+2026-01-27 - fix(payment): add missing APIRouter import
+2026-01-27 - feat(payment): refactor payment system and add Payme integration
+2026-01-27 - fix: add id field to UserBase schema to expose UUID to frontend
+2026-01-27 - fix: delete package-lock.json and pin tailwind v3 to force clean install
+2026-01-27 - fix: downgrade tailwind to v3 for compatibility with postcss config
+2026-01-27 - fix: pydantic serialization and missing postcss config
+2026-01-27 - fix: correct import path for AdminUser in reset script
+2026-01-27 - fix: downgrade bcrypt to 3.2.2 for guaranteed passlib compatibility
+2026-01-27 - feat: add password reset script and ensure app package
+2026-01-27 - fix: add mime.types include to frontend nginx to fix css loading
+2026-01-27 - fix: correct admin-api proxy path to avoid double api prefix
+2026-01-27 - fix: prioritize admin routes over static asset regex match
+2026-01-26 - fix: restore frontend nginx config and enable admin proxying
+2026-01-26 - fix: sync frontend nginx config with admin routes
+2026-01-26 - fix: pin bcrypt version for passlib compatibility
+2026-01-26 - fix: add email-validator dependency for admin backend
+2026-01-26 - fix: upgrade admin frontend node version to 22
+2026-01-26 - fix: correct admin_backend build context in docker-compose
+2026-01-26 - feat: add standalone admin panel (backend, frontend, docker, nginx)
+2026-01-26 - feat: enhance api logs with user name (db fallback)
+2026-01-26 - feat: improve logging with user identification for bot and api
+2026-01-26 - refactor: update card styles and remove gold text color across components
+2026-01-26 - fix: add missing 'uncategorized' translation key
+2026-01-26 - feat: update subscription pricing and add quarterly/annual plans to bot
+2026-01-26 - fix: resolve critical bug where quarterly plan gave only 1 month instead of 3
+2026-01-26 - fix: correct subscription expiration date display in bot profile
+2026-01-26 - fix: resolve timezone mismatch in click payment completion
+2026-01-26 - fix: update Click.uz router to use string types for signature verification
+2026-01-24 - config: update domain from m idas-ai.org to baraka-ai.com cmdand dquote> cmdand dquote> - Update VITE_API_URL in docker-compose.yml cmdand dquote> - Update VITE_API_URL in .env.production.example cmdand dquote> - Update WEB_APP_URL in bot/config.py
+2026-01-24 - config: update domain to midas-ai.org
+2026-01-14 - config: update domain from midas-ai.org to baraka-ai.com
+2026-01-14 - docs: comprehensive documentation cleanup and production deployment optimizations

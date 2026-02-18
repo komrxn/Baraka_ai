@@ -189,7 +189,7 @@ async def handle_edit_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     api.set_token(token)
     
     try:
-        from .ai_agent import AIAgent
+        from .ai import AIAgent
         agent = AIAgent(api)
         
         # Give AI context about what's being edited

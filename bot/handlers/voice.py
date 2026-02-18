@@ -8,7 +8,7 @@ import httpx
 from ..api_client import BarakaAPIClient
 from ..config import config
 from ..user_storage import storage
-from ..ai_agent import AIAgent
+from ..ai import AIAgent
 from ..transaction_actions import show_transaction_with_actions
 from ..i18n import t
 from .common import get_main_keyboard, send_typing_action

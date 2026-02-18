@@ -3,7 +3,7 @@ import logging
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 
-from ..ai_agent import AIAgent
+from ..ai import AIAgent
 from ..api_client import BarakaAPIClient
 from ..config import config
 from ..user_storage import storage

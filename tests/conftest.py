@@ -18,7 +18,7 @@ from api.models.category import Category
 from api.auth.jwt import get_password_hash
 
 # Test database URL (use separate test database!)
-TEST_DATABASE_URL = "postgresql+asyncpg://macbro@localhost:5432/midas_test_db"
+TEST_DATABASE_URL = "postgresql+asyncpg://komrxn@localhost:5432/midas_test_db"
 
 # Create test engine
 test_engine = create_async_engine(

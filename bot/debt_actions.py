@@ -203,7 +203,7 @@ async def handle_edit_debt_message(update: Update, context: ContextTypes.DEFAULT
             "currency": current_debt.get('currency', 'uzs')
         }
         
-        from .ai_agent import AIAgent
+        from .ai import AIAgent
         agent = AIAgent(api)
         
         updates = await agent.edit_debt(old_data, text)

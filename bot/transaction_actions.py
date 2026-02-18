@@ -211,7 +211,7 @@ async def handle_edit_transaction_message(update: Update, context: ContextTypes.
             "currency": current_tx.get('currency', 'uzs')
         }
         
-        from .ai_agent import AIAgent
+        from .ai import AIAgent
         agent = AIAgent(api)
         
         updates = {}

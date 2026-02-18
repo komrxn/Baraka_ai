@@ -92,7 +92,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Process with AI agent
         async def _process_receipt():
-            from ..ai_agent import AIAgent
+            from ..ai import AIAgent
             agent = AIAgent(api)
             return await agent.process_message(user_id, f"Вот чек: {extracted_text}")
         
