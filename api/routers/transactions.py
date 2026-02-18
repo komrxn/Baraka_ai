@@ -232,6 +232,34 @@ async def update_transaction(
     return TransactionResponse.model_validate(transaction)
 
 
+@router.delete("/bulk", status_code=status.HTTP_204_NO_CONTENT)
+async def bulk_delete_transactions(
+    transaction_ids: List[UUID],
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete multiple transactions at once."""
+    
+    # Verify ownership and existence
+    result = await db.execute(
+        select(Transaction).where(
+            Transaction.id.in_(transaction_ids),
+            Transaction.user_id == current_user.id
+        )
+    )
+    transactions = result.scalars().all()
+    
+    if not transactions:
+        # Nothing to delete (or IDs invalid/not owned)
+        return None
+        
+    for tx in transactions:
+        await db.delete(tx)
+        
+    await db.commit()
+    return None
+
+
 @router.delete("/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_transaction(
     transaction_id: UUID,

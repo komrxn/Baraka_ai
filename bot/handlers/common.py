@@ -82,7 +82,8 @@ def get_main_keyboard(lang: str = 'uz', subscription_type: str = 'free'):
             KeyboardButton("Baraka AI PLUS 🌟"),
             KeyboardButton(t('common.buttons.instructions', lang))
         ],
-        [KeyboardButton(t('common.buttons.support', lang))]
+        [KeyboardButton(t('common.buttons.support', lang))],
+        [KeyboardButton("🗑 O'chirish / Удалить")]
     ]
     
     return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)

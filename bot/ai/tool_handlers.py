@@ -37,7 +37,23 @@ async def execute_tool(
         elif function_name == "get_statistics":
             return await _handle_get_statistics(api_client, args)
 
-        return {"success": False, "error": "Unknown function"}
+        elif function_name == "delete_transactions":
+            transaction_ids = args.get("transaction_ids", [])
+            if not transaction_ids:
+                return {"success": False, "error": "No transaction IDs provided"}
+            
+            try:
+                await api_client.bulk_delete_transactions(transaction_ids)
+                return {
+                    "success": True, 
+                    "message": f"Successfully deleted {len(transaction_ids)} transactions.",
+                    "deleted_count": len(transaction_ids)
+                }
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        else:
+            return {"error": f"Unknown tool: {function_name}"}
 
     except Exception as e:
         logger.exception(f"Tool execution error: {e}")

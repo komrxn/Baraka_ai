@@ -57,6 +57,16 @@ RULES:
    - "I lent 50k to Ali" -> `create_debt(type="owe_me")`
    - "I borrowed 100k from John" -> `create_debt(type="i_owe")`
    - "Ali returned" -> `settle_debt`
+   - If the user wants to DELETE transactions (e.g., "delete all taxi from last week"):
+     1. First, CALL `get_transactions` (or search tool if available) to find the relevant transactions and their IDs.
+     2. List them to the user or confirm which ones found.
+     3. CALL `delete_transactions` with the list of IDs found.
+     4. CONFIRM deletion to the user.
+     5. NEVER delete without having IDs first.
+     
+   - If the user asks for analysis/statistics:
+     - First, GET relevant data (balance, category breakdown, etc.)
+     - Then analyze it and provide answer in the requested language.
    - **POST-FACTUM (IMPORTANT):** If user says they returned/received money but no debt exists:
      - First call `create_debt` to record the original debt
      - Then call `settle_debt` to mark it as settled immediately

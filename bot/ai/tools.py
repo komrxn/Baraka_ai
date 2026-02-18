@@ -156,4 +156,22 @@ TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_transactions",
+            "description": "Delete multiple transactions by their IDs. Use this ONLY after listing transactions to find their IDs and confirming with the user.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "transaction_ids": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of transaction IDs (UUIDs) to delete"
+                    }
+                },
+                "required": ["transaction_ids"]
+            }
+        }
+    }
 ]

@@ -171,6 +171,17 @@ class BarakaAPIClient:
             headers=self.headers
         )
         response.raise_for_status()
+
+    @handle_auth_errors
+    async def bulk_delete_transactions(self, tx_ids: list[str]) -> None:
+        """Delete multiple transactions."""
+        response = await self._client.request(
+            "DELETE",
+            f"{self.base_url}/transactions/bulk",
+            json=tx_ids,  # Pass list directly as body
+            headers=self.headers
+        )
+        response.raise_for_status()
     
     @handle_auth_errors
     async def get_balance(self, period: str = "month") -> Dict[str, Any]:
