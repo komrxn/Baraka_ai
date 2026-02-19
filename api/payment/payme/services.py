@@ -10,6 +10,7 @@ from ...models.payme_transaction import PaymeTransaction
 from ...models.user import User
 from ...services.notification import send_subscription_success_message
 from ...services.pricing import PricingService
+from .exceptions import PaymeException
 
 # Configure logging
 logger = logging.getLogger(__name__)
