@@ -70,26 +70,13 @@ async def generate_payment_link(
     Generate Click.uz or Payme payment link.
     """
     # 1. Determine amount & plan
-    # Plus: 34,999 (1 mo) / 94,999 (3 mo)
-    # Pro: 49,999 (1 mo) / 119,999 (3 mo)
-    # Premium: 89,999 (1 mo) / 229,999 (3 mo)
+    from ..services.pricing import PricingService
     
-    amount = 0.0
-    
-    if request.plan_id == "plus_1":
-        amount = 34999.00
-    elif request.plan_id == "plus_3":
-        amount = 94999.00
-    elif request.plan_id == "pro_1":
-        amount = 49999.00
-    elif request.plan_id == "pro_3":
-        amount = 119999.00
-    elif request.plan_id == "premium_1":
-        amount = 89999.00
-    elif request.plan_id == "premium_3":
-        amount = 229999.00
-    else:
+    plan_obj = PricingService.get_plan(request.plan_id)
+    if not plan_obj:
         raise HTTPException(status_code=400, detail="Invalid plan")
+        
+    amount = float(plan_obj.price_uzs)
 
     # 2. Create pending transaction (Order)
     merchant_trans_id = str(uuid.uuid4())
