@@ -97,41 +97,35 @@ class PaymeService:
     async def check_perform_transaction(self, params: dict) -> dict:
         """
         Validate if transaction can be performed.
-        Checks:
-        1. Order/User existence.
-        2. Amount validity.
-        3. Sandbox specific bypass logic.
         """
         amount = params.get("amount")
         account = params.get("account", {})
         order_id = self._extract_order_id(account)
 
-        # --- SANDBOX SYNTHETIC BYPASS ---
-        if self._is_sandbox_check(order_id):
-            logger.info(f"Sandbox Bypass triggered for ID {order_id}")
-            
-            # Special Case: "Invalid Amount" test scenario
-            if amount == self.SANDBOX_INVALID_AMOUNT_TEST:
-                logger.info("Sandbox Negative Test: Invalid Amount triggered.")
-                raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa")
-            
-            # If not the invalid amount case, assume valid for test user
-            return {"allow": True}
-        # --------------------------------
+        is_sandbox = self._is_sandbox_check(order_id)
 
-        # 1. Validate User
-        user = await self._get_user(order_id)
-        if not user:
-            logger.warning(f"User not found for order_id: {order_id}")
-            raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi", "User not found", "order_id")
+        if is_sandbox:
+            logger.info(f"Sandbox Bypass: Skipping user validation for test ID {order_id}")
+        else:
+            # 1. Validate User
+            user = await self._get_user(order_id)
+            if not user:
+                logger.warning(f"User not found for order_id: {order_id}")
+                raise self._make_error(-31050, "User not found", "Foydalanuvchi topilmadi", "User not found", "order_id")
 
         # 2. Validate Amount
         if amount <= 0:
-            logger.warning(f"Invalid amount: {amount}")
+            logger.warning(f"Invalid amount (<=0): {amount}")
             raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa")
 
-        # TODO: Validate amount matches Plan price if strict checking is enabled.
-        # Currently we trust client generation, but for production should match DB plan.
+        # Strict Plan Amount Validation
+        from ...services.pricing import PricingService
+        amount_uzs = amount / 100.0
+        tier, _ = PricingService.get_tier_by_amount(amount_uzs)
+        
+        if not tier:
+             logger.warning(f"Invalid amount (no matching plan found): {amount_uzs} UZS")
+             raise self._make_error(-31001, "Invalid amount", "Noto'g'ri summa")
         
         return {"allow": True}
 
