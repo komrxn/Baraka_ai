@@ -164,15 +164,7 @@ class PaymeService:
                 "state": tx.state
             }
         
-        # 2. Ensure Single-Shot Rule (One pending tx per order)
-        # Sandbox bypass logic applies here too? 
-        # Actually sandbox might create multiple for same user if we don't block.
-        # But we MUST block for correctness.
-        # Bypass: If it's the test ID, do we allow multiple? 
-        # User said "One Pending Transaction" rule is tested in sandbox. So we must enforce.
-        await self._ensure_no_active_transaction(order_id)
-
-        # 3. Validation (Re-use CheckPerform Logic)
+        # 2. Validation (Re-use CheckPerform Logic FIRST to catch invalid amounts before checking if order is busy)
         try:
             await self.check_perform_transaction(params)
         except PaymeException as e:
@@ -180,6 +172,9 @@ class PaymeService:
         except Exception as e:
             logger.error(f"Unexpected error during check_perform inside create: {e}", exc_info=True)
             raise self._make_error(-31008, "Validation failed", "Tekshiruv xatosi")
+
+        # 3. Ensure Single-Shot Rule (One pending tx per order)
+        await self._ensure_no_active_transaction(order_id)
 
         # 4. Create Transaction
         now_ms = int(time.time() * 1000)
