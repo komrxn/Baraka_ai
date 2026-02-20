@@ -21,8 +21,9 @@ class PaymeService:
     # ---------------------------------------------------------
     TIMEOUT_MS = 43_200_000  # 12 hours
     SANDBOX_TEST_IDS = (
-        "697b5f9f5e5e8dad8f3acfc6",
-        "697b5f9f5e5e8dad8f3acfc7", # Second test ID
+        "697b5f9f5e5e8dad8f3acfc6", # Original
+        "697b5f9f5e5e8dad8f3acfc7", # Second
+        "697b5f9f5e5e8dad8f3acfc",  # Truncated (from screenshot UI error)
     )
     SANDBOX_INVALID_AMOUNT_TEST = 10000
 
