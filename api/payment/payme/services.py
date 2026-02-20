@@ -20,7 +20,10 @@ class PaymeService:
     # Constants
     # ---------------------------------------------------------
     TIMEOUT_MS = 43_200_000  # 12 hours
-    SANDBOX_TEST_ID = "697b5f9f5e5e8dad8f3acfc6"
+    SANDBOX_TEST_IDS = (
+        "697b5f9f5e5e8dad8f3acfc6",
+        "697b5f9f5e5e8dad8f3acfc7", # Second test ID
+    )
     SANDBOX_INVALID_AMOUNT_TEST = 10000
 
     def __init__(self, db: AsyncSession):
@@ -64,7 +67,7 @@ class PaymeService:
 
     def _is_sandbox_check(self, order_id: str) -> bool:
         """Check if this is a known sandbox testing ID."""
-        return order_id == self.SANDBOX_TEST_ID
+        return order_id in self.SANDBOX_TEST_IDS
 
     async def _ensure_no_active_transaction(self, order_id: str):
         """Ensure no other pending transaction exists for this order (Single-Shot rule)."""
