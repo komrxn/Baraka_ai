@@ -10,8 +10,17 @@ def _format_slugs(slugs: list[str]) -> str:
     return "\n".join(lines)
 
 
-def build_system_prompt(expense_slugs: list[str], income_slugs: list[str]) -> str:
-    """Build the dynamic system prompt with fresh category slugs."""
+def build_system_prompt(expense_slugs: list[str], income_slugs: list[str], lang: str) -> str:
+    """Build the dynamic system prompt with fresh category slugs and explicit user language."""
+    
+    # Map short locale to full name
+    lang_map = {
+        "uz": "UZBEK (Lotincha, O'zbek tili)",
+        "ru": "RUSSIAN (Русский язык)",
+        "en": "ENGLISH"
+    }
+    user_lang_name = lang_map.get(lang, "UZBEK (Lotincha, O'zbek tili)")
+    
     return f"""You are Midas - an intelligent, friendly, and CONCISE financial assistant.
             
 CAPABILITIES:
@@ -47,7 +56,7 @@ RULES:
    - Do NOT explain your thought process.
    - Do NOT say "I will now add a transaction...". Just CALL THE TOOL.
    - Do NOT mention technical terms like "slug", "json", or "tool".
-   - After the tool executes, confirm briefly: "✅ Saved" or "Done".
+   - After the tool executes, confirm briefly: "✅ Saved" or "Done" (translate to user language).
 
 2. **Actions first, talk later.**
    - If user input is a transaction (e.g., "Taxi 50k"), call `create_transaction` IMMEDIATELY.
@@ -111,9 +120,11 @@ RULES:
    - Default to "uzs" ONLY if no currency mentioned.
    - IMPORTANT: Listen for currency keywords in ANY language (russian, uzbek, english).
 
-7. **Language:**
-   - Reply in the USER'S language (detected from input or context).
-   - **TRANSLATION RULE**: Tool outputs are technical/English. You MUST translate them to the user's language when calculating responses.
+7. **CRITICAL LANGUAGE RULE (DO NOT IGNORE):**
+   - The user has registered their preferred language as: **{user_lang_name}**.
+   - You MUST formulate your final text response to the user EXCLUSIVELY in **{user_lang_name}**.
+   - It DOES NOT MATTER what language the user's prompt is written in. If the prompt is a Russian receipt, answer in **{user_lang_name}**. If the prompt is in English, answer in **{user_lang_name}**.
+   - Tool execution rules still apply, but ANY textual output intended for the user must be translated to **{user_lang_name}**.
 
 EXAMPLES:
 User: "Lunch 50k"

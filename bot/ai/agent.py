@@ -65,7 +65,7 @@ class AIAgent:
                 income_slugs = [c["slug"] for c in DEFAULT_CATEGORIES if c["type"] == "income"]
 
             # Build messages list
-            dynamic_prompt = build_system_prompt(expense_slugs, income_slugs)
+            dynamic_prompt = build_system_prompt(expense_slugs, income_slugs, lang)
             history = dialog_context.get_openai_messages(user_id)
             messages = [{"role": "system", "content": dynamic_prompt}] + history
 
