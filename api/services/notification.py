@@ -108,10 +108,19 @@ async def send_subscription_expired_message(user: User):
         
         message = data.get("trial_ended", "Trial ended.")
         btn_text = data.get("buy_subscription_btn", "💎 Buy Subscription")
+        if "trial_ended" not in data:
+            raise ValueError("Key missing")
     except Exception as e:
         logger.error(f"Failed to load translations for expiration: {e}")
-        message = "⏳ **Sinov davri tugadi**\n\nSizning tarifingiz **Free** ga o'zgartirildi."
-        btn_text = "💎 Tarifni tanlash"
+        if lang == 'ru':
+            message = "⚠️ **Пробный период завершен.**\n\nВаш тариф автоматически изменен на **Базовый (Free)**."
+            btn_text = "💎 Выбрать тариф"
+        elif lang == 'en':
+            message = "⚠️ **Trial period ended.**\n\nYour current plan has been changed to **Basic (Free)**."
+            btn_text = "💎 Select Plan"
+        else:
+            message = "⚠️ **Sinov muddati yakunlandi.**\n\nSizning ta'rifingiz avtomatik tarzda **Asosiy (Free)** ga o'zgartirildi."
+            btn_text = "💎 Tarifni tanlash"
     
     # Inline keyboard dictionary format for raw Telegram API
     reply_markup = {
@@ -158,10 +167,19 @@ async def send_premium_upsell_message(user: User):
         
         message = data.get("registration_welcome", "Premium Trial Offer")
         btn_text = data.get("activate_trial_btn", "🚀 Activate Trial")
+        if "registration_welcome" not in data:
+            raise ValueError("Key missing")
     except Exception as e:
         logger.error(f"Failed to load translations for upsell: {e}")
-        message = "🔥 **Baraka AI Premium**\n\nActivate a 3-day premium trial now."
-        btn_text = "🚀 Bepul sinab ko'rish (3 kun)"
+        if lang == 'ru':
+            message = "🔥 **Добро пожаловать в Baraka AI!**\n\nАктивируйте премиум в 1 клик: **3 дня подписки Premium абсолютно бесплатно.**"
+            btn_text = "🚀 Попробовать бесплатно (3 дня)"
+        elif lang == 'en':
+            message = "🔥 **Welcome to Baraka AI!**\n\nActivate premium in 1 click: **3 days of Premium subscription absolutely free.**"
+            btn_text = "🚀 Try Free (3 days)"
+        else:
+            message = "🔥 **Baraka AI'ga xush kelibsiz!**\n\nPremiumni 1 marta bosish orqali faollashtiring: **3 kunga Premium obunasi mutlaqo bepul.**"
+            btn_text = "🚀 Bepul sinab ko'rish (3 kun)"
     
     # Inline keyboard dictionary format for raw Telegram API
     reply_markup = {
