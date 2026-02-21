@@ -134,3 +134,53 @@ async def send_subscription_expired_message(user: User):
             resp.raise_for_status()
         except Exception as e:
             logger.error(f"Failed to send subscription expired message: {e}")
+
+async def send_premium_upsell_message(user: User):
+    """
+    Send the premium trial upsell message to free users who haven't used their trial yet.
+    """
+    if not user.telegram_id:
+        return
+
+    import json
+    from pathlib import Path
+
+    lang = user.language or 'uz'
+    
+    try:
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent.parent
+        locales_dir = project_root / "bot" / "locales"
+        lang_file = locales_dir / lang / "subscription.json"
+        
+        with open(lang_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        message = data.get("registration_welcome", "Premium Trial Offer")
+        btn_text = data.get("activate_trial_btn", "🚀 Activate Trial")
+    except Exception as e:
+        logger.error(f"Failed to load translations for upsell: {e}")
+        message = "🔥 **Baraka AI Premium**\n\nActivate a 3-day premium trial now."
+        btn_text = "🚀 Bepul sinab ko'rish (3 kun)"
+    
+    # Inline keyboard dictionary format for raw Telegram API
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": btn_text, "callback_data": "activate_trial"}]
+        ]
+    }
+
+    url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
+    payload = {
+        "chat_id": user.telegram_id,
+        "text": message,
+        "parse_mode": "Markdown",
+        "reply_markup": reply_markup
+    }
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(url, json=payload, timeout=10.0)
+            resp.raise_for_status()
+        except Exception as e:
+            logger.error(f"Failed to send premium upsell message: {e}")
