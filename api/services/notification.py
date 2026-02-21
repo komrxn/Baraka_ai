@@ -92,35 +92,40 @@ async def send_subscription_expired_message(user: User):
     if not user.telegram_id:
         return
 
+    import json
+    from pathlib import Path
+
     lang = user.language or 'uz'
     
-    if lang == 'ru':
-        message = (
-            "⏳ **Срок действия пробного периода истек**\n\n"
-            "Ваш тариф изменен на **Free**.\n"
-            "Чтобы вернуть безлимитные возможности и доступ к Premium AI, обновите подписку.\n\n"
-            "👉 Нажмите кнопку **Baraka AI PLUS** в меню для выбора тарифа."
-        )
-    elif lang == 'en':
-        message = (
-            "⏳ **Trial period expired**\n\n"
-            "Your plan has been changed to **Free**.\n"
-            "To restore unlimited features and Premium AI access, please upgrade your subscription.\n\n"
-            "👉 Press **Baraka AI PLUS** in the menu to select a plan."
-        )
-    else: # Default Uzbek
-        message = (
-            "⏳ **Sinov davri tugadi**\n\n"
-            "Sizning tarifingiz **Free** ga o'zgartirildi.\n"
-            "Cheksiz imkoniyatlar va Premium AI dan foydalanish uchun obunani yangilang.\n\n"
-            "👉 Tarifni tanlash uchun menyuda **Baraka AI PLUS** tugmasini bosing."
-        )
+    try:
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent.parent
+        locales_dir = project_root / "bot" / "locales"
+        lang_file = locales_dir / lang / "subscription.json"
+        
+        with open(lang_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        message = data.get("trial_ended", "Trial ended.")
+        btn_text = data.get("buy_subscription_btn", "💎 Buy Subscription")
+    except Exception as e:
+        logger.error(f"Failed to load translations for expiration: {e}")
+        message = "⏳ **Sinov davri tugadi**\n\nSizning tarifingiz **Free** ga o'zgartirildi."
+        btn_text = "💎 Tarifni tanlash"
+    
+    # Inline keyboard dictionary format for raw Telegram API
+    reply_markup = {
+        "inline_keyboard": [
+            [{"text": btn_text, "callback_data": "buy_subscription"}]
+        ]
+    }
 
     url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/sendMessage"
     payload = {
         "chat_id": user.telegram_id,
         "text": message,
-        "parse_mode": "Markdown"
+        "parse_mode": "Markdown",
+        "reply_markup": reply_markup
     }
     
     async with httpx.AsyncClient() as client:

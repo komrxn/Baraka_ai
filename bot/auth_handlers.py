@@ -132,6 +132,17 @@ async def register_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
         
+        # Send the premium trial upsell message
+        upsell_text = t('subscription.registration_welcome', db_lang)
+        inline_kb = InlineKeyboardMarkup([
+            [InlineKeyboardButton(t('subscription.activate_trial_btn', db_lang), callback_data="activate_trial")]
+        ])
+        await update.message.reply_text(
+            upsell_text,
+            reply_markup=inline_kb,
+            parse_mode='Markdown'
+        )
+        
         return ConversationHandler.END
         
     except httpx.HTTPStatusError as e:
