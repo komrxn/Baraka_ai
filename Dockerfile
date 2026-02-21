@@ -24,6 +24,8 @@ COPY bot/locales/ ./bot/locales/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
 COPY schema.sql .
+COPY notify_ended_trials.py .
+COPY notify_unused_trials.py .
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
