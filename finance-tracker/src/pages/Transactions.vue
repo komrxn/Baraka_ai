@@ -1,12 +1,12 @@
 <template>
-    <div class="transactions-page">
+    <div class="transactions-page" :class="{ 'transactions-page--selection': selectionMode }">
         <div class="transactions-page__header">
-            <!-- <Button :icon="arrowLeft" severity="secondary" @click="router.back()"
-                class="transactions-page__header-button" /> -->
-                <div style="width: 3.6rem;"/>
-            <h1 class="">{{ t('transactions.title') }}</h1>
             <Button :icon="filter" severity="secondary" @click="filterDrawerVisible = true"
                 class="transactions-page__header-button" />
+            <h1 class="">{{ t('transactions.title') }}</h1>
+            <Button :icon="trash" severity="secondary" :title="t('transactions.selectToDelete')"
+                :class="['transactions-page__header-button', { 'transactions-page__header-button--active': selectionMode }]"
+                @click="toggleSelectionMode" />
         </div>
 
         <div class="transactions-page__content">
@@ -24,7 +24,8 @@
                 <template v-else>
                     <div class="transactions-page__list">
                         <TransactionGroup v-for="group in groupedTransactions" :key="group.date" :group="group"
-                            @transaction-click="handleTransactionClick" />
+                            :selection-mode="selectionMode" :selected-ids="selectedIds"
+                            @transaction-click="handleTransactionClick" @select="handleSelect" />
                     </div>
                     <div v-if="hasMore" class="transactions-page__load-more">
                         <Button :label="t('common.loadMore')" severity="secondary" outlined
@@ -32,6 +33,13 @@
                     </div>
                 </template>
             </template>
+        </div>
+
+        <div v-if="selectionMode" class="transactions-page__selection-bar">
+            <span class="transactions-page__selection-count">{{ t('transactions.selectedCount', { count: selectedIds.length }) }}</span>
+            <Button :label="t('common.cancel')" severity="secondary" text @click="exitSelectionMode" />
+            <Button :label="t('transactions.deleteSelected', { count: selectedIds.length })" severity="danger"
+                :disabled="selectedIds.length === 0" @click="handleMassDelete" />
         </div>
 
         <TransactionFilterForm v-model:visible="filterDrawerVisible" :current-filters="currentFilters"
@@ -51,10 +59,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-import { filter, warning } from '@/assets/icons';
+import { filter, trash, warning } from '@/assets/icons';
 import { Button, ProgressSpinner } from 'primevue';
 
 const { t } = useI18n();
@@ -68,13 +76,15 @@ import type { GetTransactionsParams, Transaction, TransactionFormData, Transacti
 import { useTransactionsStore } from '@/store/transactionsStore';
 import { useCategoriesStore } from '@/store/categoriesStore';
 import { useToastStore } from '@/store/toastsStore';
+import { useLayoutStore } from '@/store/layoutStore';
 
 const transactionsStore = useTransactionsStore();
+const layoutStore = useLayoutStore();
 const categoriesStore = useCategoriesStore();
 const $toast = useToastStore();
 
 const { groupedTransactions, loading, hasMore, currentFilters, filterDrawerVisible, editingTransaction } = storeToRefs(transactionsStore);
-const { loadTransactions, loadMoreTransactions, applyFilters, resetFilters, updateTransaction, removeTransaction, editTransaction, refreshTransactions } = transactionsStore;
+const { loadTransactions, loadMoreTransactions, applyFilters, resetFilters, updateTransaction, removeTransaction, removeTransactions, editTransaction, refreshTransactions } = transactionsStore;
 const { loadCategories } = categoriesStore;
 
 const handleApplyFilters = async (filters: GetTransactionsParams) => {
@@ -88,6 +98,46 @@ const handleResetFilters = async () => {
 const detailsDrawerVisible = ref(false);
 const selectedTransaction = ref<Transaction | null>(null);
 const formDrawerVisible = ref(false);
+
+const selectionMode = ref(false);
+const selectedIds = ref<string[]>([]);
+
+const handleSelect = (transaction: Transaction, selected: boolean) => {
+    if (selected) {
+        selectedIds.value = [...selectedIds.value, transaction.id];
+    } else {
+        selectedIds.value = selectedIds.value.filter(id => id !== transaction.id);
+    }
+};
+
+const toggleSelectionMode = () => {
+    if (selectionMode.value) {
+        exitSelectionMode();
+    } else {
+        selectionMode.value = true;
+        layoutStore.setHideBottomBar(true);
+    }
+};
+
+const exitSelectionMode = () => {
+    selectionMode.value = false;
+    selectedIds.value = [];
+    layoutStore.setHideBottomBar(false);
+};
+
+const handleMassDelete = async () => {
+    if (selectedIds.value.length === 0) return;
+
+    const idsToDelete = [...selectedIds.value];
+    try {
+        await removeTransactions(idsToDelete);
+        exitSelectionMode();
+        await refreshTransactions();
+        $toast.success(t('common.success'), t('transactions.massDeleteSuccess', { count: idsToDelete.length }));
+    } catch (error) {
+        $toast.error(t('common.error'), t('transactions.deleteError'));
+    }
+};
 
 const formEditData = computed(() => {
     return editingTransaction.value;
@@ -151,6 +201,12 @@ const handleSubmitTransaction = async (formData: TransactionFormData) => {
     }
 };
 
+onBeforeUnmount(() => {
+    if (selectionMode.value) {
+        layoutStore.setHideBottomBar(false);
+    }
+});
+
 onMounted(async () => {
     await loadCategories();
 
@@ -171,22 +227,41 @@ onMounted(async () => {
 <style scoped lang="scss">
 .transactions-page {
     padding: 2.4rem;
+    padding-bottom: 10rem;
+
+    &--selection {
+        padding-bottom: 18rem;
+    }
 
     &__header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 2rem;
+        gap: 1rem;
+
+        h1 {
+            font: var(--font-24-b);
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
     }
 
     &__header-button {
         width: 3.6rem;
         height: 3.6rem;
+        flex-shrink: 0;
+
+        &--active {
+            background: var(--card-hover);
+        }
     }
 
     &__content {
         display: flex;
         flex-direction: column;
+        gap: 2rem;
     }
 
     &__empty {
@@ -246,13 +321,35 @@ onMounted(async () => {
     &__loading {
         display: flex;
         justify-content: center;
-        padding: 2rem;
+        padding: 4rem 2rem;
     }
 
     &__load-more {
         display: flex;
         justify-content: center;
         padding: 2rem 0;
+    }
+
+    &__selection-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        padding: 1.6rem 2.4rem;
+        padding-bottom: calc(1.6rem + env(safe-area-inset-bottom));
+        background: var(--card-default);
+        border-radius: 1.6rem 1.6rem 0 0;
+        box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.15);
+        z-index: 101;
+    }
+
+    &__selection-count {
+        flex: 1;
+        font: var(--font-16-b);
+        color: var(--text-color);
     }
 }
 

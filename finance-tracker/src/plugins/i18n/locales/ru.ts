@@ -139,6 +139,10 @@ export default {
     descriptionOptional: 'Описание (необязательно)',
     deleteSuccess: 'Транзакция успешно удалена',
     deleteError: 'Не удалось удалить транзакцию',
+    selectToDelete: 'Выбрать транзакции для удаления',
+    deleteSelected: 'Удалить ({count})',
+    selectedCount: 'Выбрано: {count}',
+    massDeleteSuccess: 'Удалено транзакций: {count}',
     updateSuccess: 'Транзакция успешно обновлена',
     updateError: 'Не удалось обновить транзакцию',
   },
@@ -404,49 +408,6 @@ export default {
       unlimitedTransactions: {
         title: 'Безлимитные транзакции',
         description: 'Без недельного лимита на записи и чеки.',
-      },
-    },
-    plans: {
-      free: {
-        title: 'Free',
-        subtitle: 'После 3-дневного пробного Premium',
-        period: 'Бесплатно',
-        features: {
-          model: 'Модель 5-nano',
-          requests: '180 запросов в 3 дня',
-          voice: '5 голосовых в день',
-          images: 'Рекламная интеграция',
-        },
-      },
-      plus: {
-        title: 'Plus',
-        period: 'мес / 3 мес',
-        features: {
-          model: 'Модель 5-mini',
-          requests: '250 запросов в 3 дня',
-          voice: '20 голосовых в день',
-          images: '20 анализ изображений в день',
-        },
-      },
-      pro: {
-        title: 'Pro',
-        period: 'мес / 3 мес',
-        features: {
-          model: 'Модель 5-mini',
-          requests: '400 запросов в 3 дня',
-          voice: '30 голосовых в день',
-          images: '50 анализ изображений в день',
-        },
-      },
-      premium: {
-        title: 'Premium',
-        period: 'мес / 3 мес',
-        features: {
-          model: 'Модель 5.1',
-          requests: 'Бесконечно (1000 запросов в 3 дня)',
-          voice: 'Бесконечно (100 голосовых в день)',
-          images: 'Бесконечно (150 анализ изображений в день)',
-        },
       },
     },
     featureLabels: {

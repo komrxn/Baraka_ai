@@ -166,6 +166,20 @@ export const useTransactionsStore = defineStore('transactions', () => {
         }
     };
 
+    const removeTransactions = async (ids: string[]) => {
+        try {
+            loading.value = true;
+            await Promise.all(ids.map(id => deleteTransactionRequest(id)));
+            transactions.value = transactions.value.filter(tx => !ids.includes(tx.id));
+            total.value = Math.max(0, total.value - ids.length);
+        } catch (error) {
+            console.error('Failed to delete transactions:', error);
+            throw error;
+        } finally {
+            loading.value = false;
+        }
+    };
+
     const editTransaction = (transaction: Transaction) => {
         editingTransaction.value = transaction;
         drawerVisible.value = true;
@@ -191,6 +205,7 @@ export const useTransactionsStore = defineStore('transactions', () => {
         refreshTransactions,
         updateTransaction,
         removeTransaction,
+        removeTransactions,
         editTransaction,
     };
 });

@@ -109,6 +109,11 @@ onBeforeMount(async () => {
         align-items: center;
         justify-content: space-between;
         margin-bottom: 2rem;
+
+        h1 {
+            font: var(--font-24-b);
+            margin: 0;
+        }
     }
 
     &__header-button {
@@ -124,7 +129,7 @@ onBeforeMount(async () => {
     &__content {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 2rem;
     }
 
     &__empty {
@@ -179,7 +184,7 @@ onBeforeMount(async () => {
     &__list {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 2rem;
     }
 
     &__loading {

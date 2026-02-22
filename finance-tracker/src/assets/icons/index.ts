@@ -23,6 +23,7 @@ import microphone from './microphone.svg?raw';
 import camera from './camera.svg?raw';
 import filter from './filter.svg?raw';
 import home from './home.svg?raw';
+import trash from './trash.svg?raw';
 import user from './user.svg?raw';
 
 export {
@@ -51,5 +52,6 @@ export {
   camera,
   filter,
   home,
+  trash,
   user,
 };

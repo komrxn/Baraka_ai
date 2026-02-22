@@ -225,13 +225,18 @@ onMounted(() => {
 .analytics-page {
     position: relative;
     padding: 2.4rem;
-    padding-bottom: 2rem;
+    padding-bottom: 10rem;
 
     &__header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin-bottom: 2rem;
+
+        h1 {
+            font: var(--font-24-b);
+            margin: 0;
+        }
     }
 
     &__header-button {
@@ -259,12 +264,12 @@ onMounted(() => {
     &__stats {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 1.2rem;
+        gap: 2rem;
         margin-bottom: 2rem;
     }
 
     &__stat-card {
-        padding: 1.6rem;
+        padding: 2rem;
         border-radius: 1.6rem;
         background: var(--card-default);
         border: 1px solid var(--border-medium);
@@ -355,11 +360,11 @@ onMounted(() => {
     &__content {
         display: flex;
         flex-direction: column;
-        gap: 1.6rem;
+        gap: 2rem;
     }
 
     &__chart-card {
-        padding: 1.6rem;
+        padding: 2rem;
         border-radius: 1.6rem;
         background: var(--card-default);
         border: 1px solid var(--border-medium);

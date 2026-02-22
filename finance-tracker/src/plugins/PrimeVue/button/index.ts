@@ -15,9 +15,9 @@ export const buttonConfig = (): ButtonDesignTokens => {
         background: 'var(--primary-500)',
         hoverBackground: 'var(--primary-400)',
         activeBackground: 'var(--primary-600)',
-        color: 'var(--primary-surface-color)',
-        hoverColor: 'var(--primary-surface-color)',
-        activeColor: 'var(--primary-surface-color)',
+        // color: 'var(--primary-surface-color)',
+        // hoverColor: 'var(--primary-surface-color)',
+        // activeColor: 'var(--primary-surface-color)',
       },
 
       secondary: {

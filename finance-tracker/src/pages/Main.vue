@@ -43,7 +43,7 @@ onMounted(async () => {
 <style scoped lang="scss">
 .main-page {
     width: 100%;
-    padding: 2rem;
+    padding: 2.4rem;
     min-height: 100dvh;
 }
 </style>

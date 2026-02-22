@@ -258,6 +258,11 @@ onBeforeMount(async () => {
         justify-content: space-between;
         margin-bottom: 2rem;
         gap: 1rem;
+
+        h1 {
+            font: var(--font-24-b);
+            margin: 0;
+        }
     }
 
     &__header-button {
@@ -269,12 +274,12 @@ onBeforeMount(async () => {
 
     &__balance {
         display: flex;
-        gap: 1.2rem;
+        gap: 2rem;
         margin-bottom: 2rem;
 
         &-item {
             flex: 1;
-            padding: 1.6rem;
+            padding: 2rem;
             border-radius: 1.6rem;
             background: var(--card-default);
             border: 1px solid var(--border-medium);
@@ -320,7 +325,7 @@ onBeforeMount(async () => {
     &__content {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 2rem;
     }
 
     &__empty {
@@ -375,7 +380,7 @@ onBeforeMount(async () => {
     &__list {
         display: flex;
         flex-direction: column;
-        gap: 1.2rem;
+        gap: 2rem;
     }
 
     &__loading {

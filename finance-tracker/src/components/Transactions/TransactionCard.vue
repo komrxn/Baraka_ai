@@ -1,5 +1,7 @@
 <template>
-    <div class="transaction-card" @click="handleClick">
+    <div class="transaction-card" :class="{ 'transaction-card--selection': selectionMode }" @click="handleClick">
+        <Checkbox v-if="selectionMode" :model-value="selected" binary :input-id="`tx-${transaction.id}`"
+            class="transaction-card__checkbox" @update:model-value="(v: boolean) => handleSelect(v)" @click.stop />
         <div class="transaction-card__content">
             <div class="transaction-card__icon" :style="{ backgroundColor: categoryColor }">
                 <span class="transaction-card__emoji">{{ categoryIcon }}</span>
@@ -23,6 +25,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { Checkbox } from 'primevue';
 import type { Transaction } from '@/composables/Transactions/types';
 import { useCategoriesStore } from '@/store/categoriesStore';
 import { formatAmount } from '@/utils';
@@ -30,6 +33,8 @@ import { formatTime } from '@/composables/Transactions/utils';
 
 const props = defineProps<{
     transaction: Transaction;
+    selectionMode?: boolean;
+    selected?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -62,10 +67,19 @@ const categoryColor = computed(() => {
 
 const emit = defineEmits<{
     (e: 'click', transaction: Transaction): void;
+    (e: 'select', transaction: Transaction, selected: boolean): void;
 }>();
 
 const handleClick = () => {
-    emit('click', props.transaction);
+    if (props.selectionMode) {
+        emit('select', props.transaction, !props.selected);
+    } else {
+        emit('click', props.transaction);
+    }
+};
+
+const handleSelect = (value: boolean) => {
+    emit('select', props.transaction, value);
 };
 </script>
 
@@ -78,6 +92,14 @@ const handleClick = () => {
     align-items: center;
     justify-content: space-between;
     gap: 1.2rem;
+
+    &--selection {
+        cursor: pointer;
+    }
+
+    &__checkbox {
+        flex-shrink: 0;
+    }
     border: 1px solid var(--border-medium);
     box-shadow: none;
     position: relative;

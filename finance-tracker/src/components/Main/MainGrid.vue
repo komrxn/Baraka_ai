@@ -75,8 +75,8 @@ const items = computed(() => [
   overflow-x: auto;
   overflow-y: visible;
   padding-bottom: 0.5rem;
-  margin: 1.4rem -2rem 0 -2rem;
-  padding: 0 2rem;
+  margin: 1.4rem -2.4rem 0 -2.4rem;
+  padding: 0 2.4rem;
   scrollbar-width: none;
 
   &__item {

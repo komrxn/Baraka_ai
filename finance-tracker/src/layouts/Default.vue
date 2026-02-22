@@ -2,11 +2,15 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { dollar, home, user } from '@/assets/icons';
 import VIcon from '@/components/UI/VIcon.vue';
+import { useLayoutStore } from '@/store/layoutStore';
 
 const route = useRoute();
 const { t } = useI18n();
+const layoutStore = useLayoutStore();
+const { hideBottomBar } = storeToRefs(layoutStore);
 
 const navItems = computed(() => [
     {
@@ -34,7 +38,8 @@ const isActive = (path: string) => {
 };
 
 const showBottomBar = computed(() => {
-    return route.name === 'main' || route.name === 'transactions' || route.name === 'settings';
+    const onNavPage = route.name === 'main' || route.name === 'transactions' || route.name === 'settings';
+    return onNavPage && !hideBottomBar.value;
 });
 </script>
 

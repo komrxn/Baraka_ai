@@ -145,7 +145,7 @@ onMounted(async () => {
 <style scoped lang="scss">
 .settings-page {
     width: 100%;
-    padding: 2rem;
+    padding: 2.4rem;
 
     &__header {
         display: flex;
@@ -154,16 +154,17 @@ onMounted(async () => {
         margin-bottom: 2rem;
 
         &-button {
-            width: 4rem;
-            height: 4rem;
+            width: 3.6rem;
+            height: 3.6rem;
         }
 
         &-empty {
-            width: 4rem;
+            width: 3.6rem;
         }
 
         h1 {
             font: var(--font-24-b);
+            margin: 0;
         }
     }
 

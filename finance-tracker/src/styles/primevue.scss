@@ -3,6 +3,43 @@ body {
     backdrop-filter: blur(3px);
   }
 
+  .p-dialog {
+    color: var(--text-color);
+
+    .p-dialog-header,
+    .p-dialog-title {
+      color: var(--text-color);
+    }
+
+    .p-dialog-close-button {
+      color: var(--text-color) !important;
+      background: transparent !important;
+      border-color: transparent !important;
+
+      &:hover {
+        color: var(--text-color) !important;
+        background: var(--card-hover) !important;
+      }
+    }
+  }
+
+  .p-drawer {
+    .p-drawer-close-button {
+      color: var(--text-color) !important;
+      background: transparent !important;
+      border-color: transparent !important;
+
+      &:hover {
+        color: var(--text-color) !important;
+        background: var(--card-hover) !important;
+      }
+    }
+  }
+
+  .transaction-details-drawer__title {
+    color: var(--text-color) !important;
+  }
+
   .confirmation-dialog {
     max-width: 36rem;
     width: 100%;

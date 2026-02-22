@@ -13,26 +13,39 @@
         </div>
         <div class="transaction-group__transactions">
             <TransactionCard v-for="transaction in group.transactions" :key="transaction.id"
-                :transaction="transaction" @click="handleTransactionClick" />
+                :transaction="transaction" :selection-mode="selectionMode" :selected="selectedIds.includes(transaction.id)"
+                @click="handleTransactionClick" @select="handleSelect" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import type { TransactionGroup, Transaction } from '@/composables/Transactions/types';
 import TransactionCard from './TransactionCard.vue';
 import { formatAmount } from '@/utils';
 
 const props = defineProps<{
     group: TransactionGroup;
+    selectionMode?: boolean;
+    selectedIds?: string[];
 }>();
 
 const emit = defineEmits<{
     (e: 'transaction-click', transaction: Transaction): void;
+    (e: 'select', transaction: Transaction, selected: boolean): void;
 }>();
 
+const selectedIds = computed(() => props.selectedIds ?? []);
+
 const handleTransactionClick = (transaction: Transaction) => {
-    emit('transaction-click', transaction);
+    if (!props.selectionMode) {
+        emit('transaction-click', transaction);
+    }
+};
+
+const handleSelect = (transaction: Transaction, selected: boolean) => {
+    emit('select', transaction, selected);
 };
 </script>
 

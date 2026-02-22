@@ -340,7 +340,7 @@ onMounted(() => {
 .subscription-page {
     width: 100%;
     padding: 2.4rem;
-    padding-bottom: 12rem;
+    padding-bottom: 10rem;
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -350,6 +350,11 @@ onMounted(() => {
         align-items: center;
         justify-content: space-between;
         margin-bottom: 2rem;
+
+        h1 {
+            font: var(--font-24-b);
+            margin: 0;
+        }
     }
 
     &__header-button {
@@ -365,14 +370,14 @@ onMounted(() => {
     &__content {
         display: flex;
         flex-direction: column;
-        gap: 2.4rem;
+        gap: 2rem;
         flex: 1;
     }
 
     &__step {
         display: flex;
         flex-direction: column;
-        gap: 2.4rem;
+        gap: 2rem;
     }
 
     &__step-title {
@@ -387,7 +392,7 @@ onMounted(() => {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        gap: 1.2rem;
+        gap: 2rem;
     }
 
     &__icon {
